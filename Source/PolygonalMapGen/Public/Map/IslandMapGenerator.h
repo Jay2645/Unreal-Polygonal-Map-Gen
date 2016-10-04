@@ -8,24 +8,29 @@
 #include "PolygonalMapGen/Private/Map/IslandShapes/IslandShape.h"
 #include "IslandMapGenerator.generated.h"
 
+/*
+* The IslandData struct manages all the attributes used to generate an island.
+*/
 USTRUCT(BlueprintType)
 struct FIslandData
 {
 	GENERATED_BODY()
 
-	// The type of island to make. Different generators will make differently-shaped islands.
+	// The type of island to make.
+	// Different generators will make differently-shaped islands.
+	// By default, all points will be considered water.
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	TSubclassOf<UIslandShape> IslandType;
 
-	// The random seed to use for the island
+	// The random seed to use for the island.
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	int32 Seed;
 
-	// Size of the actual island
+	// The size of the actual island, in meters.
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	int32 Size;
 
-	// Increases the mountain area
+	// This increases the size of the
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	float ScaleFactor;
 

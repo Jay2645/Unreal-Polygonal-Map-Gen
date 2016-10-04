@@ -12,11 +12,21 @@ void AIslandMapGenerator::ResetMap()
 {
 	UObject* outer = (UObject*)GetTransientPackage();
 
-	if (IslandData.IslandType != NULL)
+	if (IslandData.IslandType == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("IslandShape was null!"));
+		IslandShape = NewObject<UIslandShape>(outer, UIslandShape::StaticClass());
+	}
+	else
 	{
 		IslandShape = NewObject<UIslandShape>(outer, IslandData.IslandType);
 	}
-	if (IslandData.IslandPointSelector != NULL)
+	if (IslandData.IslandPointSelector == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("PointSelector was null!"));
+		PointSelector = NewObject<UPointGenerator>(outer, UPointGenerator::StaticClass());
+	}
+	else
 	{
 		PointSelector = NewObject<UPointGenerator>(outer, IslandData.IslandPointSelector);
 	}
@@ -342,7 +352,8 @@ void AIslandMapGenerator::RedistributeElevations(TArray<int32> landCorners)
 		// We want the higher elevations to occur less than lower
 		// ones, and set the area to be y(x) = 1 - (1-x)^2.
 		float y = i / (mapCorners.Num() - 1.0f);
-		float x = IslandData.ScaleFactor - IslandData.ScaleFactor * (1.0f - y);
+		// Since the data is sorted by elevation, this will linearly increase the elevation as the loop goes on.
+		float x = y - 1.0f;
 		if (x > maxElevation)
 		{
 			maxElevation = x;
@@ -352,6 +363,8 @@ void AIslandMapGenerator::RedistributeElevations(TArray<int32> landCorners)
 		UpdateCorner(corner);
 	}
 
+	// Now we normalize all the elevations relative to the largest elevation we have
+	// This places all elevations between 0 and 1
 	for (int i = 0; i < mapCorners.Num(); i++)
 	{
 		FMapCorner corner = GetCorner(mapCorners[i].Index);
