@@ -180,6 +180,35 @@ struct FMapEdge
 	}
 };
 
+USTRUCT(BlueprintType)
+struct FPolygonMapData
+{
+	GENERATED_BODY()
+
+	// The size each debug point is rendered
+	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+	int32 PointSize;
+	// The Z offset of the bottom of the ocean -- what's the lowest
+	// point on the entire map?
+	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+	float ElevationOffset;
+	// How much to scale the map on the XY scale.
+	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+	float XYScaleFactor;
+	// How tall the map should be -- how much higher is the highest
+	// point in the map from the lowest point?
+	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+	float ElevationScale;
+
+	FPolygonMapData()
+	{
+		PointSize = 256;
+		ElevationOffset = -6350.0f;
+		XYScaleFactor = 102.4f;
+		ElevationScale = 3200.0f;
+	}
+};
+
 /**
  * 
  */
@@ -202,7 +231,7 @@ public:
 	// polygons, the Delaunay edge will have one null point, and the 
 	// Voronoi edge may be null.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
-	void BuildGraph(const int32& mapSize);
+	void BuildGraph(const int32& mapSize, const FPolygonMapData& data);
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 	FMapCenter& MakeCenter(const FVector2D& point);
@@ -325,6 +354,9 @@ private:
 	UPointGenerator* PointSelector;
 	UPROPERTY()
 	int32 MapSize;
+
+	UPROPERTY()
+	FPolygonMapData MapData;
 
 	/// Graph Data
 	// The points in our graph

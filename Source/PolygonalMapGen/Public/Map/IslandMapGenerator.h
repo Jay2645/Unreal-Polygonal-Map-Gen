@@ -40,6 +40,9 @@ struct FIslandData
 	UPROPERTY(Category = "Water", BlueprintReadWrite, EditAnywhere)
 	float LakeThreshold;
 
+	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+	FPolygonMapData PolygonMapSettings;
+
 	UWorld* GameWorld;
 
 	//Constructor
@@ -73,11 +76,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
 	void ResetMap();
 
-	// Generates a new map from our IslandData.
-	UFUNCTION(BlueprintNativeEvent, Category = "Island Generation")
-	void GenerateMap();
-
-	void GenerateMap_Implementation();
+	// This generates a new map.
+	// Internally, it is an alias for GenerateMap().
+	UFUNCTION(BlueprintCallable, Category = "Island Generation")
+	UPolygonMap* CreateMap();
 
 	// Returns a MapCenter at the given index.
 	// If the index is invalid, an empty MapCenter will be returned.
@@ -142,22 +144,36 @@ public:
 
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	FIslandData IslandData;
-private:
+
+protected:
+	// Generates a new map from our IslandData.
+	// This is overridable in Blueprint, in case users want to create
+	// their own map generation.
+	UFUNCTION(BlueprintNativeEvent, Category = "Island Generation")
+	UPolygonMap* GenerateMap();
+
 	// Initializes the IslandShape and PointSelector classes
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void InitializeMap();
 
+	// Creates the initial points that our map will work on
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void BuildGraph();
 
 	// Determines graph elevation
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignElevation();
 
 	// Determines downslopes and moisture
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignMoisture();
 
 	// Determine the elevations and water at Voronoi corners.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignCornerElevations();
 
 	// Determine polygon and corner type: ocean, coast, land.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignOceanCoastAndLand();
 
 	// Rescale elevations so that the highest is 1.0, and they're
@@ -167,17 +183,21 @@ private:
 	// largest ring around the island, and therefore should more
 	// land area than the highest elevation, which is the very
 	// center of a perfectly circular island.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void RedistributeElevations(TArray<int32> landCorners);
 
 	// Flatten areas which are considered ocean corners
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void FlattenWaterElevations();
 
 	// Assign polygon elevations as the average of their corners
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignPolygonElevations();
 
 	// Calculate downslope pointers.  At every point, we point to the
 	// point downstream from it, or to itself.  This is used for
 	// generating rivers and watersheds.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void CalculateDownslopes();
 
 	// Calculate the watershed of every land point. The watershed is
@@ -185,30 +205,35 @@ private:
 	// watersheds are currently calculated on corners, but it'd be
 	// more useful to compute them on polygon centers so that every
 	// polygon can be marked as being in one watershed.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void CalculateWatersheds();
 
 	// Create rivers along edges. Pick a random corner point, then
 	// move downslope. Mark the edges and corners as rivers.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void CreateRivers();
 
 	// Calculate moisture. Freshwater sources spread moisture: rivers
 	// and lakes (not oceans). Saltwater sources have moisture but do
 	// not spread it (we set it at the end, after propagation).
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignCornerMoisture();
 
 	// Redistribute moisture to cover the entire range evenly 
 	// from 0.0 to 1.0.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void RedistributeMoisture(TArray<int32> landCorners);
 
 	// Assign polygon moisture as the average of the corner moisture.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignPolygonMoisture();
 
+	// Does final processing on the graph
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void FinalizeAllPoints();
 
-	// Create an array of corners that are on land only, for use by
-	// algorithms that work only on land.
-
-	//void DrawDebugPixelGrid();
+private:
+	UPolygonMap* GenerateMap_Implementation();
 
 	UPROPERTY()
 		UIslandShape* IslandShape;

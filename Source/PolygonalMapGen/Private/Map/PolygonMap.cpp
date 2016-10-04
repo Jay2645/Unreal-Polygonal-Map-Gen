@@ -19,9 +19,10 @@ void UPolygonMap::CreatePoints(UPointGenerator* pointSelector, const int32& numb
 	Points = PointSelector->GeneratePoints(numberOfPoints);
 }
 
-void UPolygonMap::BuildGraph(const int32& mapSize)
+void UPolygonMap::BuildGraph(const int32& mapSize, const FPolygonMapData& data)
 {
 	MapSize = mapSize;
+	MapData = data;
 	Voronoi voronoi(Points);
 	for (int i = 0; i < voronoi.sites.Num(); i++)
 	{
@@ -364,9 +365,9 @@ void UPolygonMap::CompileMapData()
 
 FVector UPolygonMap::ConvertGraphPointToWorldSpace(const FMapData& mapData)
 {
-	float elevationOffset = -6350.0f;
-	float xyScale = 102.4 / MapSize;
-	float elevationScale = 3200.0f;
+	float elevationOffset = MapData.ElevationOffset;
+	float xyScale = MapData.XYScaleFactor / MapSize;
+	float elevationScale = MapData.ElevationScale;
 
 	FVector worldLocation = FVector::ZeroVector;
 	worldLocation.X = mapData.Point.X * MapSize * xyScale;
@@ -407,7 +408,7 @@ void UPolygonMap::DrawDebugVoronoiGrid(const UWorld* world)
 		}
 
 		FVector worldLocation = ConvertGraphPointToWorldSpace(mapData);
-		DrawDebugSphere(world, worldLocation, MapSize, 4, color, true);
+		DrawDebugSphere(world, worldLocation, MapData.PointSize, 4, color, true);
 	}
 
 	for (int i = 0; i < Edges.Num(); i++)
@@ -503,7 +504,7 @@ void UPolygonMap::DrawDebugDelaunayGrid(const UWorld* world)
 		}
 
 		FVector worldLocation = ConvertGraphPointToWorldSpace(mapData);
-		DrawDebugSphere(world, worldLocation, MapSize, 4, color, true);
+		DrawDebugSphere(world, worldLocation, MapData.PointSize, 4, color, true);
 	}
 
 

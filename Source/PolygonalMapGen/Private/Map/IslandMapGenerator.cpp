@@ -6,7 +6,6 @@
 void AIslandMapGenerator::SetData(FIslandData islandData)
 {
 	IslandData = islandData;
-	RandomGenerator.Initialize(IslandData.Seed);
 }
 
 void AIslandMapGenerator::ResetMap()
@@ -23,14 +22,24 @@ void AIslandMapGenerator::ResetMap()
 	}
 }
 
-void AIslandMapGenerator::GenerateMap_Implementation()
+UPolygonMap* AIslandMapGenerator::CreateMap()
 {
+	return GenerateMap();
+}
+
+UPolygonMap* AIslandMapGenerator::GenerateMap_Implementation()
+{
+	IslandData.GameWorld = GetWorld();
 	UE_LOG(LogWorldGen, Log, TEXT("Generating a new map at %f."), IslandData.GameWorld->GetRealTimeSeconds());
+
+	RandomGenerator.Initialize(IslandData.Seed);
+
 	ResetMap();
+
 	if (IslandShape == NULL || PointSelector == NULL)
 	{
 		UE_LOG(LogWorldGen, Error, TEXT("IslandShape or PointSelector were null!"));
-		return;
+		return NULL;
 	}
 
 	// Initialization
@@ -48,6 +57,8 @@ void AIslandMapGenerator::GenerateMap_Implementation()
 	MapGraph->DrawDebugVoronoiGrid(IslandData.GameWorld);
 	//MapGraph->DrawDebugDelaunayGrid(IslandData.GameWorld);
 	//PixelMap->DrawDebugPixelGrid(IslandData.GameWorld);
+
+	return MapGraph;
 }
 
 void AIslandMapGenerator::InitializeMap()
@@ -63,7 +74,7 @@ void AIslandMapGenerator::BuildGraph()
 	MapGraph->CreatePoints(PointSelector, IslandData.NumberOfPoints);
 
 	// Build graph
-	MapGraph->BuildGraph(IslandData.Size);
+	MapGraph->BuildGraph(IslandData.Size, IslandData.PolygonMapSettings);
 	MapGraph->ImproveCorners();
 }
 
@@ -331,14 +342,7 @@ void AIslandMapGenerator::RedistributeElevations(TArray<int32> landCorners)
 		// We want the higher elevations to occur less than lower
 		// ones, and set the area to be y(x) = 1 - (1-x)^2.
 		float y = i / (mapCorners.Num() - 1.0f);
-
-		// Now we have to solve for x, given the known y.
-		//  *  y = 1 - (1-x)^2
-		//  *  y = 1 - (1 - 2x + x^2)
-		//  *  y = 2x - x^2
-		//  *  x^2 - 2x + y = 0
-		// From this we can use the quadratic equation to get:
-		float x = FMath::Sqrt(IslandData.ScaleFactor) - FMath::Sqrt(IslandData.ScaleFactor*(1.0f - y));
+		float x = IslandData.ScaleFactor - IslandData.ScaleFactor * (1.0f - y);
 		if (x > maxElevation)
 		{
 			maxElevation = x;
