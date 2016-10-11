@@ -4,7 +4,9 @@ This is a port of [the ActionScript code](https://github.com/amitp/mapgen2) of [
 
 The original ActionScript code was released under the MIT Open Source license; this C++ port of the code is also released under the MIT Open Source license.
 
-The map generation works by generating an array of points using a user-specified PointGeneratior (inheriting from UPointGenerator), which is triangulated using a [Delaunay Triangulation](https://en.wikipedia.org/wiki/Delaunay_triangulation). The Delaunay Triangulation is a dual graph of a [Voronoi Diagram](https://en.wikipedia.org/wiki/Voronoi_diagram), which provides us with 2 sets of points. This approach is called a "polygonal" map generation because we use the points of our Delaunay Triangulation as centers of polygons, with the vertices of that polygon given by the dual graph of the Voronoi Diagram.
+This project also uses [Bl4ckb0ne's C++ Delaunay Triangulation algorithm](https://github.com/Bl4ckb0ne/delaunay-triangulation), modified slightly to work with the Unreal Engine. This code is also used under the MIT License. Conversion from Delaunay to Voronoi is (very loosely) based off of [Joseph Marshall's voronoi-c++ code](https://bitbucket.org/jlm/voronoi-c/src/b06aa9cccba6392d28ad7d7cae9a7361efb22c94?at=default), also modified under an MIT License.
+
+The actual map generation works by generating an array of points using a user-specified PointGeneratior (inheriting from UPointGenerator), which is triangulated using a [Delaunay Triangulation](https://en.wikipedia.org/wiki/Delaunay_triangulation). The Delaunay Triangulation is a dual graph of a [Voronoi Diagram](https://en.wikipedia.org/wiki/Voronoi_diagram), which provides us with 2 sets of points. This approach is called a "polygonal" map generation because we use the points of our Delaunay Triangulation as centers of polygons, with the vertices of that polygon given by the dual graph of the Voronoi Diagram.
 
 Once a map is created, it will generate 3 different arrays:
 
