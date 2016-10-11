@@ -394,7 +394,11 @@ void UPolygonMap::DrawDebugVoronoiGrid(const UWorld* world)
 		{
 		color = FColor(255, 0, 0);
 		}
-		else */if (mapData.bIsOcean)
+		else */ if (Corners[i].RiverSize > 0)
+		{
+			color = FColor(0, 0, 255);
+		}
+		else if (mapData.bIsOcean)
 		{
 			color = FColor(0, 0, 255);
 		}
@@ -439,7 +443,11 @@ void UPolygonMap::DrawDebugVoronoiGrid(const UWorld* world)
 		{
 		color = FColor(255, 0, 0);
 		}
-		else */if (v0Data.bIsOcean && v1Data.bIsOcean)
+		else */if(Edges[i].RiverVolume > 0)
+		{
+			color = FColor(0, 0, 255);
+		}
+		else if (v0Data.bIsOcean && v1Data.bIsOcean)
 		{
 			color = FColor(0, 0, 255);
 		}

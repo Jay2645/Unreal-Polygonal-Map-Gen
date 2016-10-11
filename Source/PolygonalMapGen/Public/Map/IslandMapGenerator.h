@@ -4,9 +4,12 @@
 
 #include "Object.h"
 #include "PolygonMap.h"
+#include "PolygonalMapGen/Private/Map/Elevation/ElevationDistributor.h"
 #include "PolygonalMapGen/Private/Map/PointGenerator/PointGenerator.h"
 #include "PolygonalMapGen/Private/Map/IslandShapes/IslandShape.h"
 #include "IslandMapGenerator.generated.h"
+
+DECLARE_DYNAMIC_DELEGATE(FIslandGeneratorDelegate);
 
 /*
 * The IslandData struct manages all the attributes used to generate an island.
@@ -48,6 +51,7 @@ struct FIslandData
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
 	FPolygonMapData PolygonMapSettings;
 
+	UPROPERTY(Category = "World", BlueprintReadWrite, VisibleInstanceOnly)
 	UWorld* GameWorld;
 
 	//Constructor
@@ -70,8 +74,10 @@ class AIslandMapGenerator : public AActor
 {
 	GENERATED_BODY()
 public:
-	AIslandMapGenerator() {};
+	AIslandMapGenerator();
 	~AIslandMapGenerator() {};
+
+	virtual void Tick(float deltaSeconds) override;
 
 	// Sets the IslandData that will be used for Island Generation.
 	UFUNCTION(BlueprintCallable, Category="Island Generation")
@@ -81,10 +87,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
 	void ResetMap();
 
-	// This generates a new map.
-	// Internally, it is an alias for GenerateMap().
+	// Adds all the necessary steps for Island Generation, then
+	// generates an island.
+	// It will call the passed delegate when the generation is done.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
-	UPolygonMap* CreateMap();
+	void CreateMap(const FIslandGeneratorDelegate onComplete);
 
 	// Returns a MapCenter at the given index.
 	// If the index is invalid, an empty MapCenter will be returned.
@@ -147,57 +154,64 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 	void UpdateEdge(const FMapEdge& edge);
 
+	UFUNCTION(BlueprintCallable, Category = "Island Generation")
+	void AddGenerationStep(const FIslandGeneratorDelegate step);
+
+	UFUNCTION(BlueprintCallable, Category = "Island Generation")
+	void ClearAllGenerationSteps();
+
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
+	void DrawVoronoiGraph();
+
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
+	void DrawDelaunayGraph();
+
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	FIslandData IslandData;
 
 protected:
-	// Generates a new map from our IslandData.
-	// This is overridable in Blueprint, in case users want to create
-	// their own map generation.
+	// Adds a list of steps that we need to generate our island.
+	// Users using Blueprint should override this and NOT call the
+	// parent function. They have to add steps in the Event Graph
+	// due to the way Blueprint works with delegates ("Events").
 	UFUNCTION(BlueprintNativeEvent, Category = "Island Generation")
-	UPolygonMap* GenerateMap();
+	void AddMapSteps();
+	virtual void AddMapSteps_Implementation();
 
+	// Generates a new map from our IslandData.
+	// This iterates over each step in the IslandGeneratorSteps queue
+	// and executes the event. Players using Blueprint can add their
+	// own steps to the queue or create a new queue altogether in the
+	// Blueprint Event Graph.
+	UFUNCTION(BlueprintCallable, Category = "Island Generation")
+	void GenerateMap();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void ResetMapEvent();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void InitializeMapEvent();
 	// Initializes the IslandShape and PointSelector classes
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void InitializeMap();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void BuildGraphEvent();
 	// Creates the initial points that our map will work on
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void BuildGraph();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void AssignElevationEvent();
 	// Determines graph elevation
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignElevation();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void AssignMoistureEvent();
 	// Determines downslopes and moisture
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignMoisture();
-
-	// Determine the elevations and water at Voronoi corners.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void AssignCornerElevations();
-
-	// Determine polygon and corner type: ocean, coast, land.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void AssignOceanCoastAndLand();
-
-	// Rescale elevations so that the highest is 1.0, and they're
-	// distributed well. We want lower elevations to be more common
-	// than higher elevations, in proportions approximately matching
-	// concentric rings. That is, the lowest elevation is the
-	// largest ring around the island, and therefore should more
-	// land area than the highest elevation, which is the very
-	// center of a perfectly circular island.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void RedistributeElevations(TArray<int32> landCorners);
-
-	// Flatten areas which are considered ocean corners
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void FlattenWaterElevations();
-
-	// Assign polygon elevations as the average of their corners
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void AssignPolygonElevations();
 
 	// Calculate downslope pointers.  At every point, we point to the
 	// point downstream from it, or to itself.  This is used for
@@ -217,36 +231,40 @@ protected:
 	// move downslope. Mark the edges and corners as rivers.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void CreateRivers();
-
 	// Calculate moisture. Freshwater sources spread moisture: rivers
 	// and lakes (not oceans). Saltwater sources have moisture but do
 	// not spread it (we set it at the end, after propagation).
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignCornerMoisture();
-
+	
 	// Redistribute moisture to cover the entire range evenly 
 	// from 0.0 to 1.0.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void RedistributeMoisture(TArray<int32> landCorners);
-
 	// Assign polygon moisture as the average of the corner moisture.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignPolygonMoisture();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void FinalizeAllPointsEvent();
 	// Does final processing on the graph
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void FinalizeAllPoints();
 
 private:
-	UPolygonMap* GenerateMap_Implementation();
-
 	UPROPERTY()
 		UIslandShape* IslandShape;
 	UPROPERTY()
 		UPointGenerator* PointSelector;
 	UPROPERTY()
 		UPolygonMap* MapGraph;
+	UPROPERTY()
+		UElevationDistributor* ElevationDistributor;
 
 	UPROPERTY()
 		FRandomStream RandomGenerator;
+	
+	TQueue<FIslandGeneratorDelegate> IslandGeneratorSteps;
+
+	FIslandGeneratorDelegate OnGenerationComplete;
 };
