@@ -28,6 +28,12 @@ There have been a few changes from the ActionScript source. There's nothing too 
 
 #Using in Unreal
 
+To use in Unreal, simply place an `AIslandMapGenerator` actor in your level and call `CreateMap` on it. `CreateMap` takes a delegate which will be called when the map is complete. After the map is complete, you can access map corners, centers, or edges by calling `GetCorner`, `GetCenter`, or `GetEdge`, all of which ask for an index of the element in question, which is bound between 0 and `GetCornerNum`, `GetCenterNum`, or `GetEdgeNum`. 
+
+Keep in mind that the above functions all return ***copies*** of objects; once modified, you need to call `UpdateCorner`, `UpdateCenter`, or `UpdateEdge`. You can also access an array of ***all** MapData objects across the entire graph; that is to say, it is an array of every single MapData object within every MapCorner and MapCenter. Doing this can give you a representation of the entire map as a whole, which can then be converted into a heightmap for whatever you need.
+
 This system doesn't physically create anything inside the Unreal Engine itself, except for perhaps a debug diagram if the user chooses. It is up to the user to find or implement a system which can take the data from this graph and transform it into something tangible within the engine itself.
 
-One implementation could be to export the array of all FMapData nodes and then use those nodes to create a heightmap, either using the raw elevation data or have each point in the heightmap be weighted by the nearest FMapData points to it. These ideas are just examples; it is up to the user to ultimately decide how to use the data.
+One implementation could be to export the array of all FMapData nodes and then use those nodes to create a heightmap (as mentioned above), either using the raw elevation data or have each point in the heightmap be weighted by the nearest FMapData points to it.
+
+These ideas are just examples; it is up to the user to ultimately decide how to use the data.
