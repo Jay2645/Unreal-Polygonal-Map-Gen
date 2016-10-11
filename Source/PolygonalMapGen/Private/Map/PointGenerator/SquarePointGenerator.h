@@ -8,7 +8,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class USquarePointGenerator : public UPointGenerator
 {
 	GENERATED_BODY()

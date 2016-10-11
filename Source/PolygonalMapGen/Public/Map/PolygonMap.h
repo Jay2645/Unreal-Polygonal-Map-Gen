@@ -210,7 +210,13 @@ struct FPolygonMapData
 };
 
 /**
- * 
+ * The PolygonMap is a class which uses a Voronoi diagram to collect data about a graph of 
+ * points on the XY plane.
+ * These points are separated into map 'centers' (the points of the Delaunay 'dual graph'),
+ * map 'corners' (the points of the Voronoi graph), and map 'edges' (which make up the
+ * connections between Voronoi graphs and Delaunay graphs).
+ * Map centers and map corners both have metadata associated with them in the form of a 
+ * 'MapData' class, which is used in the actual MapGenerator.
  */
 UCLASS(Blueprintable)
 class UPolygonMap : public UObject

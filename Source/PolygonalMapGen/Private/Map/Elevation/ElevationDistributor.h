@@ -7,9 +7,10 @@
 #include "ElevationDistributor.generated.h"
 
 /**
- * 
+ * The ElevationDistributor class is a class which takes a collection
+ * of graph nodes on the XY plane and gives the nodes Z values. 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class UElevationDistributor : public UObject
 {
 	GENERATED_BODY()
@@ -44,6 +45,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	virtual void AssignPolygonElevations();
 
-
+protected:
 	UPolygonMap* MapGraph;
 };

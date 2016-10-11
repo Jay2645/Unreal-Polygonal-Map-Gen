@@ -8,7 +8,7 @@
 /**
  * The Square Island is an island where all points are land.
  */
-UCLASS()
+UCLASS(Blueprintable)
 class USquareIsland : public UIslandShape
 {
 	GENERATED_BODY()

@@ -9,8 +9,7 @@
  * The PointSelector class generates the points that the rest of the map is based around.
  * More uniform points (such as a Hexagonal Selector or a Square Selector) will create more uniform maps.
  */
-
-UCLASS()
+UCLASS(Blueprintable)
 class UPointGenerator : public UObject
 {
 	GENERATED_BODY()

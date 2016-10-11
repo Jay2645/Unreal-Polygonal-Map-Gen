@@ -8,7 +8,7 @@
 /**
  * The Radial Island is a circular island using overlapping sine waves.
  */
-UCLASS()
+UCLASS(Blueprintable)
 class URadialIsland : public UIslandShape
 {
 	GENERATED_BODY()

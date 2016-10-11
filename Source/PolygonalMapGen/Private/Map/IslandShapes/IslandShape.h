@@ -6,9 +6,10 @@
 #include "IslandShape.generated.h"
 
 /**
- * 
+ * The IslandShape class is a class which takes a 2D point and
+ * returns a value indicating whether the point is land or water.
  */
-UCLASS()
+UCLASS(Blueprintable)
 class UIslandShape : public UObject
 {
 	GENERATED_BODY()
@@ -24,7 +25,7 @@ public:
 
 	// 1.0 means no small islands; 2.0 leads to a lot
 	UPROPERTY(Category = "Island Size", BlueprintReadWrite, EditAnywhere)
-		float IslandFactor = 1.25f;
+	float IslandFactor = 1.25f;
 
 protected:
 	FRandomStream StreamRNG;

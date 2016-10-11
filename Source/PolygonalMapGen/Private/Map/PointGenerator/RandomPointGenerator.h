@@ -8,7 +8,7 @@
 /**
  * The Random Point Selector will create an array of completely random points.
  */
-UCLASS()
+UCLASS(Blueprintable)
 class URandomPointGenerator : public UPointGenerator
 {
 	GENERATED_BODY()
