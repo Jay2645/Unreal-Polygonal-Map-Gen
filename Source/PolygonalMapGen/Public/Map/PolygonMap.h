@@ -225,6 +225,7 @@ class UPolygonMap : public UObject
 	
 public:
 	// Creates the graph's initial points
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 	void CreatePoints(UPointGenerator* PointSelector, const int32& numberOfPoints);
 
 	// Build graph data structure in 'edges', 'centers', 'corners',

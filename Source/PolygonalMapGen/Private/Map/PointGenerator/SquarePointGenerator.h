@@ -1,4 +1,4 @@
-// Original Work Copyright (c) 2010 Amit J Patel
+// Original Work Copyright (c) 2010 Amit J Patel, Modified Work Copyright (c) 2016 Jay M Stevens
 
 #pragma once
 
@@ -6,7 +6,7 @@
 #include "SquarePointGenerator.generated.h"
 
 /**
- * 
+ * The SquarePointGenerator generates points in a grid pattern.
  */
 UCLASS(Blueprintable)
 class USquarePointGenerator : public UPointGenerator
@@ -17,5 +17,6 @@ public:
 	USquarePointGenerator() { bNeedsMoreRandomness = true; };
 	~USquarePointGenerator() {};
 
-	virtual TArray<FVector2D> GeneratePoints(int32 numberOfPoints) override;
+protected:
+	virtual TArray<FVector2D> GeneratePoints_Implementation(int32 numberOfPoints) override;
 };

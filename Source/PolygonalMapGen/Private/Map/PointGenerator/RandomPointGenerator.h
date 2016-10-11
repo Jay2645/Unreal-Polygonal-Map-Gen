@@ -17,5 +17,6 @@ public:
 	URandomPointGenerator() { bNeedsMoreRandomness = false; };
 	~URandomPointGenerator() {};
 
-	virtual TArray<FVector2D> GeneratePoints(int32 numberOfPoints) override;
+protected:
+	virtual TArray<FVector2D> GeneratePoints_Implementation(int32 numberOfPoints) override;
 };

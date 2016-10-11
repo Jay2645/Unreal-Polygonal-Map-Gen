@@ -28,7 +28,7 @@ bool UPointGenerator::PointIsOnBorder(FVector2D point)
 	return false;
 }
 
-TArray<FVector2D> UPointGenerator::GeneratePoints(int32 numberOfPoints)
+TArray<FVector2D> UPointGenerator::GeneratePoints_Implementation(int32 numberOfPoints)
 {
 	TArray<FVector2D> pointArray;
 	pointArray.AddDefaulted(numberOfPoints);

@@ -4,7 +4,7 @@
 #include "RandomPointGenerator.h"
 
 // Random Point Selector
-TArray<FVector2D> URandomPointGenerator::GeneratePoints(int32 numberOfPoints)
+TArray<FVector2D> URandomPointGenerator::GeneratePoints_Implementation(int32 numberOfPoints)
 {
 	TArray<FVector2D> pointArray;
 	for (int32 i = 0; i < numberOfPoints; i++)

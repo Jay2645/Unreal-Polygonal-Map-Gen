@@ -3,7 +3,7 @@
 #include "PolygonalMapGen.h"
 #include "SquarePointGenerator.h"
 
-TArray<FVector2D> USquarePointGenerator::GeneratePoints(int32 numberOfPoints)
+TArray<FVector2D> USquarePointGenerator::GeneratePoints_Implementation(int32 numberOfPoints)
 {
 	TArray<FVector2D> pointArray;
 	int32 gridSize = FMath::RoundToInt(FMath::Sqrt((uint32)numberOfPoints));
