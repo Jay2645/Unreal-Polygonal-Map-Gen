@@ -13,13 +13,43 @@ class URadialIsland : public UIslandShape
 {
 	GENERATED_BODY()
 
-	virtual void SetSeed(int32 seed, int32 size) override;
+public:
+	// The minimum number of sine wave "bumps" along the island.
+	UPROPERTY(Category = "Bumps", BlueprintReadWrite, EditAnywhere)
+	int32 BumpsMin = 1;
+	// The maximum number of sine wave "bumps" along the island.
+	UPROPERTY(Category = "Bumps", BlueprintReadWrite, EditAnywhere)
+	int32 BumpsMax = 6;
 
-	virtual bool IsPointLand(FVector2D point) override;
+	// The minimum start angle for the sin function, in radians.
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, EditAnywhere)
+	float StartAngleMin = 0.0f;
+	// The maximum start angle for the sin function, in radians.
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, EditAnywhere)
+	float StartAngleMax = 2.0f;
+
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, EditAnywhere)
+	float AngleOffsetMin = 0.0f;
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, EditAnywhere)
+	float AngleOffsetMax = 2.0f;
+
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, EditAnywhere)
+	float MinAngleMin = 0.2f;
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, EditAnywhere)
+	float MinAngleMax = 0.7f;
 
 protected:
+	virtual void SetSeed_Implementation(int32 seed, int32 size) override;
+	virtual bool IsPointLand_Implementation(FVector2D point) override;
+
+	// The number of sine waves which form bumps along the island.
+	UPROPERTY(Category = "Bumps", BlueprintReadWrite, VisibleAnywhere)
 	int32 Bumps;
+	// The start angle for the sin function, in radians.
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, VisibleAnywhere)
 	float StartAngle;
-	float DipAngle;
-	float DipWidth;
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, VisibleAnywhere)
+	float AngleOffset;
+	UPROPERTY(Category = "Angle", BlueprintReadWrite, VisibleAnywhere)
+	float MinAngle;
 };

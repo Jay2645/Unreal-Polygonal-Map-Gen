@@ -13,7 +13,8 @@ class USquareIsland : public UIslandShape
 {
 	GENERATED_BODY()
 
+protected:
 	// Whether the given point is land or not.
 	// By default, all points will be considered land.
-	virtual bool IsPointLand(FVector2D point) override;
+	virtual bool IsPointLand_Implementation(FVector2D point) override;
 };

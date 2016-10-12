@@ -3,14 +3,14 @@
 #include "PolygonalMapGen.h"
 #include "IslandShape.h"
 
-void UIslandShape::SetSeed(int32 seed, int32 size)
+void UIslandShape::SetSeed_Implementation(int32 seed, int32 size)
 {
 	StreamRNG.Initialize(seed);
 	Size = size;
 }
 
 // Default does nothing
-bool UIslandShape::IsPointLand(FVector2D point)
+bool UIslandShape::IsPointLand_Implementation(FVector2D point)
 {
 	return false;
 }

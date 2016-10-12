@@ -3,36 +3,44 @@
 #include "PolygonalMapGen.h"
 #include "RadialIsland.h"
 
-void URadialIsland::SetSeed(int32 seed, int32 size)
+void URadialIsland::SetSeed_Implementation(int32 seed, int32 size)
 {
-	Super::SetSeed(seed, size);
-	Bumps = StreamRNG.RandRange(1, 6);
-	StartAngle = StreamRNG.FRandRange(0.0f, 2.0 * PI);
-	DipAngle = StreamRNG.FRandRange(0.0f, 2.0 * PI);
-	DipWidth = StreamRNG.FRandRange(0.2f, 0.7f);
+	StreamRNG.Initialize(seed);
+	Size = size;
+	Bumps = StreamRNG.RandRange(BumpsMin, BumpsMax);
+	StartAngle = StreamRNG.FRandRange(StartAngleMin, StartAngleMax) * PI;
+	AngleOffset = StreamRNG.FRandRange(AngleOffsetMin, AngleOffsetMax) * PI;
+	MinAngle = StreamRNG.FRandRange(MinAngleMin, MinAngleMax);
 }
 
-bool URadialIsland::IsPointLand(FVector2D point)
+bool URadialIsland::IsPointLand_Implementation(FVector2D point)
 {
+	point.X = 2.0f * ((point.X/Size) - 0.5f);
+	point.Y = 2.0f * ((point.Y/Size) - 0.5f);
+	// Get the angle of the point from the center of the island
 	float angle = FMath::Atan2(point.Y, point.X);
-	float length = FMath::Max(FMath::Abs(point.X), FMath::Abs(point.Y)) / Size;
-
+	// Get the normalized length of whichever axis is longer
+	float length = 0.5f * (FMath::Max(FMath::Abs(point.X), FMath::Abs(point.Y)) + FVector2D::Distance(FVector2D::ZeroVector, point));
+	UE_LOG(LogTemp, Error, TEXT("Length is %f!"), length);
+	// The inner radius has to be smaller than the length for this to be land
 	float innerRadius;
+	// The outer radius has to be larger than the length for this to be land
 	float outerRadius;
-	if ((FMath::Abs(angle - DipAngle) < DipWidth
-		|| FMath::Abs(angle - DipAngle + 2.0f * PI) < DipWidth
-		|| FMath::Abs(angle - DipAngle - 2.0f * PI) < DipWidth)
-		|| StreamRNG.GetFraction() > 1.0f / (IslandFactor * IslandFactor))
+
+	if ((FMath::Abs(angle - AngleOffset) < MinAngle
+		|| FMath::Abs(angle - AngleOffset + 2.0f * PI) < MinAngle
+		|| FMath::Abs(angle - AngleOffset - 2.0f * PI) < MinAngle))
 	{
-		innerRadius = 0.325f;
-		outerRadius = 1.15f;
+		// Our angle is less than the minimum angle
+		innerRadius = 0.2f;
+		outerRadius = 0.2f;
 	}
 	else
 	{
-		innerRadius = 0.475f + 0.4f * FMath::Sin(StartAngle + Bumps * angle + FMath::Cos((Bumps + 3) * angle));
-		outerRadius = 1.25f - 0.2f * FMath::Sin(StartAngle + Bumps * angle - FMath::Sin((Bumps + 2) * angle));
+		innerRadius = 0.5f + 0.4f * FMath::Sin(StartAngle + Bumps * angle + FMath::Cos((Bumps + 3) * angle));
+		outerRadius = 0.7f - 0.2f * FMath::Sin(StartAngle + Bumps * angle - FMath::Sin((Bumps + 2) * angle));
 	}
 
-	return innerRadius * IslandFactor < length && length * IslandFactor < outerRadius;
-	//return (length < innerRadius) || (length < outerRadius && length > innerRadius * IslandFactor);
+	//return innerRadius * IslandFactor < length && length * IslandFactor < outerRadius;
+	return (length < innerRadius) || (length > innerRadius * IslandFactor && length < outerRadius);
 }

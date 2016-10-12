@@ -3,7 +3,7 @@
 #include "PolygonalMapGen.h"
 #include "SquareIsland.h"
 
-bool USquareIsland::IsPointLand(FVector2D point)
+bool USquareIsland::IsPointLand_Implementation(FVector2D point)
 {
 	return true;
 }
