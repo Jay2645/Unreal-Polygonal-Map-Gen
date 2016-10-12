@@ -8,6 +8,7 @@ TArray<FVector2D> USquarePointGenerator::GeneratePoints_Implementation(int32 num
 	TArray<FVector2D> pointArray;
 	int32 gridSize = FMath::RoundToInt(FMath::Sqrt((uint32)numberOfPoints));
 
+	FVector2D halfSize = FVector2D(MapSize * 0.5f, MapSize * 0.5f);
 	for (int32 x = 0; x < gridSize; x++)
 	{
 		for (int32 y = 0; y < gridSize; y++)
@@ -17,6 +18,7 @@ TArray<FVector2D> USquarePointGenerator::GeneratePoints_Implementation(int32 num
 			{
 				continue;
 			}
+			point -= halfSize;
 			pointArray.Add(point);
 		}
 	}

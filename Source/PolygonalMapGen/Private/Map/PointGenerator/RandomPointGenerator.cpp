@@ -11,6 +11,8 @@ TArray<FVector2D> URandomPointGenerator::GeneratePoints_Implementation(int32 num
 	{
 		float randomX = RandomGenerator.FRandRange(Border, MapSize - Border);
 		float randomY = RandomGenerator.FRandRange(Border, MapSize - Border);
+		randomX -= MapSize * 0.5f;
+		randomY -= MapSize * 0.5f;
 		pointArray.Add(FVector2D(randomX, randomY));
 	}
 	return pointArray;
