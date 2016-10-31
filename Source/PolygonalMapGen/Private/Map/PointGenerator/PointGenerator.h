@@ -5,6 +5,9 @@
 #include "Object.h"
 #include "PointGenerator.generated.h"
 
+// This fixes issues with UPROPERTY in Visual Studio's Intellisense with VAssistX
+using namespace UP;
+
 /**
  * The PointSelector class generates the points that the rest of the map is based around.
  * More uniform points (such as a Hexagonal Selector or a Square Selector) will create more uniform maps.

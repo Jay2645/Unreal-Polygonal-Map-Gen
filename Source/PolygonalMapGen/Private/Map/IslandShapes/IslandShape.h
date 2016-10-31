@@ -5,6 +5,9 @@
 #include "Object.h"
 #include "IslandShape.generated.h"
 
+// This fixes issues with UPROPERTY in Visual Studio's Intellisense with VAssistX
+using namespace UP;
+
 /**
  * The IslandShape class is a class which takes a 2D point and
  * returns a value indicating whether the point is land or water.
@@ -34,7 +37,7 @@ public:
 protected:
 	// C++ version of SetSeed
 	virtual void SetSeed_Implementation(int32 seed, int32 size);
-	// C++ verion of IsPointLand
+	// C++ version of IsPointLand
 	virtual bool IsPointLand_Implementation(FVector2D point);
 
 	// The RandomStream that has been initialized with our seed.
