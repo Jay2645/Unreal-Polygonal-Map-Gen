@@ -1,7 +1,12 @@
 Binaries
+Content
 DerivedDataCache
 Intermediate
 Saved
+Source/PolygonalMapGen
+PolygonalMapGen.uproject
+PolygonalMapGen.Target.cs
+PolygonalMapGenEditor.Target.cs
 *.VC.db
 *.opensdf
 *.opendb
