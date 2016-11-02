@@ -167,16 +167,15 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, int32 Size
 		return;
 	}
 	HeightmapSize = Size;
+	TArray<FMapData> graph = PolygonMap->GetAllMapData();
 	for (int x = 0; x < HeightmapSize; x++)
 	{
 		for (int y = 0; y < HeightmapSize; y++)
 		{
 			FVector2D point = FVector2D(x, y);
+			HeightmapData.Add(MakeMapPoint(point,graph));
 		}
 	}
-
-	TArray<FMapData> graph = PolygonMap->GetAllMapData();
-
 }
 
 FMapData UPolygonalMapHeightmap::GetMapPoint(int32 x, int32 y)
@@ -184,6 +183,7 @@ FMapData UPolygonalMapHeightmap::GetMapPoint(int32 x, int32 y)
 	int32 index = x + (y * HeightmapSize);
 	if (HeightmapData.Num() <= index)
 	{
+		UE_LOG(LogWorldGen, Warning, TEXT("Tried to fetch a pixel at %d, %d, but no pixel was found."), x, y);
 		return FMapData();
 	}
 	else
@@ -201,7 +201,7 @@ void UPolygonalMapHeightmap::DrawDebugPixelGrid(UWorld* world, float PixelSize)
 	}
 
 	float elevationScale = 3100.0f;
-	FVector offset = FVector(0.0f, 0.0f, -6350.0f);
+	FVector offset = FVector(0.0f, 0.0f, 0.0f);
 
 	for (int32 x = 0; x < HeightmapSize; x++)
 	{
@@ -227,6 +227,7 @@ void UPolygonalMapHeightmap::DrawDebugPixelGrid(UWorld* world, float PixelSize)
 			FVector v1 = FVector(v0.X, v0.Y + PixelSize, v0.Z);
 			FVector v2 = FVector(v0.X + PixelSize, v0.Y, v0.Z);
 			FVector v3 = FVector(v2.X, v1.Y, v0.Z);
+			DrawDebugSphere(world, v0, 100, 4, color, true);
 			DrawDebugLine(world, v0, v1, color, true);
 			DrawDebugLine(world, v0, v2, color, true);
 		}

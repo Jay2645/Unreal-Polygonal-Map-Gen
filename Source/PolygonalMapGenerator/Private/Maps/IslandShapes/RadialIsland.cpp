@@ -20,7 +20,6 @@ bool URadialIsland::IsPointLand_Implementation(FVector2D point)
 	float angle = FMath::Atan2(point.Y, point.X);
 	// Get the normalized length of whichever axis is longer
 	float length = 0.5f * (FMath::Max(FMath::Abs(point.X), FMath::Abs(point.Y)) + FVector2D::Distance(FVector2D::ZeroVector, point));
-	UE_LOG(LogTemp, Error, TEXT("Length is %f!"), length);
 	// The inner radius has to be smaller than the length for this to be land
 	float innerRadius;
 	// The outer radius has to be larger than the length for this to be land

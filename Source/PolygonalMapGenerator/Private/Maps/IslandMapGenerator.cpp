@@ -61,6 +61,7 @@ void AIslandMapGenerator::GenerateMap()
 {
 	if (IslandGeneratorSteps.IsEmpty() && OnGenerationComplete.IsBound())
 	{
+		// Done with all steps, execute onComplete delegate
 		OnGenerationComplete.Execute();
 		OnGenerationComplete.Unbind();
 		return;
@@ -116,9 +117,6 @@ void AIslandMapGenerator::AddMapSteps_Implementation()
 	AddGenerationStep(finalizePoints);
 	//FinalizeAllPoints();
 
-	FIslandGeneratorDelegate drawGraph;
-	drawGraph.BindDynamic(this, &AIslandMapGenerator::DrawVoronoiGraph);
-	AddGenerationStep(drawGraph);
 	//MapGraph->DrawDebugVoronoiGrid(IslandData.GameWorld);
 	//MapGraph->DrawDebugDelaunayGrid(IslandData.GameWorld);
 	//PixelMap->DrawDebugPixelGrid(IslandData.GameWorld);
@@ -528,8 +526,7 @@ void AIslandMapGenerator::FinalizeAllPoints()
 
 	// Compile to get ready to make heightmap pixels
 	MapGraph->CompileMapData();
-
-	
+	MapHeightmap->CreateHeightmap(MapGraph,IslandData.Size);
 }
 
 void AIslandMapGenerator::DrawVoronoiGraph()

@@ -423,7 +423,6 @@ void UPolygonMap::DrawDebugVoronoiGrid(const UWorld* world)
 		worldIndex0 = Edges[i].VoronoiEdge0;
 		if (worldIndex0 < 0)
 		{
-			UE_LOG(LogWorldGen, Error, TEXT("No Voronoi Edge 0 for %d!"), i);
 			continue;
 		}
 		FMapData v0Data = Corners[worldIndex0].CornerData;
@@ -432,7 +431,6 @@ void UPolygonMap::DrawDebugVoronoiGrid(const UWorld* world)
 		worldIndex1 = Edges[i].VoronoiEdge1;
 		if (worldIndex1 < 0)
 		{
-			UE_LOG(LogWorldGen, Error, TEXT("No Voronoi Edge 1 for %d!"), i);
 			continue;
 		}
 		FMapData v1Data = Corners[worldIndex1].CornerData;
