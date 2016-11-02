@@ -137,12 +137,17 @@ void AIslandMapGenerator::ClearAllGenerationSteps()
 void AIslandMapGenerator::InitializeMap()
 {
 	MapGraph = NewObject<UPolygonMap>();
+	MapHeightmap = NewObject<UPolygonalMapHeightmap>();
 	IslandShape->SetSeed(IslandData.Seed, IslandData.Size);
 	PointSelector->InitializeSelector(IslandData.Size, IslandData.Seed);
 }
 
 void AIslandMapGenerator::BuildGraph()
 {
+	if (MapGraph == NULL)
+	{
+		return;
+	}
 	// Place points
 	MapGraph->CreatePoints(PointSelector, IslandData.NumberOfPoints);
 
@@ -156,16 +161,33 @@ UPolygonMap* AIslandMapGenerator::GetGraph()
 	return MapGraph;
 }
 
+UPolygonalMapHeightmap* AIslandMapGenerator::GetHeightmap()
+{
+	return MapHeightmap;
+}
+
 int32 AIslandMapGenerator::GetCenterNum()
 {
+	if (MapGraph == NULL)
+	{
+		return -1;
+	}
 	return MapGraph->GetCenterNum();
 }
 int32 AIslandMapGenerator::GetCornerNum()
 {
+	if (MapGraph == NULL)
+	{
+		return -1;
+	}
 	return MapGraph->GetCornerNum();
 }
 int32 AIslandMapGenerator::GetEdgeNum()
 {
+	if (MapGraph == NULL)
+	{
+		return -1;
+	}
 	return MapGraph->GetEdgeNum();
 }
 
@@ -193,14 +215,26 @@ FMapEdge& AIslandMapGenerator::FindEdgeFromCorners(const FMapCorner& v0, const F
 
 void AIslandMapGenerator::UpdateCenter(const FMapCenter& center)
 {
+	if (MapGraph == NULL)
+	{
+		return;
+	}
 	MapGraph->UpdateCenter(center);
 }
 void AIslandMapGenerator::UpdateCorner(const FMapCorner& corner)
 {
+	if (MapGraph == NULL)
+	{
+		return;
+	}
 	MapGraph->UpdateCorner(corner);
 }
 void AIslandMapGenerator::UpdateEdge(const FMapEdge& edge)
 {
+	if (MapGraph == NULL)
+	{
+		return;
+	}
 	MapGraph->UpdateEdge(edge);
 }
 
@@ -225,6 +259,10 @@ void AIslandMapGenerator::AssignElevation()
 
 void AIslandMapGenerator::AssignMoisture()
 {
+	if (MapGraph == NULL)
+	{
+		return;
+	}
 	// Moisture distribution
 	// Determine downslope paths.
 	CalculateDownslopes();
@@ -458,6 +496,10 @@ void AIslandMapGenerator::AssignPolygonMoisture()
 
 void AIslandMapGenerator::FinalizeAllPoints()
 {
+	if (MapGraph == NULL)
+	{
+		return;
+	}
 	for (int i = 0; i < GetCornerNum(); i++)
 	{
 		FMapCorner corner = GetCorner(i);
@@ -484,16 +526,35 @@ void AIslandMapGenerator::FinalizeAllPoints()
 		UpdateCenter(center);
 	}
 
-	// Compile to get ready to make pixels
+	// Compile to get ready to make heightmap pixels
 	MapGraph->CompileMapData();
+
+	
 }
 
 void AIslandMapGenerator::DrawVoronoiGraph()
 {
+	if (MapGraph == NULL)
+	{
+		return;
+	}
 	MapGraph->DrawDebugVoronoiGrid(IslandData.GameWorld);
 }
 
 void AIslandMapGenerator::DrawDelaunayGraph()
 {
+	if (MapGraph == NULL)
+	{
+		return;
+	}
 	MapGraph->DrawDebugDelaunayGrid(IslandData.GameWorld);
+}
+
+void AIslandMapGenerator::DrawHeightmap()
+{
+	if (MapHeightmap == NULL)
+	{
+		return;
+	}
+	MapHeightmap->DrawDebugPixelGrid(IslandData.GameWorld, 100.0f);
 }

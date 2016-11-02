@@ -6,6 +6,7 @@
 #include "PolygonMap.h"
 #include "Maps/Elevations/ElevationDistributor.h"
 #include "Maps/PointGenerators/PointGenerator.h"
+#include "PolygonalMapHeightmap.h"
 #include "Maps/IslandShapes/IslandShape.h"
 #include "IslandMapGenerator.generated.h"
 
@@ -143,6 +144,8 @@ public:
 	// Returns our Graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 		UPolygonMap* GetGraph();
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+		UPolygonalMapHeightmap* GetHeightmap();
 
 	// Update a MapCenter in the graph after it has been modified.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
@@ -165,6 +168,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
 		void DrawDelaunayGraph();
+
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
+		void DrawHeightmap();
 
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 		FIslandData IslandData;
@@ -260,6 +266,8 @@ private:
 		UPolygonMap* MapGraph;
 	UPROPERTY()
 		UElevationDistributor* ElevationDistributor;
+	UPROPERTY()
+	UPolygonalMapHeightmap* MapHeightmap;
 
 	UPROPERTY()
 		FRandomStream RandomGenerator;
