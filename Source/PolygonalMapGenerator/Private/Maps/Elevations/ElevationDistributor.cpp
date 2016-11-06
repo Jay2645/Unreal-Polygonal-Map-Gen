@@ -240,8 +240,6 @@ void UElevationDistributor::FlattenWaterElevations()
 
 void UElevationDistributor::AssignPolygonElevations()
 {
-	float topElevation = -1.0f;
-	FMapCenter topCenter;
 	for (int i = 0; i < MapGraph->GetCenterNum(); i++)
 	{
 		float sumElevation = 0.0f;
@@ -252,51 +250,7 @@ void UElevationDistributor::AssignPolygonElevations()
 			sumElevation += corner.CornerData.Elevation;
 		}
 		float elevation = sumElevation / center.Corners.Num();
-		if (elevation > topElevation)
-		{
-			topCenter = center;
-			topElevation = elevation;
-		}
 		center.CenterData.Elevation = elevation;
 		MapGraph->UpdateCenter(center);
 	}
-
-	// The center at the top of the map gets turned into the volcano's caldera
-	topCenter.CenterData.Tags.Add(UPolygonMap::TAG_Volcano);
-	topCenter.CenterData.Tags.Add(UPolygonMap::TAG_VolcanoCaldera);
-	topCenter.CenterData.Elevation *= 0.25f;
-
-	/*for (int i = 0; i < topCenter.Corners.Num(); i++)
-	{
-	FMapCorner topCorner = MapGraph->GetCorner(topCenter.Corners[i]);
-	calderaHeight = FMath::Min(calderaHeight, topCorner.CornerData.Elevation);
-	}*/
-	for (int i = 0; i < topCenter.Corners.Num(); i++)
-	{
-		FMapCorner topCorner = MapGraph->GetCorner(topCenter.Corners[i]);
-		topCenter.CenterData.Tags.Add(UPolygonMap::TAG_Volcano);
-		topCenter.CenterData.Tags.Add(UPolygonMap::TAG_VolcanoCaldera);
-		//topCorner.CornerData.Elevation *= 0.4f;
-		MapGraph->UpdateCorner(topCorner);
-	}
-
-	// All neighboring centers are still part of the volcano, but not part of the caldera
-	for (int i = 0; i < topCenter.Neighbors.Num(); i++)
-	{
-		FMapCenter neighbor = MapGraph->GetCenter(topCenter.Neighbors[i]);
-		topCenter.CenterData.Tags.Add(UPolygonMap::TAG_Volcano);
-		for (int j = 0; j < neighbor.Corners.Num(); j++)
-		{
-			FMapCorner neighborCorner = MapGraph->GetCorner(neighbor.Corners[j]);
-			if (neighborCorner.CornerData.Tags.Contains(UPolygonMap::TAG_Volcano))
-			{
-				continue;
-			}
-			topCenter.CenterData.Tags.Add(UPolygonMap::TAG_Volcano);
-			MapGraph->UpdateCorner(neighborCorner);
-		}
-		MapGraph->UpdateCenter(neighbor);
-	}
-
-	MapGraph->UpdateCenter(topCenter);
 }

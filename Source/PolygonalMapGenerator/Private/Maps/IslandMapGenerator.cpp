@@ -111,6 +111,10 @@ void AIslandMapGenerator::AddMapSteps_Implementation()
 	AddGenerationStep(assignMoisture);
 	//AssignMoisture();
 
+	FIslandGeneratorDelegate postProcess;
+	postProcess.BindDynamic(this, &AIslandMapGenerator::DoPointPostProcess);
+	AddGenerationStep(postProcess);
+
 	// Package the map up to send to the voxel engine
 	FIslandGeneratorDelegate finalizePoints;
 	finalizePoints.BindDynamic(this, &AIslandMapGenerator::FinalizeAllPoints);
@@ -374,7 +378,7 @@ void AIslandMapGenerator::CreateRivers()
 	{
 		int cornerIndex = RandomGenerator.RandRange(0, GetCornerNum() - 1);
 		FMapCorner riverSource = GetCorner(cornerIndex);
-		if (riverSource.CornerData.bIsOcean || riverSource.CornerData.Tags.Contains(UPolygonMap::TAG_Volcano))
+		if (riverSource.CornerData.bIsOcean)
 		{
 			continue;
 		}
@@ -490,6 +494,11 @@ void AIslandMapGenerator::AssignPolygonMoisture()
 		center.CenterData.Moisture = sumMoisture / center.Corners.Num();
 		UpdateCenter(center);
 	}
+}
+
+void AIslandMapGenerator::DoPointPostProcess()
+{
+	// Intentionally left blank
 }
 
 void AIslandMapGenerator::FinalizeAllPoints()

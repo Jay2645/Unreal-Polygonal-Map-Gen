@@ -251,11 +251,13 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 		void AssignPolygonMoisture();
 
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	virtual void DoPointPostProcess();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
-		void FinalizeAllPointsEvent();
+	void FinalizeAllPointsEvent();
 	// Does final processing on the graph
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-		void FinalizeAllPoints();
+	void FinalizeAllPoints();
 
 private:
 	UPROPERTY()

@@ -6,9 +6,6 @@
 
 DEFINE_LOG_CATEGORY(LogWorldGen);
 
-const FName UPolygonMap::TAG_Volcano = TEXT("Volcano");
-const FName UPolygonMap::TAG_VolcanoCaldera = TEXT("Volcano Caldera");
-
 void UPolygonMap::CreatePoints(UPointGenerator* pointSelector, const int32& numberOfPoints)
 {
 	if (pointSelector == NULL)

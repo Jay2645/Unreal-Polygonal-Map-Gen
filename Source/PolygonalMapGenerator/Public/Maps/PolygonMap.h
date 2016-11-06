@@ -351,10 +351,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 		void DrawDebugVoronoiGrid(const UWorld* world);
 
-	// Tags
-	static const FName TAG_Volcano;
-	static const FName TAG_VolcanoCaldera;
-
 private:
 	UPROPERTY()
 		UPointGenerator* PointSelector;
