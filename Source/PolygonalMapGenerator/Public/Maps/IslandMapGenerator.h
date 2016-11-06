@@ -6,6 +6,7 @@
 #include "PolygonMap.h"
 #include "Maps/Elevations/ElevationDistributor.h"
 #include "Maps/PointGenerators/PointGenerator.h"
+#include "Maps/Biomes/BiomeManager.h"
 #include "PolygonalMapHeightmap.h"
 #include "Maps/IslandShapes/IslandShape.h"
 #include "IslandMapGenerator.generated.h"
@@ -40,6 +41,9 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 
 	UPROPERTY(Category = "Points", BlueprintReadWrite, EditAnywhere)
 		TSubclassOf<UPointGenerator> IslandPointSelector;
+
+	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<UBiomeManager> BiomeManager;
 
 	// The number of points to generate
 	UPROPERTY(Category = "Points", BlueprintReadWrite, EditAnywhere)
@@ -270,6 +274,8 @@ private:
 		UElevationDistributor* ElevationDistributor;
 	UPROPERTY()
 	UPolygonalMapHeightmap* MapHeightmap;
+	UPROPERTY()
+	UBiomeManager* BiomeManager;
 
 	UPROPERTY()
 		FRandomStream RandomGenerator;

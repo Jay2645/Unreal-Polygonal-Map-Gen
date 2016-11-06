@@ -6,7 +6,7 @@
 
 
 
-FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData)
+FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager)
 {
 	TArray<FMapData> closestPoints;
 	// Iterate over the entire mapData array to find how many points we need to average
@@ -157,10 +157,11 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 
 	pixelData.Elevation = elevation;
 	pixelData.Moisture = moisture;
+	pixelData.Biome = BiomeManager->DetermineBiome(pixelData);
 	return pixelData;
 }
 
-void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, int32 Size)
+void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, int32 Size)
 {
 	if (PolygonMap == NULL)
 	{
@@ -173,7 +174,7 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, int32 Size
 		for (int y = 0; y < HeightmapSize; y++)
 		{
 			FVector2D point = FVector2D(x, y);
-			HeightmapData.Add(MakeMapPoint(point,graph));
+			HeightmapData.Add(MakeMapPoint(point,graph, BiomeManager));
 		}
 	}
 }

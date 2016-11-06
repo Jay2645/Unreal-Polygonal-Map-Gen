@@ -44,6 +44,16 @@ void AIslandMapGenerator::ResetMap()
 		PointSelector = NewObject<UPointGenerator>(outer, IslandData.IslandPointSelector);
 	}
 
+	if (IslandData.BiomeManager == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("Biome Manager was null!"));
+		BiomeManager = NewObject<UBiomeManager>(this,TEXT("Biome Manager"));
+	}
+	else
+	{
+		BiomeManager = NewObject<UBiomeManager>(this,IslandData.BiomeManager,TEXT("Biome Manager"));
+	}
+
 	ElevationDistributor = NewObject<UElevationDistributor>(outer, UElevationDistributor::StaticClass());
 
 	RandomGenerator.Initialize(IslandData.Seed);
@@ -517,6 +527,9 @@ void AIslandMapGenerator::FinalizeAllPoints()
 		{
 			corner.CornerData.Elevation = 0.1f + (corner.CornerData.Elevation * 0.9f);
 		}
+
+		FName biome = BiomeManager->DetermineBiome(corner.CornerData);
+		corner.CornerData.Biome = biome;
 		UpdateCorner(corner);
 	}
 
@@ -530,12 +543,14 @@ void AIslandMapGenerator::FinalizeAllPoints()
 		{
 			center.CenterData.Elevation = 0.1f + (center.CenterData.Elevation * 0.9f);
 		}
+		FName biome = BiomeManager->DetermineBiome(center.CenterData);
+		center.CenterData.Biome = biome;
 		UpdateCenter(center);
 	}
 
 	// Compile to get ready to make heightmap pixels
 	MapGraph->CompileMapData();
-	MapHeightmap->CreateHeightmap(MapGraph,IslandData.Size);
+	MapHeightmap->CreateHeightmap(MapGraph,BiomeManager,IslandData.Size);
 }
 
 void AIslandMapGenerator::DrawVoronoiGraph()

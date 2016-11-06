@@ -18,7 +18,7 @@ private:
 	UPROPERTY()
 		TArray<FMapData> HeightmapData;
 
-	FMapData MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData);
+	FMapData MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Heightmap")
@@ -27,7 +27,7 @@ public:
 	int32 NumberOfPointsToAverage = 4;
 
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap")
-		void CreateHeightmap(UPolygonMap* PolygonMap, int32 Size);
+		void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, int32 Size);
 
 	UFUNCTION(BlueprintPure, Category = "Map Generation|Heightmap")
 		FMapData GetMapPoint(int32 x, int32 y);

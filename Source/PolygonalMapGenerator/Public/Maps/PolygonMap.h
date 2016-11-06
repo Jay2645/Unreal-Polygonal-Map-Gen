@@ -39,6 +39,9 @@ struct POLYGONALMAPGENERATOR_API FMapData
 		float Moisture;
 
 	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
+		FName Biome;
+
+	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
 		TArray<FName> Tags;
 
 	FMapData()
