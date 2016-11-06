@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Object.h"
+#include "Components/ActorComponent.h"
 #include "PointGenerator.generated.h"
 // This fixes issues with UPROPERTY in Visual Studio's Intellisense with VAssistX
 using namespace UP;
@@ -12,7 +12,7 @@ using namespace UP;
 * More uniform points (such as a Hexagonal Selector or a Square Selector) will create more uniform maps.
 */
 UCLASS(Blueprintable)
-class POLYGONALMAPGENERATOR_API UPointGenerator : public UObject
+class POLYGONALMAPGENERATOR_API UPointGenerator : public UActorComponent
 {
 	GENERATED_BODY()
 

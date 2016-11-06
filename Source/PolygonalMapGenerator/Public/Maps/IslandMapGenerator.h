@@ -43,7 +43,10 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 		TSubclassOf<UPointGenerator> IslandPointSelector;
 
 	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
-	TSubclassOf<UBiomeManager> BiomeManager;
+		TSubclassOf<UBiomeManager> BiomeManager;
+
+	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
+		TSubclassOf<UElevationDistributor> ElevationDistributor;
 
 	// The number of points to generate
 	UPROPERTY(Category = "Points", BlueprintReadWrite, EditAnywhere)
@@ -265,17 +268,9 @@ protected:
 
 private:
 	UPROPERTY()
-		UIslandShape* IslandShape;
-	UPROPERTY()
-		UPointGenerator* PointSelector;
-	UPROPERTY()
 		UPolygonMap* MapGraph;
 	UPROPERTY()
-		UElevationDistributor* ElevationDistributor;
-	UPROPERTY()
-	UPolygonalMapHeightmap* MapHeightmap;
-	UPROPERTY()
-	UBiomeManager* BiomeManager;
+		UPolygonalMapHeightmap* MapHeightmap;
 
 	UPROPERTY()
 		FRandomStream RandomGenerator;
@@ -283,4 +278,13 @@ private:
 	TQueue<FIslandGeneratorDelegate> IslandGeneratorSteps;
 
 	FIslandGeneratorDelegate OnGenerationComplete;
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Island Generation")
+		UIslandShape* IslandShape;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Island Generation")
+		UPointGenerator* PointSelector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Island Generation")
+		UElevationDistributor* ElevationDistributor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Island Generation")
+		UBiomeManager* BiomeManager;
 };

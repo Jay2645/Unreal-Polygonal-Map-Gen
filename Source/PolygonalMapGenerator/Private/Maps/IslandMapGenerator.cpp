@@ -23,25 +23,23 @@ void AIslandMapGenerator::SetData(FIslandData islandData)
 
 void AIslandMapGenerator::ResetMap()
 {
-	UObject* outer = (UObject*)GetTransientPackage();
-
 	if (IslandData.IslandType == NULL)
 	{
 		UE_LOG(LogWorldGen, Error, TEXT("IslandShape was null!"));
-		IslandShape = NewObject<UIslandShape>(outer, UIslandShape::StaticClass());
+		IslandShape = NewObject<UIslandShape>(this, TEXT("Island Shape"));
 	}
 	else
 	{
-		IslandShape = NewObject<UIslandShape>(outer, IslandData.IslandType);
+		IslandShape = NewObject<UIslandShape>(this, IslandData.IslandType, TEXT("Island Shape"));
 	}
 	if (IslandData.IslandPointSelector == NULL)
 	{
 		UE_LOG(LogWorldGen, Error, TEXT("PointSelector was null!"));
-		PointSelector = NewObject<UPointGenerator>(outer, UPointGenerator::StaticClass());
+		PointSelector = NewObject<UPointGenerator>(this, TEXT("Point Generator"));
 	}
 	else
 	{
-		PointSelector = NewObject<UPointGenerator>(outer, IslandData.IslandPointSelector);
+		PointSelector = NewObject<UPointGenerator>(this, IslandData.IslandPointSelector, TEXT("Point Generator"));
 	}
 
 	if (IslandData.BiomeManager == NULL)
@@ -54,7 +52,15 @@ void AIslandMapGenerator::ResetMap()
 		BiomeManager = NewObject<UBiomeManager>(this,IslandData.BiomeManager,TEXT("Biome Manager"));
 	}
 
-	ElevationDistributor = NewObject<UElevationDistributor>(outer, UElevationDistributor::StaticClass());
+	if (IslandData.ElevationDistributor == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("Elevation Distributor was null!"));
+		ElevationDistributor = NewObject<UElevationDistributor>(this, TEXT("Elevation Distributor"));
+	}
+	else
+	{
+		ElevationDistributor = NewObject<UElevationDistributor>(this, IslandData.ElevationDistributor, TEXT("Elevation Distributor"));
+	}
 
 	RandomGenerator.Initialize(IslandData.Seed);
 	IslandData.GameWorld = GetWorld();

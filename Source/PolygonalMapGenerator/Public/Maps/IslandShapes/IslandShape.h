@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Object.h"
+#include "Components/ActorComponent.h"
 #include "IslandShape.generated.h"
 
 // This fixes issues with UPROPERTY in Visual Studio's Intellisense with VAssistX
@@ -13,7 +13,7 @@ using namespace UP;
 * returns a value indicating whether the point is land or water.
 */
 UCLASS(Blueprintable)
-class POLYGONALMAPGENERATOR_API UIslandShape : public UObject
+class POLYGONALMAPGENERATOR_API UIslandShape : public UActorComponent
 {
 	GENERATED_BODY()
 public:

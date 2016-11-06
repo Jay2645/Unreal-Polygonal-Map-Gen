@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Object.h"
+#include "Components/ActorComponent.h"
 #include "PolygonMap.h"
 #include "ElevationDistributor.generated.h"
 
@@ -11,7 +11,7 @@
 * of graph nodes on the XY plane and gives the nodes Z values.
 */
 UCLASS(Blueprintable)
-class POLYGONALMAPGENERATOR_API UElevationDistributor : public UObject
+class POLYGONALMAPGENERATOR_API UElevationDistributor : public UActorComponent
 {
 	GENERATED_BODY()
 
