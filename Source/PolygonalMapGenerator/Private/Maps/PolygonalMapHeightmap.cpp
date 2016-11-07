@@ -182,7 +182,7 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 FMapData UPolygonalMapHeightmap::GetMapPoint(int32 x, int32 y)
 {
 	int32 index = x + (y * HeightmapSize);
-	if (HeightmapData.Num() <= index)
+	if (index < 0 || HeightmapData.Num() <= index)
 	{
 		UE_LOG(LogWorldGen, Warning, TEXT("Tried to fetch a pixel at %d, %d, but no pixel was found."), x, y);
 		return FMapData();
