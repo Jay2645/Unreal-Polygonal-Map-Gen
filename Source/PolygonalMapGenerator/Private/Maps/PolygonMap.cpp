@@ -2,6 +2,7 @@
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "Maps/PolygonMap.h"
+#include "Maps/MapDataHelper.h"
 #include "Classes/Diagrams/Voronoi.h"
 
 DEFINE_LOG_CATEGORY(LogWorldGen);
@@ -144,9 +145,9 @@ FMapCenter& UPolygonMap::MakeCenter(const FVector2D& point)
 
 	FMapCenter center;
 	center.CenterData.Point = point;
-	center.CenterData.bIsBorder = false;
-	center.CenterData.bIsOcean = false;
-	center.CenterData.bIsWater = false;
+	center.CenterData = UMapDataHelper::RemoveBorder(center.CenterData);
+	center.CenterData = UMapDataHelper::RemoveOcean(center.CenterData);
+	center.CenterData = UMapDataHelper::RemoveWater(center.CenterData);
 	center.Index = Centers.Num();
 
 	Centers.Add(center);
@@ -179,10 +180,17 @@ FMapCorner& UPolygonMap::MakeCorner(const FVector2D& point)
 	FMapCorner corner;
 	corner.CornerData.Point = point;
 	corner.Index = Corners.Num();
-	corner.CornerData.bIsOcean = false;
-	corner.CornerData.bIsWater = false;
-	corner.CornerData.bIsBorder = PointSelector->PointIsOnBorder(corner.CornerData.Point);
-
+	corner.CornerData = UMapDataHelper::RemoveOcean(corner.CornerData);
+	corner.CornerData = UMapDataHelper::RemoveWater(corner.CornerData);
+	if (PointSelector->PointIsOnBorder(corner.CornerData.Point))
+	{
+		corner.CornerData = UMapDataHelper::SetBorder(corner.CornerData);
+	}
+	else
+	{
+		corner.CornerData = UMapDataHelper::RemoveBorder(corner.CornerData);
+	}
+	
 	Corners.Add(corner);
 	CornerLookup.Add(point, corner.Index);
 
@@ -290,7 +298,7 @@ void UPolygonMap::ImproveCorners()
 	// First we compute the average of the centers next to each corner.
 	for (int i = 0; i < Corners.Num(); i++)
 	{
-		if (Corners[i].CornerData.bIsBorder)
+		if (UMapDataHelper::IsBorder(Corners[i].CornerData))
 		{
 			newCorners[i] = Corners[i].CornerData.Point;
 		}
@@ -333,7 +341,7 @@ TArray<int32> UPolygonMap::FindLandCorners()
 	for (int i = 0; i < Corners.Num(); i++)
 	{
 		FMapCorner corner = Corners[i];
-		if (corner.CornerData.bIsOcean || corner.CornerData.bIsCoast)
+		if (UMapDataHelper::IsOcean(corner.CornerData) || UMapDataHelper::IsCoast(corner.CornerData))
 		{
 			continue;
 		}
@@ -395,15 +403,15 @@ void UPolygonMap::DrawDebugVoronoiGrid(const UWorld* world)
 		{
 			color = FColor(0, 0, 255);
 		}
-		else if (mapData.bIsOcean)
+		else if (UMapDataHelper::IsOcean(mapData))
 		{
 			color = FColor(0, 0, 255);
 		}
-		else if (mapData.bIsCoast)
+		else if (UMapDataHelper::IsCoast(mapData))
 		{
 			color = FColor(255, 255, 0);
 		}
-		else if (mapData.bIsWater)
+		else if (UMapDataHelper::IsWater(mapData))
 		{
 			color = FColor(0, 255, 255);
 		}
@@ -442,31 +450,31 @@ void UPolygonMap::DrawDebugVoronoiGrid(const UWorld* world)
 		{
 			color = FColor(0, 0, 255);
 		}
-		else if (v0Data.bIsOcean && v1Data.bIsOcean)
+		else if (UMapDataHelper::IsOcean(v0Data) && UMapDataHelper::IsOcean(v1Data))
 		{
 			color = FColor(0, 0, 255);
 		}
-		else if (v0Data.bIsWater && v1Data.bIsWater)
+		else if (UMapDataHelper::IsWater(v0Data) && UMapDataHelper::IsWater(v1Data))
 		{
 			color = FColor(0, 255, 0);
 		}
-		else if (v0Data.bIsCoast && v1Data.bIsCoast)
+		else if (UMapDataHelper::IsCoast(v0Data) && UMapDataHelper::IsCoast(v1Data))
 		{
 			color = FColor(255, 255, 0);
 		}
-		else if (v0Data.bIsBorder || v1Data.bIsBorder)
+		else if (UMapDataHelper::IsBorder(v0Data) || UMapDataHelper::IsBorder(v1Data))
 		{
 			color = FColor(128, 10, 10);
 		}
-		else if (v0Data.bIsOcean || v1Data.bIsOcean)
+		else if (UMapDataHelper::IsOcean(v0Data) || UMapDataHelper::IsOcean(v1Data))
 		{
 			color = FColor(10, 10, 128);
 		}
-		else if (v0Data.bIsWater || v1Data.bIsWater)
+		else if (UMapDataHelper::IsWater(v0Data) || UMapDataHelper::IsWater(v1Data))
 		{
 			color = FColor(10, 128, 10);
 		}
-		else if (v0Data.bIsCoast || v1Data.bIsCoast)
+		else if (UMapDataHelper::IsCoast(v0Data) || UMapDataHelper::IsCoast(v1Data))
 		{
 			color = FColor(128, 128, 10);
 		}
@@ -493,15 +501,15 @@ void UPolygonMap::DrawDebugDelaunayGrid(const UWorld* world)
 		{
 		color = FColor(255, 0, 0);
 		}
-		else */if (mapData.bIsOcean)
+		else */if (UMapDataHelper::IsOcean(mapData))
 		{
 			color = FColor(0, 0, 255);
 		}
-		else if (mapData.bIsCoast)
+		else if (UMapDataHelper::IsCoast(mapData))
 		{
 			color = FColor(255, 255, 0);
 		}
-		else if (mapData.bIsWater)
+		else if (UMapDataHelper::IsWater(mapData))
 		{
 			color = FColor(0, 255, 255);
 		}
@@ -539,31 +547,31 @@ void UPolygonMap::DrawDebugDelaunayGrid(const UWorld* world)
 		{
 		color = FColor(255, 0, 0);
 		}
-		else */if (d0Data.bIsOcean && d1Data.bIsOcean)
+		else */if (UMapDataHelper::IsOcean(d0Data) && UMapDataHelper::IsOcean(d1Data))
 		{
 			color = FColor(0, 0, 255);
 		}
-		else if (d0Data.bIsWater && d1Data.bIsWater)
+		else if (UMapDataHelper::IsWater(d0Data) && UMapDataHelper::IsWater(d1Data))
 		{
 			color = FColor(0, 255, 0);
 		}
-		else if (d0Data.bIsCoast && d1Data.bIsCoast)
+		else if (UMapDataHelper::IsCoast(d0Data) && UMapDataHelper::IsCoast(d1Data))
 		{
 			color = FColor(255, 255, 0);
 		}
-		else if (d0Data.bIsBorder || d1Data.bIsBorder)
+		else if (UMapDataHelper::IsBorder(d0Data) || UMapDataHelper::IsBorder(d1Data))
 		{
 			color = FColor(128, 10, 10);
 		}
-		else if (d0Data.bIsOcean || d1Data.bIsOcean)
+		else if (UMapDataHelper::IsOcean(d0Data) || UMapDataHelper::IsOcean(d1Data))
 		{
 			color = FColor(10, 10, 128);
 		}
-		else if (d0Data.bIsWater || d1Data.bIsWater)
+		else if (UMapDataHelper::IsWater(d0Data) || UMapDataHelper::IsWater(d1Data))
 		{
 			color = FColor(10, 128, 10);
 		}
-		else if (d0Data.bIsCoast || d1Data.bIsCoast)
+		else if (UMapDataHelper::IsCoast(d0Data) || UMapDataHelper::IsCoast(d1Data))
 		{
 			color = FColor(128, 128, 10);
 		}

@@ -1,6 +1,7 @@
 // Original Work Copyright (c) 2010 Amit J Patel, Modified Work Copyright (c) 2016 Jay M Stevens
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
+#include "Maps/MapDataHelper.h"
 #include "Maps/IslandMapGenerator.h"
 
 AIslandMapGenerator::AIslandMapGenerator()
@@ -328,7 +329,7 @@ void AIslandMapGenerator::CalculateWatersheds()
 	{
 		FMapCorner corner = GetCorner(i);
 		corner.Watershed = corner.Index;
-		if (!corner.CornerData.bIsOcean && !corner.CornerData.bIsCoast)
+		if (!UMapDataHelper::IsOcean(corner.CornerData) && !UMapDataHelper::IsCoast(corner.CornerData))
 		{
 			corner.Watershed = corner.Downslope;
 		}
@@ -346,10 +347,10 @@ void AIslandMapGenerator::CalculateWatersheds()
 		{
 			FMapCorner corner = GetCorner(j);
 			FMapCorner watershed = GetCorner(corner.Watershed);
-			if (!corner.CornerData.bIsOcean && !corner.CornerData.bIsCoast && !watershed.CornerData.bIsCoast)
+			if (!UMapDataHelper::IsOcean(corner.CornerData) && !UMapDataHelper::IsCoast(corner.CornerData) && !UMapDataHelper::IsCoast(watershed.CornerData))
 			{
 				FMapCorner downstreamWatershed = GetCorner(watershed.Watershed);
-				if (!downstreamWatershed.CornerData.bIsOcean)
+				if (!UMapDataHelper::IsOcean(downstreamWatershed.CornerData))
 				{
 					corner.Watershed = downstreamWatershed.Index;
 					UpdateCorner(corner);
@@ -378,7 +379,7 @@ void AIslandMapGenerator::CreateRivers()
 	bool hasCoastTile = false;
 	for (int i = 0; i < GetCornerNum(); i++)
 	{
-		if (GetCorner(i).CornerData.bIsCoast)
+		if (UMapDataHelper::IsCoast(GetCorner(i).CornerData))
 		{
 			hasCoastTile = true;
 			break;
@@ -394,12 +395,12 @@ void AIslandMapGenerator::CreateRivers()
 	{
 		int cornerIndex = RandomGenerator.RandRange(0, GetCornerNum() - 1);
 		FMapCorner riverSource = GetCorner(cornerIndex);
-		if (riverSource.CornerData.bIsOcean)
+		if (UMapDataHelper::IsOcean(riverSource.CornerData))
 		{
 			continue;
 		}
 		int j = 0;
-		while (!riverSource.CornerData.bIsCoast)
+		while (!UMapDataHelper::IsCoast(riverSource.CornerData))
 		{
 			FMapCorner downslopeCorner = GetCorner(riverSource.Downslope);
 			if (downslopeCorner.Index == riverSource.Index || downslopeCorner.Index < 0)
@@ -409,10 +410,10 @@ void AIslandMapGenerator::CreateRivers()
 			FMapEdge edge = FindEdgeFromCorners(riverSource, downslopeCorner);
 			edge.RiverVolume++;
 			riverSource.RiverSize++;
-			riverSource.CornerData.bIsRiver = true;
+			riverSource.CornerData = UMapDataHelper::SetRiver(riverSource.CornerData);
 			riverSource.CornerData.Elevation -= 0.05f;
 			downslopeCorner.RiverSize++;
-			downslopeCorner.CornerData.bIsRiver = true;
+			downslopeCorner.CornerData = UMapDataHelper::SetRiver(downslopeCorner.CornerData);
 			downslopeCorner.CornerData.Elevation -= 0.05f;
 
 			UpdateEdge(edge);
@@ -435,9 +436,9 @@ void AIslandMapGenerator::AssignCornerMoisture()
 	for (int i = 0; i < GetCornerNum(); i++)
 	{
 		FMapCorner corner = GetCorner(i);
-		if ((corner.CornerData.bIsWater || corner.CornerData.bIsRiver) && !corner.CornerData.bIsOcean)
+		if ((UMapDataHelper::IsWater(corner.CornerData) || UMapDataHelper::IsRiver(corner.CornerData)) && !UMapDataHelper::IsOcean(corner.CornerData))
 		{
-			corner.CornerData.Moisture = corner.CornerData.bIsRiver ? FMath::Min(3.0f, (0.2f * corner.RiverSize)) : 1.0f;
+			corner.CornerData.Moisture = UMapDataHelper::IsRiver(corner.CornerData) ? FMath::Min(3.0f, (0.2f * corner.RiverSize)) : 1.0f;
 			moistureQueue.Enqueue(corner);
 		}
 		else
@@ -468,7 +469,7 @@ void AIslandMapGenerator::AssignCornerMoisture()
 	for (int i = 0; i < GetCornerNum(); i++)
 	{
 		FMapCorner corner = GetCorner(i);
-		if (corner.CornerData.bIsCoast || corner.CornerData.bIsOcean)
+		if (UMapDataHelper::IsCoast(corner.CornerData) || UMapDataHelper::IsOcean(corner.CornerData))
 		{
 			corner.CornerData.Moisture = 1.0f;
 			UpdateCorner(corner);
@@ -529,7 +530,7 @@ void AIslandMapGenerator::FinalizeAllPoints()
 		corner.CornerData.Elevation = FMath::Clamp(corner.CornerData.Elevation, 0.0f, 1.0f);
 		corner.CornerData.Moisture = FMath::Clamp(corner.CornerData.Moisture, 0.0f, 1.0f);
 
-		if (!corner.CornerData.bIsOcean)
+		if (!UMapDataHelper::IsOcean(corner.CornerData))
 		{
 			corner.CornerData.Elevation = 0.1f + (corner.CornerData.Elevation * 0.9f);
 		}
@@ -545,7 +546,7 @@ void AIslandMapGenerator::FinalizeAllPoints()
 		center.CenterData.Elevation = FMath::Clamp(center.CenterData.Elevation, 0.0f, 1.0f);
 		center.CenterData.Moisture = FMath::Clamp(center.CenterData.Moisture, 0.0f, 1.0f);
 
-		if (!center.CenterData.bIsOcean)
+		if (!UMapDataHelper::IsOcean(center.CenterData))
 		{
 			center.CenterData.Elevation = 0.1f + (center.CenterData.Elevation * 0.9f);
 		}

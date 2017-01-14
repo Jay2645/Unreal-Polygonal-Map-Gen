@@ -1,6 +1,7 @@
 // Original Work Copyright (c) 2010 Amit J Patel, Modified Work Copyright (c) 2016 Jay M Stevens
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
+#include "Maps/MapDataHelper.h"
 #include "BiomeManager.h"
 
 const FName UBiomeManager::BIOME_Ocean = TEXT("Ocean");
@@ -16,11 +17,11 @@ UBiomeManager::UBiomeManager()
 
 FName UBiomeManager::DetermineBiome_Implementation(const FMapData& MapData)
 {
-	if (MapData.bIsOcean)
+	if (UMapDataHelper::IsOcean(MapData))
 	{
 		return BIOME_Ocean;
 	}
-	if (MapData.bIsCoast)
+	if (UMapDataHelper::IsCoast(MapData))
 	{
 		return BIOME_Coast;
 	}

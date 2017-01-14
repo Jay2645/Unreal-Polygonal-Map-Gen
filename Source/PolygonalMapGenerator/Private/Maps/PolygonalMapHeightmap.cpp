@@ -2,6 +2,7 @@
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "DrawDebugHelpers.h"
+#include "Maps/MapDataHelper.h"
 #include "PolygonalMapHeightmap.h"
 
 FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager)
@@ -87,11 +88,11 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 		pointWeights.Add(weight);
 	}
 
-	float isBorder = 0.0f;
+	/*float isBorder = 0.0f;
 	float isWater = 0.0f;
 	float isOcean = 0.0f;
 	float isCoast = 0.0f;
-	float isRiver = 0.0f;
+	float isRiver = 0.0f;*/
 
 	float elevation = 0.0f;
 	float moisture = 0.0f;
@@ -103,7 +104,7 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 		FMapData curPoint = pointWeights[i].Key;
 		float weight = pointWeights[i].Value;
 
-		if (curPoint.bIsBorder)
+		/*if (UMapDataHelper::IsBorder(curPoint))
 		{
 			isBorder += weight;
 		}
@@ -122,7 +123,7 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 		if (curPoint.bIsWater)
 		{
 			isWater += weight;
-		}
+		}*/
 
 		elevation += (curPoint.Elevation * weight);
 		moisture += (curPoint.Moisture * weight);
@@ -139,11 +140,11 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 	FMapData pixelData;
 
 	pixelData.Point = PixelPosition;
-	pixelData.bIsBorder = isBorder >= 0.5f;
+	/*pixelData.bIsBorder = isBorder >= 0.5f;
 	pixelData.bIsCoast = isCoast >= 0.5f;
 	pixelData.bIsOcean = isOcean >= 0.5f;
 	pixelData.bIsRiver = isRiver >= 0.5f;
-	pixelData.bIsWater = isWater >= 0.5f;
+	pixelData.bIsWater = isWater >= 0.5f;*/
 
 	for (auto& elem : tagWeights)
 	{
@@ -214,15 +215,15 @@ void UPolygonalMapHeightmap::DrawDebugPixelGrid(UWorld* world, float PixelSize)
 			FMapData mapData = GetMapPoint(x,y);
 
 			FColor color = FColor(255, 255, 255);
-			if (mapData.bIsOcean)
+			if (UMapDataHelper::IsOcean(mapData))
 			{
 				color = FColor(0, 0, 255);
 			}
-			else if (mapData.bIsCoast)
+			else if (UMapDataHelper::IsCoast(mapData))
 			{
 				color = FColor(255, 255, 0);
 			}
-			else if (mapData.bIsWater)
+			else if (UMapDataHelper::IsWater(mapData))
 			{
 				color = FColor(0, 255, 255);
 			}

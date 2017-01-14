@@ -15,22 +15,7 @@ struct POLYGONALMAPGENERATOR_API FMapData
 	// Location in the map itself
 	UPROPERTY(Category = "Map Graph", BlueprintReadWrite, EditAnywhere)
 	FVector2D Point;
-	// Is this MapData on the map's border?
-	UPROPERTY(Category = "Map Graph", BlueprintReadWrite, EditAnywhere)
-	bool bIsBorder;
 
-	// Is this MapData a lake or ocean?
-	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
-	bool bIsWater;
-	// Is the MapData in the ocean?
-	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
-	bool bIsOcean;
-	// Is this MapData a land polygon touching the ocean?
-	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
-	bool bIsCoast;
-	// Is this MapData a river?
-	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
-	bool bIsRiver;
 	// The height of this MapData (0.0 - 1.0)
 	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
 	float Elevation;
@@ -51,12 +36,10 @@ struct POLYGONALMAPGENERATOR_API FMapData
 	{
 		Point = FVector2D::ZeroVector;
 
-		bIsBorder = true;
-		bIsOcean = true;
-		bIsWater = true;
+		Tags.Add(TEXT("Border"));
+		Tags.Add(TEXT("Ocean"));
+		Tags.Add(TEXT("Water"));
 
-		bIsCoast = false;
-		bIsRiver = false;
 		Elevation = 0.0f;
 		Moisture = 0.0f;
 	}

@@ -17,8 +17,16 @@ void UElevationDistributor::AssignCornerElevations(UIslandShape* islandShape, bo
 	for (int i = 0; i < MapGraph->GetCornerNum(); i++)
 	{
 		FMapCorner corner = MapGraph->GetCorner(i);
-		corner.CornerData.bIsWater = !islandShape->IsPointLand(corner.CornerData.Point);
-		if (corner.CornerData.bIsBorder || corner.CornerData.bIsWater)
+		if (islandShape->IsPointLand(corner.CornerData.Point))
+		{
+			corner.CornerData = UMapDataHelper::RemoveWater(corner.CornerData);
+		}
+		else
+		{
+			corner.CornerData = UMapDataHelper::SetWater(corner.CornerData);
+		}
+
+		if (UMapDataHelper::IsBorder(corner.CornerData) || UMapDataHelper::IsWater(corner.CornerData))
 		{
 			// The borders are the "base" of our map, and will have the lowest elevation
 			// As we expand the queue in the next loop, we will move towards the center
@@ -46,7 +54,7 @@ void UElevationDistributor::AssignCornerElevations(UIslandShape* islandShape, bo
 			FMapCorner adjacent = MapGraph->GetCorner(corner.Adjacent[i]);
 			float newElevation = 0.1f + corner.CornerData.Elevation;
 			//newElevation += queueOffsetAmount;
-			if (!corner.CornerData.bIsWater && !adjacent.CornerData.bIsWater)
+			if (!UMapDataHelper::IsWater(corner.CornerData) && !UMapDataHelper::IsWater(adjacent.CornerData))
 			{
 				newElevation += 1.0f;
 
@@ -95,20 +103,27 @@ void UElevationDistributor::AssignOceanCoastAndLand(float lakeThreshold)
 		for (int32 j = 0; j < center.Corners.Num(); j++)
 		{
 			FMapCorner corner = MapGraph->GetCorner(center.Corners[j]);
-			if (corner.CornerData.bIsBorder)
+			if (UMapDataHelper::IsBorder(corner.CornerData))
 			{
-				center.CenterData.bIsBorder = true;
-				center.CenterData.bIsOcean = true;
-				corner.CornerData.bIsWater = true;
+				center.CenterData = UMapDataHelper::SetBorder(center.CenterData);
+				center.CenterData = UMapDataHelper::SetOcean(center.CenterData);
+				corner.CornerData = UMapDataHelper::SetWater(corner.CornerData);
 				centerQueue.Enqueue(i);
 			}
-			if (corner.CornerData.bIsWater)
+			if (UMapDataHelper::IsWater(corner.CornerData))
 			{
 				numWater++;
 			}
 			MapGraph->UpdateCorner(corner);
 		}
-		center.CenterData.bIsWater = center.CenterData.bIsOcean || numWater > center.Corners.Num() * lakeThreshold;
+		if (UMapDataHelper::IsOcean(center.CenterData) || numWater > center.Corners.Num() * lakeThreshold)
+		{
+			center.CenterData = UMapDataHelper::SetWater(center.CenterData);
+		}
+		else
+		{
+			center.CenterData = UMapDataHelper::RemoveWater(center.CenterData);
+		}
 		MapGraph->UpdateCenter(center);
 	}
 
@@ -120,9 +135,9 @@ void UElevationDistributor::AssignOceanCoastAndLand(float lakeThreshold)
 		for (int32 i = 0; i < center.Neighbors.Num(); i++)
 		{
 			FMapCenter neighbor = MapGraph->GetCenter(center.Neighbors[i]);
-			if (neighbor.CenterData.bIsWater && !neighbor.CenterData.bIsOcean)
+			if (UMapDataHelper::IsWater(neighbor.CenterData) && !UMapDataHelper::IsOcean(neighbor.CenterData))
 			{
-				neighbor.CenterData.bIsOcean = true;
+				neighbor.CenterData = UMapDataHelper::SetOcean(neighbor.CenterData);
 				centerQueue.Enqueue(neighbor.Index);
 			}
 			MapGraph->UpdateCenter(neighbor);
@@ -140,11 +155,11 @@ void UElevationDistributor::AssignOceanCoastAndLand(float lakeThreshold)
 		for (int j = 0; j < center.Neighbors.Num(); j++)
 		{
 			FMapCenter neighbor = MapGraph->GetCenter(center.Neighbors[j]);
-			if (neighbor.CenterData.bIsOcean)
+			if (UMapDataHelper::IsOcean(neighbor.CenterData))
 			{
 				numOcean++;
 			}
-			else if (!neighbor.CenterData.bIsWater)
+			else if (!UMapDataHelper::IsWater(neighbor.CenterData))
 			{
 				numLand++;
 			}
@@ -153,7 +168,14 @@ void UElevationDistributor::AssignOceanCoastAndLand(float lakeThreshold)
 				break;
 			}
 		}
-		center.CenterData.bIsCoast = numOcean > 0 && numLand > 0;
+		if (numOcean > 0 && numLand > 0)
+		{
+			center.CenterData = UMapDataHelper::SetCoast(center.CenterData);
+		}
+		else
+		{
+			center.CenterData = UMapDataHelper::RemoveCoast(center.CenterData);
+		}
 		MapGraph->UpdateCenter(center);
 	}
 
@@ -169,18 +191,39 @@ void UElevationDistributor::AssignOceanCoastAndLand(float lakeThreshold)
 		for (int j = 0; j < corner.Touches.Num(); j++)
 		{
 			FMapCenter neighbor = MapGraph->GetCenter(corner.Touches[j]);
-			if (neighbor.CenterData.bIsOcean)
+			if (UMapDataHelper::IsOcean(neighbor.CenterData))
 			{
 				numOcean++;
 			}
-			else if (!neighbor.CenterData.bIsWater)
+			else if (!UMapDataHelper::IsWater(neighbor.CenterData))
 			{
 				numLand++;
 			}
 		}
-		corner.CornerData.bIsOcean = numOcean == corner.Touches.Num();
-		corner.CornerData.bIsCoast = numOcean > 0 && numLand > 0;
-		corner.CornerData.bIsWater = corner.CornerData.bIsBorder || (numLand != corner.Touches.Num() && !corner.CornerData.bIsCoast);
+		if (numOcean == corner.Touches.Num())
+		{
+			corner.CornerData = UMapDataHelper::SetOcean(corner.CornerData);
+		}
+		else
+		{
+			corner.CornerData = UMapDataHelper::RemoveOcean(corner.CornerData);
+		}
+		if (numOcean > 0 && numLand > 0)
+		{
+			corner.CornerData = UMapDataHelper::SetCoast(corner.CornerData);
+		}
+		else
+		{
+			corner.CornerData = UMapDataHelper::RemoveCoast(corner.CornerData);
+		}
+		if (UMapDataHelper::IsBorder(corner.CornerData) || (numLand != corner.Touches.Num() && !UMapDataHelper::IsCoast(corner.CornerData)))
+		{
+			corner.CornerData = UMapDataHelper::SetWater(corner.CornerData);
+		}
+		else
+		{
+			corner.CornerData = UMapDataHelper::RemoveWater(corner.CornerData);
+		}
 		MapGraph->UpdateCorner(corner);
 	}
 }
@@ -230,7 +273,7 @@ void UElevationDistributor::FlattenWaterElevations()
 	for (int i = 0; i < MapGraph->GetCornerNum(); i++)
 	{
 		FMapCorner corner = MapGraph->GetCorner(i);
-		if (corner.CornerData.bIsOcean || corner.CornerData.bIsCoast)
+		if (UMapDataHelper::IsOcean(corner.CornerData) || UMapDataHelper::IsCoast(corner.CornerData))
 		{
 			corner.CornerData.Elevation = 0.0f;
 		}
