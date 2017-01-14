@@ -187,8 +187,12 @@ struct POLYGONALMAPGENERATOR_API FMapEdge
 	}
 };
 
+/**
+* This class governs how the 2D FMapData objects act in "world space".
+* This is used showing map debug, as well as converting from "Polygon Map" space to 3D Unreal world space.
+*/
 USTRUCT(BlueprintType)
-struct POLYGONALMAPGENERATOR_API FPolygonMapData
+struct POLYGONALMAPGENERATOR_API FWorldSpaceMapData
 {
 	GENERATED_BODY()
 
@@ -207,7 +211,7 @@ struct POLYGONALMAPGENERATOR_API FPolygonMapData
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
 	float ElevationScale;
 
-	FPolygonMapData()
+	FWorldSpaceMapData()
 	{
 		PointSize = 256;
 		ElevationOffset = -6350.0f;
@@ -245,7 +249,7 @@ public:
 	// polygons, the Delaunay edge will have one null point, and the 
 	// Voronoi edge may be null.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
-	void BuildGraph(const int32& mapSize, const FPolygonMapData& data);
+	void BuildGraph(const int32& mapSize, const FWorldSpaceMapData& data);
 
 	// Creates an FMapCenter from the given point.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
@@ -368,7 +372,7 @@ private:
 	int32 MapSize;
 
 	UPROPERTY()
-	FPolygonMapData MapData;
+	FWorldSpaceMapData MapData;
 
 	/// Graph Data
 	// The points in our graph

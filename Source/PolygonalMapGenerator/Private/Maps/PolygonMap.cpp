@@ -16,7 +16,7 @@ void UPolygonMap::CreatePoints(UPointGenerator* pointSelector, const int32& numb
 	Points = PointSelector->GeneratePoints(numberOfPoints);
 }
 
-void UPolygonMap::BuildGraph(const int32& mapSize, const FPolygonMapData& data)
+void UPolygonMap::BuildGraph(const int32& mapSize, const FWorldSpaceMapData& data)
 {
 	MapSize = mapSize;
 	MapData = data;

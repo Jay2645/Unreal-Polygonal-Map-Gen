@@ -21,11 +21,29 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 {
 	GENERATED_BODY()
 
-		// The type of island to make.
-		// Different generators will make differently-shaped islands.
-		// By default, all points will be considered water.
-		UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
-		TSubclassOf<UIslandShape> IslandType;
+	// The type of island to make.
+	// Different generators will make differently-shaped islands.
+	// By default, all points will be considered water.
+	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<UIslandShape> IslandType;
+
+	// What IslandPointGenerator to use.
+	// By default, all points will be at 0,0.
+	// Generators can do things like make random points, for a "natural"-looking map, make square points for a grid-shaped map, etc.
+	UPROPERTY(Category = "Points", BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<UPointGenerator> IslandPointSelector;
+
+	// What BiomeManager to use.
+	// By default, only MapData objects with the ocean or coast properties will get biomes.
+	// Users should create their own class to determine which biomes they want in their game.
+	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<UBiomeManager> BiomeManager;
+
+	// What ElevationDistributor to use.
+	// By default, this will create an island with the elevation mostly focused in the middle.
+	// This will create landmasses with a giant mountain in the center.
+	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<UElevationDistributor> ElevationDistributor;
 
 	// The random seed to use for the island.
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
@@ -35,32 +53,23 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	int32 Size;
 
-	// This increases the size of the
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
-		float ScaleFactor;
-
-	UPROPERTY(Category = "Points", BlueprintReadWrite, EditAnywhere)
-		TSubclassOf<UPointGenerator> IslandPointSelector;
-
-	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
-		TSubclassOf<UBiomeManager> BiomeManager;
-
-	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
-		TSubclassOf<UElevationDistributor> ElevationDistributor;
+	float ScaleFactor;
 
 	// The number of points to generate
 	UPROPERTY(Category = "Points", BlueprintReadWrite, EditAnywhere)
-		int32 NumberOfPoints;
+	int32 NumberOfPoints;
 
 	// 0 to 1, fraction of water corners for water polygon
 	UPROPERTY(Category = "Water", BlueprintReadWrite, EditAnywhere)
-		float LakeThreshold;
+	float LakeThreshold;
 
+	// This is the settings for converting the points we generate into Unreal world space.
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-		FPolygonMapData PolygonMapSettings;
+	FWorldSpaceMapData PolygonMapSettings;
 
 	UPROPERTY(Category = "World", BlueprintReadWrite, VisibleInstanceOnly)
-		UWorld* GameWorld;
+	UWorld* GameWorld;
 
 	//Constructor
 	FIslandData()
@@ -69,6 +78,11 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 		Size = 1024;
 		NumberOfPoints = 1500;
 		ScaleFactor = 1.1f;
+
+		IslandType = UIslandShape::StaticClass();
+		IslandPointSelector = UPointGenerator::StaticClass();
+		BiomeManager = UBiomeManager::StaticClass();
+		ElevationDistributor = UElevationDistributor::StaticClass();
 	}
 };
 
@@ -279,12 +293,16 @@ private:
 
 	FIslandGeneratorDelegate OnGenerationComplete;
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Island Generation")
+	// The instance of our IslandShape object.
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
 	UIslandShape* IslandShape;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Island Generation")
+	// The instance of our PointGenerator object.
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
 	UPointGenerator* PointSelector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Island Generation")
+	// The instance of our ElevationDistributor object.
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
 	UElevationDistributor* ElevationDistributor;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Island Generation")
+	// The instance of our BiomeManager object.
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
 	UBiomeManager* BiomeManager;
 };
