@@ -146,6 +146,7 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 	pixelData.bIsRiver = isRiver >= 0.5f;
 	pixelData.bIsWater = isWater >= 0.5f;*/
 
+	pixelData.Tags.Empty();
 	for (auto& elem : tagWeights)
 	{
 		if (elem.Value >= 0.5f)
