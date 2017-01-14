@@ -16,7 +16,7 @@ class POLYGONALMAPGENERATOR_API UPolygonalMapHeightmap : public UObject
 
 private:
 	UPROPERTY()
-		TArray<FMapData> HeightmapData;
+	TArray<FMapData> HeightmapData;
 
 	FMapData MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager);
 
