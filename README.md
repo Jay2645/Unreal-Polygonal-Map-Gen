@@ -48,8 +48,8 @@ There is a class provided, `UPolygonalMapHeightmap`, which can create a heightma
 
 The `UPolygonalMapHeightmap` class provides a couple helper classes:
 
-* `GetMapData()`, provides a raw array of FMapData objects with size `FIslandData::Size` by `FIslandData::Size`
+* `GetMapData()` provides a copy of the raw array of FMapData objects with size `FIslandData::Size` by `FIslandData::Size`, which the user can iterate over.
 
-* `GetMapPoint()`, takes in an integer X and Y value and safely outputs the FMapData object corresponding to that location. If that location is outside of the heightmap, it will output a "blank" FMapData object.
+* `GetMapPoint()` takes in an integer X and Y value and safely outputs the FMapData object corresponding to that location. If that location is outside of the heightmap, it will output a "blank" FMapData object.
 
 This array of FMapData objects can be turned into a 2D grayscale image by the user (using `FMapData::Elevation` to create the color value), or it can be used to create data points in a 3D voxel implementation.
