@@ -148,7 +148,7 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 
 	for (auto& elem : tagWeights)
 	{
-		if (elem.Value >= 0.1f)
+		if (elem.Value >= 0.5f)
 		{
 			pixelData.Tags.Add(elem.Key);
 		}
