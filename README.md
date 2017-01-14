@@ -18,7 +18,7 @@ Once it is loaded, you can either spawn in the `IslandMapGenerator` Actor raw, o
 
 There have been a few changes from the ActionScript source. There's nothing too drastic, just a couple changes for better ease-of-use:
 
-* There has been an implementation of a "tag" system to provide more variety. This tag system uses Unreal's `FName` class, which is case-insensitive and built for fast lookup. This can, for example, allow users to specify part of the map as a "volcano," which is then something that can be taken into account during Biome generation.
+* There has been an implementation of a "tag" system to provide more variety. This tag system uses Unreal's `FName` class, which is case-insensitive and built for fast lookup. This can, for example, allow users to specify part of the map as a "volcano," which is then something that can be taken into account during Biome generation. This tag system also replaces hardcoded booleans to determine whether part of the map is water, ocean, coast, etc.
 
 * Most of the original ActionScript code was placed in a single class, `Map`, with a couple helper classes for the shape of the island (`IslandShape` in this project) and selecting which points to use (`PointGeneratior` in this project). This code has been further encapsulated, with the `Map` class (`IslandMapGenerator` here) being broken down into various stages. Each stage is its own class, which can be overridden and users can provide their own implementation if the default one isn't to their liking.
 
