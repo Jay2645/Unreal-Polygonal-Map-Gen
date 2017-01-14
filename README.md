@@ -44,6 +44,8 @@ Keep in mind that the above functions all return ***copies*** of objects; once m
 
 This system doesn't physically create anything inside the Unreal Engine itself, except for perhaps a debug diagram if the user chooses. It is up to the user to find or implement a system which can take the data from this graph and transform it into something tangible within the engine itself.
 
-One implementation could be to export the array of all FMapData nodes and then use those nodes to create a heightmap (as mentioned above), either using the raw elevation data or have each point in the heightmap be weighted by the nearest FMapData points to it.
+There is a class provided, `UPolygonalMapHeightmap`, which can create a heightmap from a `UPolygonMap`. If you are using the default implementation of `AIslandMapGenerator`, this will be done for you and you can access the heightmap after map generation is complete with `AIslandMapGenerator::GetHeightmap()`.
 
-These ideas are just examples; it is up to the user to ultimately decide how to use the data.
+The `UPolygonalMapHeightmap` class provides a couple helper classes -- `GetMapData()`, which provides a raw array of FMapData objects with size `FIslandData::Size` x `FIslandData::Size`, or `GetMapPoint()`, which takes in an integer X and Y value and safely outputs the FMapData object corresponding to that location. If that location is outside of the heightmap, it will output a "blank" FMapData object.
+
+This array of FMapData objects can be turned into a 2D grayscale image by the user (using `FMapData::Elevation` to create the color value), or it can be used to create data points in a 3D voxel implementation.
