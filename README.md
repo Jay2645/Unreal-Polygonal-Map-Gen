@@ -46,6 +46,10 @@ This system doesn't physically create anything inside the Unreal Engine itself, 
 
 There is a class provided, `UPolygonalMapHeightmap`, which can create a heightmap from a `UPolygonMap`. If you are using the default implementation of `AIslandMapGenerator`, this will be done for you and you can access the heightmap after map generation is complete with `AIslandMapGenerator::GetHeightmap()`.
 
-The `UPolygonalMapHeightmap` class provides a couple helper classes -- `GetMapData()`, which provides a raw array of FMapData objects with size `FIslandData::Size` x `FIslandData::Size`, or `GetMapPoint()`, which takes in an integer X and Y value and safely outputs the FMapData object corresponding to that location. If that location is outside of the heightmap, it will output a "blank" FMapData object.
+The `UPolygonalMapHeightmap` class provides a couple helper classes:
+
+* `GetMapData()`, provides a raw array of FMapData objects with size `FIslandData::Size` by `FIslandData::Size`
+
+* `GetMapPoint()`, takes in an integer X and Y value and safely outputs the FMapData object corresponding to that location. If that location is outside of the heightmap, it will output a "blank" FMapData object.
 
 This array of FMapData objects can be turned into a 2D grayscale image by the user (using `FMapData::Elevation` to create the color value), or it can be used to create data points in a 3D voxel implementation.
