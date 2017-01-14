@@ -7,7 +7,7 @@
 #include "BiomeManager.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class POLYGONALMAPGENERATOR_API UBiomeManager : public UActorComponent
 {
 	GENERATED_BODY()
