@@ -4,8 +4,6 @@
 #include "DrawDebugHelpers.h"
 #include "PolygonalMapHeightmap.h"
 
-
-
 FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager)
 {
 	TArray<FMapData> closestPoints;
@@ -177,6 +175,11 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 			HeightmapData.Add(MakeMapPoint(point,graph, BiomeManager));
 		}
 	}
+}
+
+TArray<FMapData> UPolygonalMapHeightmap::GetMapData()
+{
+	return HeightmapData;
 }
 
 FMapData UPolygonalMapHeightmap::GetMapPoint(int32 x, int32 y)

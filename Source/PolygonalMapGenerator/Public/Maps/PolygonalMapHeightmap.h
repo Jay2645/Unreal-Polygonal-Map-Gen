@@ -30,7 +30,9 @@ public:
 		void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, int32 Size);
 
 	UFUNCTION(BlueprintPure, Category = "Map Generation|Heightmap")
-		FMapData GetMapPoint(int32 x, int32 y);
+	TArray<FMapData> GetMapData();
+	UFUNCTION(BlueprintPure, Category = "Map Generation|Heightmap")
+	FMapData GetMapPoint(int32 x, int32 y);
 
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap|Debug")
 	void DrawDebugPixelGrid(UWorld* world, float PixelSize);
