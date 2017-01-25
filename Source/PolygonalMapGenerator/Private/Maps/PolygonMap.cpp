@@ -48,8 +48,8 @@ void UPolygonMap::BuildGraph(const int32& mapSize, const FWorldSpaceMapData& dat
 				int32 v0 = Edges[j].VoronoiEdge0;
 				int32 v1 = Edges[j].VoronoiEdge1;
 
-				if ((d0 == centerOne.Index && d1 == centerTwo.Index || d0 == centerTwo.Index && d1 == centerOne.Index) &&
-					(v0 == cornerOne.Index && v1 == cornerTwo.Index || v0 == cornerTwo.Index && v1 == cornerOne.Index))
+				if (((d0 == centerOne.Index && d1 == centerTwo.Index) || (d0 == centerTwo.Index && d1 == centerOne.Index)) &&
+					((v0 == cornerOne.Index && v1 == cornerTwo.Index) || (v0 == cornerTwo.Index && v1 == cornerOne.Index)))
 				{
 					edgeIndex = j;
 					break;
@@ -224,7 +224,7 @@ FMapEdge& UPolygonMap::FindEdgeFromCenters(const FMapCenter& v0, const FMapCente
 	}
 	for (int i = 0; i < Edges.Num(); i++)
 	{
-		if (Edges[i].DelaunayEdge0 == v0.Index && Edges[i].DelaunayEdge1 == v1.Index || Edges[i].DelaunayEdge0 == v1.Index && Edges[i].DelaunayEdge1 == v0.Index)
+		if ((Edges[i].DelaunayEdge0 == v0.Index && Edges[i].DelaunayEdge1 == v1.Index) || (Edges[i].DelaunayEdge0 == v1.Index && Edges[i].DelaunayEdge1 == v0.Index))
 		{
 			return GetEdge(i);
 		}
@@ -239,7 +239,7 @@ FMapEdge& UPolygonMap::FindEdgeFromCorners(const FMapCorner& v0, const FMapCorne
 	}
 	for (int i = 0; i < Edges.Num(); i++)
 	{
-		if (Edges[i].VoronoiEdge0 == v0.Index && Edges[i].VoronoiEdge1 == v1.Index || Edges[i].VoronoiEdge0 == v1.Index && Edges[i].VoronoiEdge1 == v0.Index)
+		if ((Edges[i].VoronoiEdge0 == v0.Index && Edges[i].VoronoiEdge1 == v1.Index) || (Edges[i].VoronoiEdge0 == v1.Index && Edges[i].VoronoiEdge1 == v0.Index))
 		{
 			return GetEdge(i);
 		}

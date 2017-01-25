@@ -11,9 +11,14 @@
 
 
 DelaunayTriangle::DelaunayTriangle(const FVector2D &_p1, const FVector2D &_p2, const FVector2D &_p3)
-	: p1(_p1), p2(_p2), p3(_p3),
-	e1(_p1, _p2), e2(_p2, _p3), e3(_p3, _p1)
 {
+	p1 = _p1;
+	p2 = _p2;
+	p3 = _p3;
+	e1 = DelaunayEdge(p1, p2);
+	e2 = DelaunayEdge(p2, p3);
+	e3 = DelaunayEdge(p3, p1);
+
 	float ab = (p1.X * p1.X) + (p1.Y * p1.Y);
 	float cd = (p2.X * p2.X) + (p2.Y * p2.Y);
 	float ef = (p3.X * p3.X) + (p3.Y * p3.Y);

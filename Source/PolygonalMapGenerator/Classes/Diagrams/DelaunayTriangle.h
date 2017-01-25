@@ -7,7 +7,10 @@
 class DelaunayEdge
 {
 public:
+	DelaunayEdge() {};
+
 	DelaunayEdge(const FVector2D &p1, const FVector2D &p2) : p1(p1), p2(p2) {};
+
 	DelaunayEdge(const DelaunayEdge &e) : p1(e.p1), p2(e.p2) {};
 
 	FVector2D p1;
