@@ -3,6 +3,7 @@
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "DrawDebugHelpers.h"
 #include "Maps/MapDataHelper.h"
+#include "Biomes/BiomeManager.h"
 #include "PolygonalMapHeightmap.h"
 
 FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager)
