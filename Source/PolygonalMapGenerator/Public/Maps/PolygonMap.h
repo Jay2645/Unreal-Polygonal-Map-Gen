@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Object.h"
+#include "Engine/World.h"
 #include "PolygonMap.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogWorldGen, Log, All);
@@ -373,8 +374,9 @@ private:
 
 	UPROPERTY()
 	TArray<FMapData> CachedMapData;
-
+	UPROPERTY()
 	TMap<FVector2D, int32> CenterLookup;
+	UPROPERTY()
 	TMap<FVector2D, int32> CornerLookup;
 
 	UPROPERTY()
