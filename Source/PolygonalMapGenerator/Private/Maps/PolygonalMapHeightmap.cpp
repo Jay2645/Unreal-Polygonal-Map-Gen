@@ -18,6 +18,13 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 				continue;
 			}
 			float distance = FVector2D::DistSquared(PixelPosition, MapData[i].Point);
+			if (distance <= 0.001f)
+			{
+				// Close enough
+				FMapData pixelData = MapData[i];
+				pixelData.Biome = BiomeManager->DetermineBiome(pixelData);
+				return pixelData;
+			}
 
 			// This will hold the index of first point we find that's further away than our point
 			int addPointIndex = -1;
@@ -170,6 +177,35 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 	}
 	HeightmapSize = Size;
 	TArray<FMapData> graph = PolygonMap->GetAllMapData();
+	// First, insert a border around the map
+	for (int x = 0; x < HeightmapSize; x++)
+	{
+		FMapData borderPoint = FMapData();
+		borderPoint.Elevation = 0.0f;
+		borderPoint.Moisture = 0.0f;
+		borderPoint = UMapDataHelper::SetOcean(borderPoint);
+		borderPoint = UMapDataHelper::SetWater(borderPoint);
+		borderPoint = UMapDataHelper::SetBorder(borderPoint);
+		borderPoint.Point = FVector2D(x, 0);
+		graph.Add(borderPoint);
+		borderPoint.Point = FVector2D(x, Size - 1);
+		graph.Add(borderPoint);
+	}
+	for (int y = 0; y < HeightmapSize; y++)
+	{
+		FMapData borderPoint = FMapData();
+		borderPoint.Elevation = 0.0f;
+		borderPoint.Moisture = 0.0f;
+		borderPoint = UMapDataHelper::SetOcean(borderPoint);
+		borderPoint = UMapDataHelper::SetWater(borderPoint);
+		borderPoint = UMapDataHelper::SetBorder(borderPoint);
+		borderPoint.Point = FVector2D(0, y);
+		graph.Add(borderPoint);
+		borderPoint.Point = FVector2D(Size - 1, y);
+		graph.Add(borderPoint);
+	}
+
+	// Now, interpolate between the actual points
 	for (int x = 0; x < HeightmapSize; x++)
 	{
 		for (int y = 0; y < HeightmapSize; y++)
@@ -207,7 +243,7 @@ void UPolygonalMapHeightmap::DrawDebugPixelGrid(UWorld* world, float PixelSize)
 		return;
 	}
 
-	float elevationScale = 32.0f * PixelSize;
+	float elevationScale = 32.0f;
 	FVector offset = FVector(0.0f, 0.0f, 0.0f);
 
 	for (int32 x = 0; x < HeightmapSize; x++)
@@ -230,13 +266,15 @@ void UPolygonalMapHeightmap::DrawDebugPixelGrid(UWorld* world, float PixelSize)
 				color = FColor(0, 255, 255);
 			}
 
-			FVector v0 = offset + FVector(mapData.Point.X * PixelSize, mapData.Point.Y * PixelSize, mapData.Elevation * elevationScale);
+			FVector v0 = offset + FVector(mapData.Point.X * PixelSize, mapData.Point.Y * PixelSize, FMath::FloorToInt(mapData.Elevation * elevationScale) * PixelSize + 1.0f);
 			FVector v1 = FVector(v0.X, v0.Y + PixelSize, v0.Z);
 			FVector v2 = FVector(v0.X + PixelSize, v0.Y, v0.Z);
 			FVector v3 = FVector(v2.X, v1.Y, v0.Z);
 			//DrawDebugSphere(world, v0, 100, 4, color, true);
 			DrawDebugLine(world, v0, v1, color, true);
 			DrawDebugLine(world, v0, v2, color, true);
+			DrawDebugLine(world, v3, v2, color, true);
+			DrawDebugLine(world, v3, v1, color, true);
 		}
 	}
 }
