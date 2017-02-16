@@ -14,7 +14,7 @@ const std::vector<DelaunayTriangle>& Delaunay::triangulate(TArray<FVector2D> &ve
 	float maxX = minX;
 	float maxY = minY;
 
-	for (std::size_t i = 0; i < vertices.Num(); ++i)
+	for (std::size_t i = 0; i < (std::size_t)vertices.Num(); ++i)
 	{
 		if (vertices[i].X < minX) minX = vertices[i].X;
 		if (vertices[i].Y < minY) minY = vertices[i].Y;

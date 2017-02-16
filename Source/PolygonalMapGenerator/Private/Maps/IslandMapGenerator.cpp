@@ -578,11 +578,11 @@ void AIslandMapGenerator::DrawDelaunayGraph()
 	MapGraph->DrawDebugDelaunayGrid(IslandData.GameWorld);
 }
 
-void AIslandMapGenerator::DrawHeightmap()
+void AIslandMapGenerator::DrawHeightmap(float PixelSize)
 {
 	if (MapHeightmap == NULL)
 	{
 		return;
 	}
-	MapHeightmap->DrawDebugPixelGrid(IslandData.GameWorld, 100.0f);
+	MapHeightmap->DrawDebugPixelGrid(IslandData.GameWorld, PixelSize);
 }

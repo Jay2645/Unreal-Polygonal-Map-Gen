@@ -206,7 +206,7 @@ void UPolygonalMapHeightmap::DrawDebugPixelGrid(UWorld* world, float PixelSize)
 		return;
 	}
 
-	float elevationScale = 3100.0f;
+	float elevationScale = 32.0f * PixelSize;
 	FVector offset = FVector(0.0f, 0.0f, 0.0f);
 
 	for (int32 x = 0; x < HeightmapSize; x++)
@@ -233,7 +233,7 @@ void UPolygonalMapHeightmap::DrawDebugPixelGrid(UWorld* world, float PixelSize)
 			FVector v1 = FVector(v0.X, v0.Y + PixelSize, v0.Z);
 			FVector v2 = FVector(v0.X + PixelSize, v0.Y, v0.Z);
 			FVector v3 = FVector(v2.X, v1.Y, v0.Z);
-			DrawDebugSphere(world, v0, 100, 4, color, true);
+			//DrawDebugSphere(world, v0, 100, 4, color, true);
 			DrawDebugLine(world, v0, v1, color, true);
 			DrawDebugLine(world, v0, v2, color, true);
 		}

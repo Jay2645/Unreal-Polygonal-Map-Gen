@@ -191,7 +191,7 @@ public:
 	void DrawDelaunayGraph();
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
-	void DrawHeightmap();
+	void DrawHeightmap(float PixelSize = 100.0f);
 
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	FIslandData IslandData;
