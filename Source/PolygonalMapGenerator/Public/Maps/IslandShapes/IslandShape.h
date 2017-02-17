@@ -34,6 +34,10 @@ public:
 	UPROPERTY(Category = "Island Size", BlueprintReadWrite, EditAnywhere)
 		float IslandFactor = 1.07f;
 
+	// The size of our island.
+	UPROPERTY(Category = "Island Size", BlueprintReadWrite, EditAnywhere)
+		int32 Size;
+
 protected:
 	// C++ version of SetSeed
 	virtual void SetSeed_Implementation(int32 seed, int32 size);
@@ -44,7 +48,4 @@ protected:
 	// Will be used if any RNG is needed.
 	UPROPERTY(Category = "Island Randomness", BlueprintReadWrite, EditAnywhere)
 		FRandomStream StreamRNG;
-	// The size of our island.
-	UPROPERTY(Category = "Island Size", BlueprintReadWrite, EditAnywhere)
-		int32 Size;
 };

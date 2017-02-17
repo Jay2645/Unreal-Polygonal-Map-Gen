@@ -604,6 +604,10 @@ float PolygonalMapGenNoise::SingleValue(unsigned char offset, float x, float y, 
 		ys = InterpQuinticFunc(y - (float)y0);
 		zs = InterpQuinticFunc(z - (float)z0);
 		break;
+	default:
+		xs = 0.0f;
+		ys = 0.0f;
+		zs = 0.0f;
 	}
 
 	float xf00 = Lerp(ValCoord3DFast(offset, x0, y0, z0), ValCoord3DFast(offset, x1, y0, z0), xs);
@@ -718,6 +722,10 @@ float PolygonalMapGenNoise::SingleValue(unsigned char offset, float x, float y)
 	case EInterp::InterpQuintic:
 		xs = InterpQuinticFunc(x - (float)x0);
 		ys = InterpQuinticFunc(y - (float)y0);
+		break;
+	default:
+		xs = 0.0f;
+		ys = 0.0f;
 		break;
 	}
 
@@ -966,6 +974,10 @@ float PolygonalMapGenNoise::SingleGradient(unsigned char offset, float x, float 
 	case EInterp::InterpQuintic:
 		xs = InterpQuinticFunc(x - (float)x0);
 		ys = InterpQuinticFunc(y - (float)y0);
+		break;
+	default:
+		xs = 0.0f;
+		ys = 0.0f;
 		break;
 	}
 
@@ -1443,7 +1455,9 @@ float PolygonalMapGenNoise::SingleCellular(float x, float y, float z)
 	int zr = FastRound(z);
 
 	float distance = 999999.f;
-	int xc, yc, zc;
+	int xc = 0;
+	int yc = 0;
+	int zc = 0;
 
 	switch (m_cellularDistanceFunction)
 	{
@@ -1699,7 +1713,8 @@ float PolygonalMapGenNoise::SingleCellular(float x, float y)
 	int yr = FastRound(y);
 
 	float distance = 999999.f;
-	int xc, yc;
+	int xc = 0;
+	int yc = 0;
 
 	switch (m_cellularDistanceFunction)
 	{

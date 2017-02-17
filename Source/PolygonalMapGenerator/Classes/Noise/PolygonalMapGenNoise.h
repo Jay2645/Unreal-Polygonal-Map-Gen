@@ -90,6 +90,9 @@ struct FNoiseSettings
 		ENoiseType NoiseType;
 
 	// How to interpolate the noise
+	// Linear produces the smoothest result
+	// Hermite produces a slightly more rough result
+	// Quintic gives the roughest result
 	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
 		EInterp NoiseInterpolation;
 
