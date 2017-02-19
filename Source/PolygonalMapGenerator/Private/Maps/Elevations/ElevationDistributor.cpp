@@ -19,11 +19,11 @@ void UElevationDistributor::AssignCornerElevations(UIslandShape* islandShape, bo
 		FMapCorner corner = MapGraph->GetCorner(i);
 		if (islandShape->IsPointLand(corner.CornerData.Point))
 		{
-			corner.CornerData = UMapDataHelper::RemoveWater(corner.CornerData);
+			corner.CornerData = UMapDataHelper::RemoveOcean(corner.CornerData);
 		}
 		else
 		{
-			corner.CornerData = UMapDataHelper::SetWater(corner.CornerData);
+			corner.CornerData = UMapDataHelper::SetOcean(corner.CornerData);
 		}
 
 		if (UMapDataHelper::IsBorder(corner.CornerData) || UMapDataHelper::IsWater(corner.CornerData))
@@ -107,7 +107,6 @@ void UElevationDistributor::AssignOceanCoastAndLand(float lakeThreshold)
 			{
 				center.CenterData = UMapDataHelper::SetBorder(center.CenterData);
 				center.CenterData = UMapDataHelper::SetOcean(center.CenterData);
-				corner.CornerData = UMapDataHelper::SetWater(corner.CornerData);
 				centerQueue.Enqueue(i);
 			}
 			if (UMapDataHelper::IsWater(corner.CornerData))
@@ -116,13 +115,13 @@ void UElevationDistributor::AssignOceanCoastAndLand(float lakeThreshold)
 			}
 			MapGraph->UpdateCorner(corner);
 		}
-		if (UMapDataHelper::IsOcean(center.CenterData) || numWater > center.Corners.Num() * lakeThreshold)
+		if (!UMapDataHelper::IsOcean(center.CenterData) && numWater > center.Corners.Num() * lakeThreshold)
 		{
-			center.CenterData = UMapDataHelper::SetWater(center.CenterData);
+			center.CenterData = UMapDataHelper::SetFreshwater(center.CenterData);
 		}
 		else
 		{
-			center.CenterData = UMapDataHelper::RemoveWater(center.CenterData);
+			center.CenterData = UMapDataHelper::RemoveFreshwater(center.CenterData);
 		}
 		MapGraph->UpdateCenter(center);
 	}
@@ -216,13 +215,13 @@ void UElevationDistributor::AssignOceanCoastAndLand(float lakeThreshold)
 		{
 			corner.CornerData = UMapDataHelper::RemoveCoast(corner.CornerData);
 		}
-		if (UMapDataHelper::IsBorder(corner.CornerData) || (numLand != corner.Touches.Num() && !UMapDataHelper::IsCoast(corner.CornerData)))
+		if (UMapDataHelper::IsBorder(corner.CornerData))
 		{
-			corner.CornerData = UMapDataHelper::SetWater(corner.CornerData);
+			corner.CornerData = UMapDataHelper::SetOcean(corner.CornerData);
 		}
-		else
+		else if (numLand != corner.Touches.Num() && !UMapDataHelper::IsCoast(corner.CornerData))
 		{
-			corner.CornerData = UMapDataHelper::RemoveWater(corner.CornerData);
+			corner.CornerData = UMapDataHelper::SetFreshwater(corner.CornerData);
 		}
 		MapGraph->UpdateCorner(corner);
 	}

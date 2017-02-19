@@ -27,7 +27,8 @@ void USimplexNoiseElevationDistributor::AssignCornerElevations(UIslandShape* isl
 		
 		float gradient = GetGradient(corner.CornerData.Point.X, corner.CornerData.Point.Y, islandSize);
 
-		float noiseValue = noise.GetValue(corner.CornerData.Point.X * NoiseScale, corner.CornerData.Point.Y * NoiseScale);
+		float noiseValue = noise.GetNoise(corner.CornerData.Point.X * NoiseScale, corner.CornerData.Point.Y * NoiseScale);
+		UE_LOG(LogTemp, Log, TEXT("Noise value: %f"), noiseValue);
 		// Multiply by the inverse gradient several times to put a stronger bias in the center
 		noiseValue *= gradient;
 
@@ -35,11 +36,10 @@ void USimplexNoiseElevationDistributor::AssignCornerElevations(UIslandShape* isl
 		
 		if (noiseValue < OceanThreshold)
 		{
-			corner.CornerData = UMapDataHelper::SetWater(corner.CornerData);
+			corner.CornerData = UMapDataHelper::SetOcean(corner.CornerData);
 		}
 		else if(!UMapDataHelper::IsBorder(corner.CornerData))
 		{
-			corner.CornerData = UMapDataHelper::RemoveWater(corner.CornerData);
 			corner.CornerData = UMapDataHelper::RemoveOcean(corner.CornerData);
 		}
 

@@ -8,17 +8,40 @@ This project also uses [Bl4ckb0ne's C++ Delaunay Triangulation algorithm](https:
 
 #Installation
 
-Inside the root of your Unreal Project (the part with folders named "Content", "Saved", "Config", etc., as well as any Visual Studio solutions and your .uproject file), make sure there is a folder called "Plugins". If there isn't one, create one, clone this project into it, and you're done!
+First, make a `Plugins` folder at your project root (where the .uproject file is), if you haven't already. Then, clone this project into a subfolder in your Plugins directory. After that, open up your project's .uproject file in Notepad (or a similar text editor), and change the `"AdditionalDependencies"` and `"Plugins"` sections to look like this:
 
-It **should** just "work", but if it doesn't, open your Unreal Project in the Unreal Editor, then go `Edit->Plugins` and scroll all the way down to the bottom. Under `Project`, there should be one plugin listed, `Polygonal Map Generator`. Make sure it's enabled if it isn't already, and you should be good to go! This might or might not require an Editor restart for things to load and function properly.
+```
+	"Modules": [
+		{
+			"Name": "YourProjectName",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				<OTHER DEPENDENCIES GO HERE>
+				"PolygonalMapGenerator"
+			]
+		}
+	],
+	"Plugins": [
+		<OTHER PLUGINS GO HERE>
+		{
+			"Name": "PolygonalMapGenerator",
+			"Enabled": true
+		}
+	]
+```
 
-Once it is loaded, you can either spawn in the `IslandMapGenerator` Actor raw, or create a Blueprint asset inheriting from it. Place the Actor in your level somewhere and call `CreateMap` on the `IslandMapGenerator`. This will create the actual map and notify you on completion. More details about how to use the data inside `IslandMapGenerator` are provided below.
+You can now open up your project in Unreal. You might be told that your project is out of date, and the editor will ask if you want to rebuild them. You do. After that, open up the Plugins menu, scroll down to the bottom, and ensure that the "PolygonalMapGenerator" plugin is enabled.
+
+**Very important!** This project uses Unreal's FGameplayTags system that got brought out of experimental with Unreal Engine 4.15. In order for the system to work properly, you ***need*** to also enable the "GameplayTags" plugin in the Plugins menu. Once you restart the Unreal Editor, you need to go to your Project Settings/GameplayTags and find `Gameplay Tag Table List`. Add two elements to the array, pointing to `/PolygonalMapGenerator/GameplayTags/BiomeTags` and `/PolygonalMapGenerator/GameplayTags/MapMetadataTags`. Once this is done, restart the editor one more time (I know, it's a pain) so the GameplayTag array gets populated properly.
+
+Once the editor has reloaded, you can either spawn in the `IslandMapGenerator` Actor raw, or create a Blueprint asset inheriting from it. Place the Actor in your level somewhere and call `CreateMap` on the `IslandMapGenerator`. This will create the actual map and notify you on completion. More details about how to use the data inside `IslandMapGenerator` are provided below.
 
 #Changes from Source Article
 
 There have been a few changes from the ActionScript source. There's nothing too drastic, just a couple changes for better ease-of-use:
 
-* There has been an implementation of a "tag" system to provide more variety. This tag system uses Unreal's `FName` class, which is case-insensitive and built for fast lookup. This can, for example, allow users to specify part of the map as a "volcano," which is then something that can be taken into account during Biome generation. This tag system also replaces hardcoded booleans to determine whether part of the map is water, ocean, coast, etc.
+* There has been an implementation of a "tag" system to provide more variety. This tag system uses Unreal's `FGameplayTag` class, which is fast, user-extensible, and can quickly and easily add classifications to things on the map. As an example, users can specify part of the map as a volcano by making a new GameplayTag like "MapData.MetaData.Volcano", which is then something that can be taken into account during Biome generation by extending the current classes. This tag system also replaces hardcoded booleans to determine whether part of the map is water, ocean, coast, etc.
 
 * Most of the original ActionScript code was placed in a single class, `Map`, with a couple helper classes for the shape of the island (`IslandShape` in this project) and selecting which points to use (`PointGeneratior` in this project). This code has been further encapsulated, with the `Map` class (`IslandMapGenerator` here) being broken down into various stages. Each stage is its own class, which can be overridden and users can provide their own implementation if the default one isn't to their liking.
 

@@ -4,6 +4,7 @@
 
 #include "Object.h"
 #include "Engine/World.h"
+#include "GameplayTagContainer.h"
 #include "PolygonMap.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogWorldGen, Log, All);
@@ -30,16 +31,15 @@ struct POLYGONALMAPGENERATOR_API FMapData
 
 	// Any special tags associated with the MapData object.
 	// This can be used to tag this with things such as "volcano"
-	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
-	TArray<FName> Tags;
+	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere, meta = (Categories = "MapData.MetaData"))
+	FGameplayTagContainer Tags;
 
 	FMapData()
 	{
 		Point = FVector2D::ZeroVector;
 
-		Tags.Add(TEXT("Border"));
-		Tags.Add(TEXT("Ocean"));
-		Tags.Add(TEXT("Water"));
+		Tags.AddTagFast(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Border")));
+		Tags.AddTagFast(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Water.Saltwater")));
 
 		Elevation = 0.0f;
 		Moisture = 0.0f;

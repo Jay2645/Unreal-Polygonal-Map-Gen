@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/Jay2645/Unreal-Polygonal-Map-Gen",
 	"MarketplaceURL": "https://github.com/Jay2645/Unreal-Polygonal-Map-Gen",
 	"SupportURL": "https://github.com/Jay2645/Unreal-Polygonal-Map-Gen",
-	"CanContainContent": false,
+	"CanContainContent": true,
 	"IsBetaVersion": true,
 	"Installed": false,
 	"Modules": [

@@ -105,7 +105,7 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 	float elevation = 0.0f;
 	float moisture = 0.0f;
 
-	TMap<FName, float> tagWeights;
+	TMap<FGameplayTag, float> tagWeights;
 
 	for (int i = 0; i < pointWeights.Num(); i++)
 	{
@@ -138,7 +138,7 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 
 		for (int j = 0; j < curPoint.Tags.Num(); j++)
 		{
-			FName tag = curPoint.Tags[j];
+			FGameplayTag tag = curPoint.Tags.GetByIndex(i);
 			float currentTagWeight = tagWeights.FindOrAdd(tag);
 			currentTagWeight += weight;
 			tagWeights[tag] = currentTagWeight;
@@ -154,12 +154,12 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 	pixelData.bIsRiver = isRiver >= 0.5f;
 	pixelData.bIsWater = isWater >= 0.5f;*/
 
-	pixelData.Tags.Empty();
+	pixelData.Tags.Reset();
 	for (auto& elem : tagWeights)
 	{
 		if (elem.Value >= 0.5f)
 		{
-			pixelData.Tags.Add(elem.Key);
+			pixelData.Tags.AddTagFast(elem.Key);
 		}
 	}
 
@@ -184,7 +184,6 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 		borderPoint.Elevation = 0.0f;
 		borderPoint.Moisture = 0.0f;
 		borderPoint = UMapDataHelper::SetOcean(borderPoint);
-		borderPoint = UMapDataHelper::SetWater(borderPoint);
 		borderPoint = UMapDataHelper::SetBorder(borderPoint);
 		borderPoint.Point = FVector2D(x, 0);
 		graph.Add(borderPoint);
@@ -197,7 +196,6 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 		borderPoint.Elevation = 0.0f;
 		borderPoint.Moisture = 0.0f;
 		borderPoint = UMapDataHelper::SetOcean(borderPoint);
-		borderPoint = UMapDataHelper::SetWater(borderPoint);
 		borderPoint = UMapDataHelper::SetBorder(borderPoint);
 		borderPoint.Point = FVector2D(0, y);
 		graph.Add(borderPoint);

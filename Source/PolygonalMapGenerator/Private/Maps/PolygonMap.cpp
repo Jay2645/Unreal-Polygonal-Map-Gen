@@ -147,7 +147,6 @@ FMapCenter& UPolygonMap::MakeCenter(const FVector2D& point)
 	center.CenterData.Point = point;
 	center.CenterData = UMapDataHelper::RemoveBorder(center.CenterData);
 	center.CenterData = UMapDataHelper::RemoveOcean(center.CenterData);
-	center.CenterData = UMapDataHelper::RemoveWater(center.CenterData);
 	center.Index = Centers.Num();
 
 	Centers.Add(center);
@@ -181,7 +180,6 @@ FMapCorner& UPolygonMap::MakeCorner(const FVector2D& point)
 	corner.CornerData.Point = point;
 	corner.Index = Corners.Num();
 	corner.CornerData = UMapDataHelper::RemoveOcean(corner.CornerData);
-	corner.CornerData = UMapDataHelper::RemoveWater(corner.CornerData);
 	if (PointSelector->PointIsOnBorder(corner.CornerData.Point))
 	{
 		corner.CornerData = UMapDataHelper::SetBorder(corner.CornerData);

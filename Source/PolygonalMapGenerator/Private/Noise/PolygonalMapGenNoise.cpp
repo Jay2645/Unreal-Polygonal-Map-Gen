@@ -454,26 +454,44 @@ float PolygonalMapGenNoise::GetNoise(float x, float y)
 // White Noise
 float PolygonalMapGenNoise::GetWhiteNoise(float x, float y, float z, float w)
 {
-	return ValCoord4D(m_seed,
+	float noiseAmount = ValCoord4D(m_seed,
 		*reinterpret_cast<int*>(&x) ^ (*reinterpret_cast<int*>(&x) >> 16),
 		*reinterpret_cast<int*>(&y) ^ (*reinterpret_cast<int*>(&y) >> 16),
 		*reinterpret_cast<int*>(&z) ^ (*reinterpret_cast<int*>(&z) >> 16),
 		*reinterpret_cast<int*>(&w) ^ (*reinterpret_cast<int*>(&w) >> 16));
+
+	noiseAmount += 1.0f;
+	noiseAmount /= 2.0f;
+	float noiseDiff = (m_noiseRange.Y - m_noiseRange.X);
+	noiseAmount *= noiseDiff;
+	return noiseAmount + m_noiseRange.X;
 }
 
 float PolygonalMapGenNoise::GetWhiteNoise(float x, float y, float z)
 {
-	return ValCoord3D(m_seed,
+	float noiseAmount = ValCoord3D(m_seed,
 		*reinterpret_cast<int*>(&x) ^ (*reinterpret_cast<int*>(&x) >> 16),
 		*reinterpret_cast<int*>(&y) ^ (*reinterpret_cast<int*>(&y) >> 16),
 		*reinterpret_cast<int*>(&z) ^ (*reinterpret_cast<int*>(&z) >> 16));
+
+	noiseAmount += 1.0f;
+	noiseAmount /= 2.0f;
+	float noiseDiff = (m_noiseRange.Y - m_noiseRange.X);
+	noiseAmount *= noiseDiff;
+	return noiseAmount + m_noiseRange.X;
 }
 
 float PolygonalMapGenNoise::GetWhiteNoise(float x, float y)
 {
-	return ValCoord2D(m_seed,
+	float noiseAmount = ValCoord2D(m_seed,
 		*reinterpret_cast<int*>(&x) ^ (*reinterpret_cast<int*>(&x) >> 16),
 		*reinterpret_cast<int*>(&y) ^ (*reinterpret_cast<int*>(&y) >> 16));
+
+	noiseAmount += 1.0f;
+	noiseAmount /= 2.0f;
+	float noiseDiff = (m_noiseRange.Y - m_noiseRange.X);
+	noiseAmount *= noiseDiff;
+	return noiseAmount + m_noiseRange.X;
 }
 
 float PolygonalMapGenNoise::GetWhiteNoiseInt(int x, int y, int z, int w)
@@ -989,7 +1007,12 @@ float PolygonalMapGenNoise::SingleGradient(unsigned char offset, float x, float 
 	float xf0 = Lerp(GradCoord2D(offset, x0, y0, xd0, yd0), GradCoord2D(offset, x1, y0, xd1, yd0), xs);
 	float xf1 = Lerp(GradCoord2D(offset, x0, y1, xd0, yd1), GradCoord2D(offset, x1, y1, xd1, yd1), xs);
 
-	return Lerp(xf0, xf1, ys);
+	float noiseAmount = Lerp(xf0, xf1, ys);
+	noiseAmount += 1.0f;
+	noiseAmount /= 2.0f;
+	float noiseDiff = (m_noiseRange.Y - m_noiseRange.X);
+	noiseAmount *= noiseDiff;
+	return noiseAmount + m_noiseRange.X;
 }
 
 // Simplex Noise
@@ -1176,7 +1199,13 @@ float PolygonalMapGenNoise::SingleSimplex(unsigned char offset, float x, float y
 		n3 = t*t*GradCoord3D(offset, i + 1, j + 1, k + 1, x3, y3, z3);
 	}
 
-	return 32.0f * (n0 + n1 + n2 + n3);
+	float noiseAmount = 32.0f * (n0 + n1 + n2 + n3);
+
+	noiseAmount += 1.0f;
+	noiseAmount /= 2.0f;
+	float noiseDiff = (m_noiseRange.Y - m_noiseRange.X);
+	noiseAmount *= noiseDiff;
+	return noiseAmount + m_noiseRange.X;
 }
 
 float PolygonalMapGenNoise::GetSimplexFractal(float x, float y)
@@ -1317,7 +1346,12 @@ float PolygonalMapGenNoise::SingleSimplex(unsigned char offset, float x, float y
 		n2 = t*t*GradCoord2D(offset, i + 1, j + 1, x2, y2);
 	}
 
-	return  50.0f * (n0 + n1 + n2);
+	float noiseAmount = 50.0f * (n0 + n1 + n2);
+	noiseAmount += 1.0f;
+	noiseAmount /= 2.0f;
+	float noiseDiff = (m_noiseRange.Y - m_noiseRange.X);
+	noiseAmount *= noiseDiff;
+	return noiseAmount + m_noiseRange.X;
 }
 
 float PolygonalMapGenNoise::GetSimplex(float x, float y, float z, float w)

@@ -94,8 +94,10 @@ struct FNoiseSettings
 	// Hermite produces a slightly more rough result
 	// Quintic gives the roughest result
 	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
-		EInterp NoiseInterpolation;
+	EInterp NoiseInterpolation;
 
+	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
+	FVector2D NoiseRange;
 	//Constructor
 	FNoiseSettings()
 	{
@@ -107,6 +109,7 @@ struct FNoiseSettings
 		NoiseType = ENoiseType::SimplexFractal;
 		NoiseInterpolation = EInterp::InterpLinear;
 		FractalType = EFractalType::FBM;
+		NoiseRange = FVector2D(0.0f, 1.0f);
 	}
 };
 
@@ -232,6 +235,7 @@ class PolygonalMapGenNoise
 		float m_lacunarity = 2.0f;
 		float m_gain = 0.5f;
 		EFractalType m_fractalType = EFractalType::FBM;
+		FVector2D m_noiseRange = FVector2D(0.0f, 1.0f);
 
 		ECellularDistanceFunction m_cellularDistanceFunction = ECellularDistanceFunction::Euclidean;
 		ECellularReturnType m_cellularReturnType = ECellularReturnType::CellValue;
