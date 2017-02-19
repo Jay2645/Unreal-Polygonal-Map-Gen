@@ -33,7 +33,9 @@ First, make a `Plugins` folder at your project root (where the .uproject file is
 
 You can now open up your project in Unreal. You might be told that your project is out of date, and the editor will ask if you want to rebuild them. You do. After that, open up the Plugins menu, scroll down to the bottom, and ensure that the "PolygonalMapGenerator" plugin is enabled.
 
-**Very important!** This project uses Unreal's FGameplayTags system that got brought out of experimental with Unreal Engine 4.15. In order for the system to work properly, you ***need*** to also enable the "GameplayTags" plugin in the Plugins menu. Once you restart the Unreal Editor, you need to go to your Project Settings/GameplayTags and find `Gameplay Tag Table List`. Add two elements to the array, pointing to `/PolygonalMapGenerator/GameplayTags/BiomeTags` and `/PolygonalMapGenerator/GameplayTags/MapMetadataTags`. Once this is done, restart the editor one more time (I know, it's a pain) so the GameplayTag array gets populated properly.
+**Very important!** This project uses Unreal's FGameplayTags system that got brought out of experimental with Unreal Engine 4.15. 
+
+In order for the system to work properly, you ***need*** to also enable the "GameplayTags" plugin in the Plugins menu. Once you restart the Unreal Editor, you need to go to your Project Settings/GameplayTags and find `Gameplay Tag Table List`. Add two elements to the array, pointing to `/PolygonalMapGenerator/GameplayTags/BiomeTags` and `/PolygonalMapGenerator/GameplayTags/MapMetadataTags`. Once this is done, restart the editor one more time (I know, it's a pain) so the GameplayTag array gets populated properly.
 
 Once the editor has reloaded, you can either spawn in the `IslandMapGenerator` Actor raw, or create a Blueprint asset inheriting from it. Place the Actor in your level somewhere and call `CreateMap` on the `IslandMapGenerator`. This will create the actual map and notify you on completion. More details about how to use the data inside `IslandMapGenerator` are provided below.
 
