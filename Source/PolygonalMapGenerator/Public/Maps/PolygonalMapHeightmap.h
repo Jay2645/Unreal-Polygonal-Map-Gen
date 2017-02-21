@@ -59,10 +59,4 @@ public:
 	// If the position is out of bounds of the heightmap or the heightmap is not initialized, it will return a blank FMapData object.
 	UFUNCTION(BlueprintPure, Category = "Map Generation|Heightmap")
 	FMapData GetMapPoint(int32 x, int32 y);
-
-	// Draws a debug grid showing the position and height of each FMapData "pixel" in this heightmap.
-	// Keep in mind that larger values of HeightmapSize will have a SEVERE performance impact.
-	// Try to only use this with a limited number of pixels in the heightmap.
-	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap|Debug")
-	void DrawDebugPixelGrid(UWorld* world, float PixelSize);
 };

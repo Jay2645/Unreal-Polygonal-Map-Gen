@@ -180,20 +180,20 @@ struct POLYGONALMAPGENERATOR_API FWorldSpaceMapData
 {
 	GENERATED_BODY()
 
-	// The size each debug point is rendered
-	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-	int32 PointSize;
+		// The size each debug point is rendered
+		UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+		int32 PointSize;
 	// The Z offset of the bottom of the ocean -- what's the lowest
 	// point on the entire map?
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-	float ElevationOffset;
+		float ElevationOffset;
 	// How much to scale the map on the XY scale.
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-	float XYScaleFactor;
+		float XYScaleFactor;
 	// How tall the map should be -- how much higher is the highest
 	// point in the map from the lowest point?
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-	float ElevationScale;
+		float ElevationScale;
 
 	FWorldSpaceMapData()
 	{
@@ -217,6 +217,7 @@ UCLASS(Blueprintable)
 class POLYGONALMAPGENERATOR_API UPolygonMap : public UObject
 {
 	GENERATED_BODY()
+	friend class AIslandMapGenerator;
 
 public:
 	// Creates the graph's initial points
@@ -336,18 +337,7 @@ public:
 	// Converts a MapData object into the point it represents in 3D world space.
 	// This can be used to mark where rivers are, to place props, etc.
 	UFUNCTION(BlueprintPure, Category = "Island Generation")
-	FVector ConvertGraphPointToWorldSpace(const FMapData& mapData);
-
-	// Draws a 3D version of the underlying Delaunay graph in world space.
-	// This graph is a collection of all the map's centers and the
-	// Delaunay edges which connect them.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
-	void DrawDebugDelaunayGrid(const UWorld* world);
-	// Draws a 3D version of the underlying Voronoi graph in world space.
-	// This graph is a collection of all the map's corners and the
-	// Voronoi edges which connect them.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
-	void DrawDebugVoronoiGrid(const UWorld* world);
+	static FVector ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize);
 
 private:
 	UPROPERTY()

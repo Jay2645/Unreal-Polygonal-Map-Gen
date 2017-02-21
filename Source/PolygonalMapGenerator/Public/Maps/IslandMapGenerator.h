@@ -68,9 +68,6 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
 	FWorldSpaceMapData PolygonMapSettings;
 
-	UPROPERTY(Category = "World", BlueprintReadWrite, VisibleInstanceOnly)
-	UWorld* GameWorld;
-
 	//Constructor
 	FIslandData()
 	{
@@ -96,18 +93,18 @@ class POLYGONALMAPGENERATOR_API AIslandMapGenerator : public AActor
 {
 	GENERATED_BODY()
 public:
+
 	AIslandMapGenerator();
 	~AIslandMapGenerator() {};
 
 	virtual void Tick(float deltaSeconds) override;
-
 	// Sets the IslandData that will be used for Island Generation.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
-	void SetData(FIslandData islandData);
+		void SetData(FIslandData islandData);
 
 	// Resets the map back to its default state.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
-	void ResetMap();
+		void ResetMap();
 
 	// Adds all the necessary steps for Island Generation, then
 	// generates an island.
@@ -191,10 +188,10 @@ public:
 	void DrawDelaunayGraph();
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
-	void DrawHeightmap(float PixelSize = 100.0f);
+		void DrawHeightmap(float PixelSize = 100.0f);
 
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
-	FIslandData IslandData;
+		FIslandData IslandData;
 
 protected:
 	// Adds a list of steps that we need to generate our island.

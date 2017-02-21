@@ -2,6 +2,7 @@
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "Maps/MapDataHelper.h"
+#include "MapDebugVisualizer.h"
 #include "Maps/IslandMapGenerator.h"
 
 AIslandMapGenerator::AIslandMapGenerator()
@@ -64,7 +65,6 @@ void AIslandMapGenerator::ResetMap()
 	}
 
 	RandomGenerator.Initialize(IslandData.Seed);
-	IslandData.GameWorld = GetWorld();
 }
 
 void AIslandMapGenerator::CreateMap(const FIslandGeneratorDelegate onComplete)
@@ -566,7 +566,7 @@ void AIslandMapGenerator::DrawVoronoiGraph()
 	{
 		return;
 	}
-	MapGraph->DrawDebugVoronoiGrid(IslandData.GameWorld);
+	UMapDebugVisualizer::DrawDebugVoronoiGrid(this, IslandData.PolygonMapSettings, MapGraph->Corners, MapGraph->Edges, IslandData.Size);
 }
 
 void AIslandMapGenerator::DrawDelaunayGraph()
@@ -575,7 +575,7 @@ void AIslandMapGenerator::DrawDelaunayGraph()
 	{
 		return;
 	}
-	MapGraph->DrawDebugDelaunayGrid(IslandData.GameWorld);
+	UMapDebugVisualizer::DrawDebugDelaunayGrid(this, IslandData.PolygonMapSettings, MapGraph->Centers, MapGraph->Edges, IslandData.Size);
 }
 
 void AIslandMapGenerator::DrawHeightmap(float PixelSize)
@@ -584,5 +584,5 @@ void AIslandMapGenerator::DrawHeightmap(float PixelSize)
 	{
 		return;
 	}
-	MapHeightmap->DrawDebugPixelGrid(IslandData.GameWorld, PixelSize);
+	UMapDebugVisualizer::DrawDebugPixelGrid(this, IslandData.PolygonMapSettings, MapHeightmap->GetMapData(), IslandData.Size, PixelSize);
 }

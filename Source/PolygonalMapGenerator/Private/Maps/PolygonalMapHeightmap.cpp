@@ -1,7 +1,6 @@
 // Original Work Copyright (c) 2010 Amit J Patel, Modified Work Copyright (c) 2016 Jay M Stevens
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
-#include "DrawDebugHelpers.h"
 #include "Maps/MapDataHelper.h"
 #include "Biomes/BiomeManager.h"
 #include "PolygonalMapHeightmap.h"
@@ -230,49 +229,5 @@ FMapData UPolygonalMapHeightmap::GetMapPoint(int32 x, int32 y)
 	else
 	{
 		return HeightmapData[index];
-	}
-}
-
-void UPolygonalMapHeightmap::DrawDebugPixelGrid(UWorld* world, float PixelSize)
-{
-	if (world == NULL)
-	{
-		UE_LOG(LogWorldGen, Error, TEXT("World was null!"));
-		return;
-	}
-
-	float elevationScale = 32.0f;
-	FVector offset = FVector(0.0f, 0.0f, 0.0f);
-
-	for (int32 x = 0; x < HeightmapSize; x++)
-	{
-		for (int32 y = 0; y < HeightmapSize; y++)
-		{
-			FMapData mapData = GetMapPoint(x,y);
-
-			FColor color = FColor(255, 255, 255);
-			if (UMapDataHelper::IsOcean(mapData))
-			{
-				color = FColor(0, 0, 255);
-			}
-			else if (UMapDataHelper::IsCoast(mapData))
-			{
-				color = FColor(255, 255, 0);
-			}
-			else if (UMapDataHelper::IsWater(mapData))
-			{
-				color = FColor(0, 255, 255);
-			}
-
-			FVector v0 = offset + FVector(mapData.Point.X * PixelSize, mapData.Point.Y * PixelSize, FMath::FloorToInt(mapData.Elevation * elevationScale) * PixelSize + 1.0f);
-			FVector v1 = FVector(v0.X, v0.Y + PixelSize, v0.Z);
-			FVector v2 = FVector(v0.X + PixelSize, v0.Y, v0.Z);
-			FVector v3 = FVector(v2.X, v1.Y, v0.Z);
-			//DrawDebugSphere(world, v0, 100, 4, color, true);
-			DrawDebugLine(world, v0, v1, color, true);
-			DrawDebugLine(world, v0, v2, color, true);
-			DrawDebugLine(world, v3, v2, color, true);
-			DrawDebugLine(world, v3, v1, color, true);
-		}
 	}
 }

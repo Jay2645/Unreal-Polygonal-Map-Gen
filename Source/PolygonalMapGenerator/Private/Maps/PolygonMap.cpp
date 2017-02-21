@@ -2,6 +2,7 @@
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "Maps/PolygonMap.h"
+#include "MapDebugVisualizer.h"
 #include "Maps/MapDataHelper.h"
 #include "Classes/Diagrams/Voronoi.h"
 
@@ -366,214 +367,16 @@ void UPolygonMap::CompileMapData()
 	}
 }
 
-FVector UPolygonMap::ConvertGraphPointToWorldSpace(const FMapData& mapData)
+FVector UPolygonMap::ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize)
 {
-	float elevationOffset = MapData.ElevationOffset;
-	float xyScale = MapData.XYScaleFactor / MapSize;
-	float elevationScale = MapData.ElevationScale;
+	float elevationOffset = WorldData.ElevationOffset;
+	float xyScale = WorldData.XYScaleFactor / MapSize;
+	float elevationScale = WorldData.ElevationScale;
 
 	FVector worldLocation = FVector::ZeroVector;
-	worldLocation.X = mapData.Point.X * MapSize * xyScale;
-	worldLocation.Y = mapData.Point.Y * MapSize * xyScale;
-	worldLocation.Z = (mapData.Elevation * elevationScale) + elevationOffset;
+	worldLocation.X = MapData.Point.X * MapSize * xyScale;
+	worldLocation.Y = MapData.Point.Y * MapSize * xyScale;
+	worldLocation.Z = (MapData.Elevation * elevationScale) + elevationOffset;
 
 	return worldLocation;
-}
-
-void UPolygonMap::DrawDebugVoronoiGrid(const UWorld* world)
-{
-	if (world == NULL)
-	{
-		UE_LOG(LogWorldGen, Error, TEXT("World was null!"));
-		return;
-	}
-
-	for (int i = 0; i < Corners.Num(); i++)
-	{
-		FMapData mapData = Corners[i].CornerData;
-
-		FColor color = FColor(255, 255, 255);
-		/*if (Corners[i].bIsBorder)
-		{
-		color = FColor(255, 0, 0);
-		}
-		else */ if (Corners[i].RiverSize > 0)
-		{
-			color = FColor(0, 0, 255);
-		}
-		else if (UMapDataHelper::IsOcean(mapData))
-		{
-			color = FColor(0, 0, 255);
-		}
-		else if (UMapDataHelper::IsCoast(mapData))
-		{
-			color = FColor(255, 255, 0);
-		}
-		else if (UMapDataHelper::IsWater(mapData))
-		{
-			color = FColor(0, 255, 255);
-		}
-
-		FVector worldLocation = ConvertGraphPointToWorldSpace(mapData);
-		DrawDebugSphere(world, worldLocation, MapData.PointSize, 4, color, true);
-	}
-
-	for (int i = 0; i < Edges.Num(); i++)
-	{
-		int32 worldIndex0;
-		int32 worldIndex1;
-
-		worldIndex0 = Edges[i].VoronoiEdge0;
-		if (worldIndex0 < 0)
-		{
-			continue;
-		}
-		FMapData v0Data = Corners[worldIndex0].CornerData;
-		FVector worldVertex0 = ConvertGraphPointToWorldSpace(v0Data);
-
-		worldIndex1 = Edges[i].VoronoiEdge1;
-		if (worldIndex1 < 0)
-		{
-			continue;
-		}
-		FMapData v1Data = Corners[worldIndex1].CornerData;
-		FVector worldVertex1 = ConvertGraphPointToWorldSpace(v1Data);
-
-		FColor color = FColor(255, 255, 255);
-		/*if (Corners[worldIndex0].bIsBorder && Corners[worldIndex1].bIsBorder)
-		{
-		color = FColor(255, 0, 0);
-		}
-		else */if (Edges[i].RiverVolume > 0)
-		{
-			color = FColor(0, 0, 255);
-		}
-		else if (UMapDataHelper::IsOcean(v0Data) && UMapDataHelper::IsOcean(v1Data))
-		{
-			color = FColor(0, 0, 255);
-		}
-		else if (UMapDataHelper::IsWater(v0Data) && UMapDataHelper::IsWater(v1Data))
-		{
-			color = FColor(0, 255, 0);
-		}
-		else if (UMapDataHelper::IsCoast(v0Data) && UMapDataHelper::IsCoast(v1Data))
-		{
-			color = FColor(255, 255, 0);
-		}
-		else if (UMapDataHelper::IsBorder(v0Data) || UMapDataHelper::IsBorder(v1Data))
-		{
-			color = FColor(128, 10, 10);
-		}
-		else if (UMapDataHelper::IsOcean(v0Data) || UMapDataHelper::IsOcean(v1Data))
-		{
-			color = FColor(10, 10, 128);
-		}
-		else if (UMapDataHelper::IsWater(v0Data) || UMapDataHelper::IsWater(v1Data))
-		{
-			color = FColor(10, 128, 10);
-		}
-		else if (UMapDataHelper::IsCoast(v0Data) || UMapDataHelper::IsCoast(v1Data))
-		{
-			color = FColor(128, 128, 10);
-		}
-
-		DrawDebugLine(world, worldVertex0, worldVertex1, color, true);
-	}
-}
-
-void UPolygonMap::DrawDebugDelaunayGrid(const UWorld* world)
-{
-	if (world == NULL)
-	{
-		UE_LOG(LogWorldGen, Error, TEXT("World was null!"));
-		return;
-	}
-
-	// Draw centers
-	for (int i = 0; i < Centers.Num(); i++)
-	{
-		FMapData mapData = Centers[i].CenterData;
-
-		FColor color = FColor(255, 255, 255);
-		/*if (Corners[i].bIsBorder)
-		{
-		color = FColor(255, 0, 0);
-		}
-		else */if (UMapDataHelper::IsOcean(mapData))
-		{
-			color = FColor(0, 0, 255);
-		}
-		else if (UMapDataHelper::IsCoast(mapData))
-		{
-			color = FColor(255, 255, 0);
-		}
-		else if (UMapDataHelper::IsWater(mapData))
-		{
-			color = FColor(0, 255, 255);
-		}
-
-		FVector worldLocation = ConvertGraphPointToWorldSpace(mapData);
-		DrawDebugSphere(world, worldLocation, MapData.PointSize, 4, color, true);
-	}
-
-
-	for (int i = 0; i < Edges.Num(); i++)
-	{
-		int32 worldIndex0;
-		int32 worldIndex1;
-
-		worldIndex0 = Edges[i].DelaunayEdge0;
-		if (worldIndex0 < 0)
-		{
-			UE_LOG(LogWorldGen, Error, TEXT("No Delaunay Edge 0 for %d!"), i);
-			continue;
-		}
-		FMapData d0Data = Centers[worldIndex0].CenterData;
-		FVector worldVertex0 = ConvertGraphPointToWorldSpace(d0Data);
-
-		worldIndex1 = Edges[i].DelaunayEdge1;
-		if (worldIndex1 < 0)
-		{
-			UE_LOG(LogWorldGen, Error, TEXT("No Delaunay Edge 1 for %d!"), i);
-			continue;
-		}
-		FMapData d1Data = Centers[worldIndex1].CenterData;
-		FVector worldVertex1 = ConvertGraphPointToWorldSpace(d1Data);
-
-		FColor color = FColor(255, 255, 255);
-		/*if (Centers[worldIndex0].bIsBorder && Centers[worldIndex1].bIsBorder)
-		{
-		color = FColor(255, 0, 0);
-		}
-		else */if (UMapDataHelper::IsOcean(d0Data) && UMapDataHelper::IsOcean(d1Data))
-		{
-			color = FColor(0, 0, 255);
-		}
-		else if (UMapDataHelper::IsWater(d0Data) && UMapDataHelper::IsWater(d1Data))
-		{
-			color = FColor(0, 255, 0);
-		}
-		else if (UMapDataHelper::IsCoast(d0Data) && UMapDataHelper::IsCoast(d1Data))
-		{
-			color = FColor(255, 255, 0);
-		}
-		else if (UMapDataHelper::IsBorder(d0Data) || UMapDataHelper::IsBorder(d1Data))
-		{
-			color = FColor(128, 10, 10);
-		}
-		else if (UMapDataHelper::IsOcean(d0Data) || UMapDataHelper::IsOcean(d1Data))
-		{
-			color = FColor(10, 10, 128);
-		}
-		else if (UMapDataHelper::IsWater(d0Data) || UMapDataHelper::IsWater(d1Data))
-		{
-			color = FColor(10, 128, 10);
-		}
-		else if (UMapDataHelper::IsCoast(d0Data) || UMapDataHelper::IsCoast(d1Data))
-		{
-			color = FColor(128, 128, 10);
-		}
-
-		DrawDebugLine(world, worldVertex0, worldVertex1, color, true);
-	}
 }
