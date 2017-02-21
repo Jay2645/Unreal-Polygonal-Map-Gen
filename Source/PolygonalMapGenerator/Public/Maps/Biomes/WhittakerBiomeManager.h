@@ -58,34 +58,30 @@ class POLYGONALMAPGENERATOR_API UWhittakerBiomeManager : public UBiomeManager
 {
 	GENERATED_BODY()
 protected:
-	virtual FName DetermineBiome_Implementation(const FMapData& MapData) override;
+	static const FName BIOME_IceTag;
+	static const FName BIOME_MarshTag;
+	static const FName BIOME_LakeTag;
+	static const FName BIOME_SnowTag;
+	static const FName BIOME_TundraTag;
+	static const FName BIOME_BareTag;
+	static const FName BIOME_ScorchedTag;
+	static const FName BIOME_TaigaTag;
+	static const FName BIOME_ShrublandTag;
+	static const FName BIOME_TemperateDesertTag;
+	static const FName BIOME_TemperateRainForestTag;
+	static const FName BIOME_TemperateDeciduousForestTag;
+	static const FName BIOME_GrasslandTag;
+	static const FName BIOME_TropicalRainForestTag;
+	static const FName BIOME_TropicalSeasonalForestTag;
+	static const FName BIOME_SubtropicalDesertTag;
 
+	//virtual FGameplayTag DetermineBiome_Implementation(const FMapData& MapData) override;
 public:
-	static const FName BIOME_Ice;
-	static const FName BIOME_Marsh;
-	static const FName BIOME_Lake;
-	static const FName BIOME_Snow;
-	static const FName BIOME_Tundra;
-	static const FName BIOME_Bare;
-	static const FName BIOME_Scorched;
-	static const FName BIOME_Taiga;
-	static const FName BIOME_Shrubland;
-	static const FName BIOME_TemperateDesert;
-	static const FName BIOME_TemperateRainForest;
-	static const FName BIOME_TemperateDeciduousForest;
-	static const FName BIOME_Grassland;
-	static const FName BIOME_TropicalRainForest;
-	static const FName BIOME_TropicalSeasonalForest;
-	static const FName BIOME_SubtropicalDesert;
-
-	// Whether this biome manager should allow biomes with snow.
-	// Games taking place in tropical climates may not need to have snow.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Biome")
-	bool bAllowSnow = true;
+	UWhittakerBiomeManager();
 
 	// Converts a biome's FName into an enum representation.
 	// Will return EWhittakerBiome::Ocean if there are no matches in this biome.
 	// The enum returned can be used in a switch statement or converted into a uint8 (for example, for use as a material ID).
 	UFUNCTION(BlueprintPure, Category = "Biome")
-	static EWhittakerBiome ConvertToWhittakerBiomeEnum(const FName& BiomeName);
+	EWhittakerBiome ConvertToWhittakerBiomeEnum(const FGameplayTag& BiomeName);
 };

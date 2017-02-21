@@ -26,8 +26,8 @@ struct POLYGONALMAPGENERATOR_API FMapData
 	float Moisture;
 
 	// The Biome this MapData resides in
-	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
-	FName Biome;
+	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere, meta = (Categories = "MapData.Biome"))
+	FGameplayTag Biome;
 
 	// Any special tags associated with the MapData object.
 	// This can be used to tag this with things such as "volcano"

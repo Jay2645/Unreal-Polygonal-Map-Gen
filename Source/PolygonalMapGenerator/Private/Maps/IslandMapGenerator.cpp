@@ -535,7 +535,7 @@ void AIslandMapGenerator::FinalizeAllPoints()
 			corner.CornerData.Elevation = 0.1f + (corner.CornerData.Elevation * 0.9f);
 		}
 
-		FName biome = BiomeManager->DetermineBiome(corner.CornerData);
+		FGameplayTag biome = BiomeManager->DetermineBiome(corner.CornerData);
 		corner.CornerData.Biome = biome;
 		UpdateCorner(corner);
 	}
@@ -550,7 +550,7 @@ void AIslandMapGenerator::FinalizeAllPoints()
 		{
 			center.CenterData.Elevation = 0.1f + (center.CenterData.Elevation * 0.9f);
 		}
-		FName biome = BiomeManager->DetermineBiome(center.CenterData);
+		FGameplayTag biome = BiomeManager->DetermineBiome(center.CenterData);
 		center.CenterData.Biome = biome;
 		UpdateCenter(center);
 	}

@@ -78,3 +78,13 @@ The `UPolygonalMapHeightmap` class provides a couple helper classes:
 * `GetMapPoint()` takes in an integer X and Y value and safely outputs the FMapData object corresponding to that location. If that location is outside of the heightmap, it will output a "blank" FMapData object.
 
 This array of FMapData objects can be turned into a 2D grayscale image by the user (using `FMapData::Elevation` to create the color value), or it can be used to create data points in a 3D voxel implementation.
+
+# Future Changes
+
+* Right now, all operations take place on the main gameplay thread. In the future, it would be nice if this was done asynchronously, to allow for a "loading" bar or something similar.
+
+* There is a lot of missing documentation, and the whole project could do with more comments clarifying how things work.
+
+* More in-editor visualizations would be nice -- for example, seeing a view of the moisture distribution, or what biomes are where, or general debugging stuff like that.
+
+* There should be a way to have the generator select a number of "player start" positions, so that the player always gets placed in a playable spot.
