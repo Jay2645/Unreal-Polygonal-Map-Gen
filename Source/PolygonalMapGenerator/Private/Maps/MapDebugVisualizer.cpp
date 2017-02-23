@@ -272,3 +272,135 @@ void UMapDebugVisualizer::DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpace
 		DrawDebugLine(world, worldVertex0, worldVertex1, color, true);
 	}
 }
+
+void UMapDebugVisualizer::DrawRivers(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* MapGraph, const TArray<URiver*>& Rivers, int32 MapSize)
+{
+	UWorld* world = Actor->GetWorld();
+	if (world == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("World was null!"));
+		return;
+	}
+
+	FColor color = FColor(147, 198, 255);
+	for (int r = 0; r < Rivers.Num(); r++)
+	{
+		URiver* river = Rivers[r];
+		if (river->RiverCorners.Num() == 0)
+		{
+			continue;
+		}
+		FMapEdge lastEdge;
+		FMapEdge currentEdge;
+		FMapEdge nextEdge;
+		for (int i = 0; i < river->RiverCorners.Num() - 2; i++)
+		{
+			FMapCorner v0 = river->RiverCorners[i];
+			FMapCorner v1 = river->RiverCorners[i + 1];
+			FMapCorner v2 = river->RiverCorners[i + 2];
+			lastEdge = currentEdge;
+			currentEdge = MapGraph->FindEdgeFromCorners(v0, v1);
+			nextEdge = MapGraph->FindEdgeFromCorners(v1, v2);
+			if (lastEdge.Index != -1 && nextEdge.Index != -1)
+			{
+				FVector worldLocation0 = UPolygonMap::ConvertGraphPointToWorldSpace(v0.CornerData, MapData, MapSize);
+				worldLocation0.Z = 0.0f;
+				FVector worldLocation1 = UPolygonMap::ConvertGraphPointToWorldSpace(v1.CornerData, MapData, MapSize);
+				worldLocation1.Z = 0.0f;
+				DrawDebugSphere(world, worldLocation0, MapData.PointSize, 4, color, true);
+				DrawDebugSphere(world, worldLocation1, MapData.PointSize, 4, color, true);
+				DrawBeizerCurve(Actor, MapData, lastEdge.Midpoint, v0.CornerData.Point, nextEdge.Midpoint, v1.CornerData.Point, color, MapSize);
+			}
+		}
+	}
+
+	/*for (int i = 0; i < Corners.Num(); i++)
+	{
+		FMapData mapData = Corners[i].CornerData;
+
+		FColor color = FColor(147, 198, 255);
+
+		if (Corners[i].RiverSize > 0)
+		{
+			FVector worldLocation = UPolygonMap::ConvertGraphPointToWorldSpace(mapData, MapData, MapSize);
+			DrawDebugSphere(world, worldLocation, MapData.PointSize, 4, color, true);
+		}
+	}
+
+	for (int i = 0; i < Edges.Num(); i++)
+	{
+		if (Edges[i].RiverVolume > 0)
+		{
+			int32 worldIndex0;
+			int32 worldIndex1;
+
+			worldIndex0 = Edges[i].VoronoiEdge0;
+			if (worldIndex0 < 0)
+			{
+				continue;
+			}
+			FMapData v0Data = Corners[worldIndex0].CornerData;
+			FVector worldVertex0 = UPolygonMap::ConvertGraphPointToWorldSpace(v0Data, MapData, MapSize);
+
+			worldIndex1 = Edges[i].VoronoiEdge1;
+			if (worldIndex1 < 0)
+			{
+				continue;
+			}
+			FMapData v1Data = Corners[worldIndex1].CornerData;
+			FVector worldVertex1 = UPolygonMap::ConvertGraphPointToWorldSpace(v1Data, MapData, MapSize);
+
+			FColor color = FColor(147, 198, 255);
+			DrawDebugLine(world, worldVertex0, worldVertex1, color, true);
+		}
+	}*/
+
+}
+
+void UMapDebugVisualizer::DrawBeizerCurve(AActor* Actor, const FWorldSpaceMapData& WorldData, FVector2D v0, FVector2D control0, FVector2D v1, FVector2D control1, FColor color, int32 MapSize)
+{
+	UWorld* world = Actor->GetWorld();
+	if (world == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("World was null!"));
+		return;
+	}
+	FVector2D q0 = CalculateBezierPoint(0, v0, control0, control1, v1);
+
+	float elevationOffset = WorldData.ElevationOffset;
+	float xyScale = WorldData.XYScaleFactor / MapSize;
+	float elevationScale = WorldData.ElevationScale;
+
+	for (int i = 1; i <= 25; i++)
+	{
+		float t = i / 25.0f;
+		FVector2D q1 = CalculateBezierPoint(t, v0, control0, control1, v1);
+
+		FVector vertex0 = FVector::ZeroVector;
+		vertex0.X = q0.X * MapSize * xyScale;
+		vertex0.Y = q0.Y * MapSize * xyScale;
+		FVector vertex1 = FVector::ZeroVector;
+		vertex1.X = q1.X * MapSize * xyScale;
+		vertex1.Y = q1.Y * MapSize * xyScale;
+
+		DrawDebugLine(world, vertex0, vertex1, color, true);
+		q0 = q1;
+	}
+}
+
+FVector2D UMapDebugVisualizer::CalculateBezierPoint(float t, FVector2D p0, FVector2D p1, FVector2D p2, FVector2D p3)
+{
+	float u = 1 - t;
+	float tt = t * t;
+	float uu = u * u;
+	float uuu = uu * u;
+	float ttt = tt * t;
+
+	FVector2D p = uuu * p0; //first term
+
+	p += 3 * uu * t * p1; //second term
+	p += 3 * u * tt * p2; //third term
+	p += ttt * p3; //fourth term
+
+	return p;
+}

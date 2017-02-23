@@ -3,6 +3,7 @@
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "Maps/MapDataHelper.h"
 #include "Biomes/BiomeManager.h"
+#include "Moisture/MoistureDistributor.h"
 #include "PolygonalMapHeightmap.h"
 
 FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager)
@@ -138,6 +139,11 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 		for (int j = 0; j < curPoint.Tags.Num(); j++)
 		{
 			FGameplayTag tag = curPoint.Tags.GetByIndex(i);
+			if (tag.MatchesTag(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Water.River"))))
+			{
+				// Rivers are handled later
+				continue;
+			}
 			float currentTagWeight = tagWeights.FindOrAdd(tag);
 			currentTagWeight += weight;
 			tagWeights[tag] = currentTagWeight;
@@ -168,7 +174,7 @@ FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FM
 	return pixelData;
 }
 
-void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, int32 Size)
+void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDistributor, int32 Size)
 {
 	if (PolygonMap == NULL)
 	{
@@ -211,6 +217,12 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 			HeightmapData.Add(MakeMapPoint(point,graph, BiomeManager));
 		}
 	}
+
+	// Add the rivers
+	for (int i = 0; i < MoistureDistributor->Rivers.Num(); i++)
+	{
+		MoistureDistributor->Rivers[i]->MoveRiverToHeightmap(this);
+	}
 }
 
 TArray<FMapData> UPolygonalMapHeightmap::GetMapData()
@@ -229,5 +241,19 @@ FMapData UPolygonalMapHeightmap::GetMapPoint(int32 x, int32 y)
 	else
 	{
 		return HeightmapData[index];
+	}
+}
+
+void UPolygonalMapHeightmap::SetMapPoint(int32 X, int32 Y, FMapData MapData)
+{
+	int32 index = X + (Y * HeightmapSize);
+	if (index < 0 || HeightmapData.Num() <= index)
+	{
+		UE_LOG(LogWorldGen, Warning, TEXT("Tried to fetch a pixel at %d, %d, but no pixel was found."), X, Y);
+		return;
+	}
+	else
+	{
+		HeightmapData[index] = MapData;
 	}
 }

@@ -133,7 +133,7 @@ void UPolygonMap::BuildGraph(const int32& mapSize, const FWorldSpaceMapData& dat
 	UE_LOG(LogWorldGen, Log, TEXT("Created a total of %d Centers, %d Corners, and %d Edges."), Centers.Num(), Corners.Num(), Edges.Num());
 }
 
-FMapCenter& UPolygonMap::MakeCenter(const FVector2D& point)
+FMapCenter UPolygonMap::MakeCenter(const FVector2D& point)
 {
 	if (point.X > MapSize || point.Y > MapSize)
 	{
@@ -156,17 +156,16 @@ FMapCenter& UPolygonMap::MakeCenter(const FVector2D& point)
 	return GetCenter(center.Index);
 }
 
-FMapCenter& UPolygonMap::GetCenter(const int32& index)
+FMapCenter UPolygonMap::GetCenter(const int32& index) const
 {
-	if (index < 0 || index >= Centers.Num())
+	if (index < 0)
 	{
-		emptyCenter.Index = -1;
-		return emptyCenter;
+		return FMapCenter();
 	}
 	return Centers[index];
 }
 
-FMapCorner& UPolygonMap::MakeCorner(const FVector2D& point)
+FMapCorner UPolygonMap::MakeCorner(const FVector2D& point)
 {
 	if (point.X > MapSize || point.Y > MapSize)
 	{
@@ -196,26 +195,24 @@ FMapCorner& UPolygonMap::MakeCorner(const FVector2D& point)
 	return GetCorner(corner.Index);
 }
 
-FMapCorner& UPolygonMap::GetCorner(const int32& index)
+FMapCorner UPolygonMap::GetCorner(const int32& index) const
 {
-	if (index < 0 || index >= Corners.Num())
+	if (index < 0)
 	{
-		emptyCorner.Index = -1;
-		return emptyCorner;
+		return FMapCorner();
 	}
 	return Corners[index];
 }
 
-FMapEdge& UPolygonMap::GetEdge(const int32& index)
+FMapEdge UPolygonMap::GetEdge(const int32& index) const
 {
-	if (index < 0 || index >= Edges.Num())
+	if (index < 0)
 	{
-		emptyEdge.Index = -1;
-		return emptyEdge;
+		return FMapEdge();
 	}
 	return Edges[index];
 }
-FMapEdge& UPolygonMap::FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1)
+FMapEdge UPolygonMap::FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1) const
 {
 	if (v0.Index < 0 || v0.Index >= Edges.Num() || v1.Index <0 || v1.Index >= Edges.Num())
 	{
@@ -230,7 +227,7 @@ FMapEdge& UPolygonMap::FindEdgeFromCenters(const FMapCenter& v0, const FMapCente
 	}
 	return GetEdge(-1);
 }
-FMapEdge& UPolygonMap::FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1)
+FMapEdge UPolygonMap::FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1) const
 {
 	if (v0.Index < 0 || v0.Index >= Edges.Num() || v1.Index <0 || v1.Index >= Edges.Num())
 	{
@@ -246,20 +243,35 @@ FMapEdge& UPolygonMap::FindEdgeFromCorners(const FMapCorner& v0, const FMapCorne
 	return GetEdge(-1);
 }
 
-int32 UPolygonMap::GetCenterNum()
+FMapCenter UPolygonMap::FindCenterFromCorners(FMapCorner CornerA, FMapCorner CornerB) const
+{
+	for (int i = 0; i < CornerA.Touches.Num(); i++)
+	{
+		for (int j = 0; j < CornerB.Touches.Num(); j++)
+		{
+			if (CornerA.Touches[i] == CornerB.Touches[j])
+			{
+				return GetCenter(CornerA.Touches[i]);
+			}
+		}
+	}
+	return GetCenter(-1);
+}
+
+int32 UPolygonMap::GetCenterNum() const
 {
 	return Centers.Num();
 }
-int32 UPolygonMap::GetCornerNum()
+int32 UPolygonMap::GetCornerNum() const
 {
 	return Corners.Num();
 }
-int32 UPolygonMap::GetEdgeNum()
+int32 UPolygonMap::GetEdgeNum() const
 {
 	return Edges.Num();
 }
 
-int32 UPolygonMap::GetGraphSize()
+int32 UPolygonMap::GetGraphSize() const
 {
 	return MapSize;
 }
@@ -334,7 +346,7 @@ void UPolygonMap::ImproveCorners()
 	}
 }
 
-TArray<int32> UPolygonMap::FindLandCorners()
+TArray<int32> UPolygonMap::FindLandCorners() const
 {
 	TArray<int32> landCorners;
 	for (int i = 0; i < Corners.Num(); i++)

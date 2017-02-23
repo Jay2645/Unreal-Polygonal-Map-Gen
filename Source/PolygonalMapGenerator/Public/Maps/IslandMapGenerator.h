@@ -7,6 +7,7 @@
 #include "Maps/Elevations/ElevationDistributor.h"
 #include "Maps/PointGenerators/PointGenerator.h"
 #include "Maps/Biomes/BiomeManager.h"
+#include "Maps/Moisture/MoistureDistributor.h"
 #include "PolygonalMapHeightmap.h"
 #include "Maps/IslandShapes/IslandShape.h"
 #include "IslandMapGenerator.generated.h"
@@ -44,6 +45,11 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 	// This will create landmasses with a giant mountain in the center.
 	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
 	TSubclassOf<UElevationDistributor> ElevationDistributor;
+
+
+	// What ElevationDistributor to use.
+	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<UMoistureDistributor> MoistureDistributor;
 
 	// The random seed to use for the island.
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
@@ -118,21 +124,21 @@ public:
 	// Make sure to use the function UpdateCenter() to update the graph
 	// after the MapCenter has been modified. 
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapCenter& GetCenter(const int32 index);
+	FMapCenter GetCenter(const int32 index) const;
 	// Returns a MapCorner at the given index.
 	// If the index is invalid, an empty MapCorner will be returned.
 	// This empty MapCorner will have an index of -1.
 	// Make sure to use the function UpdateCorner() to update the graph
 	// after the MapCorner has been modified. 
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapCorner& GetCorner(const int32 index);
+	FMapCorner GetCorner(const int32 index) const;
 	// Returns a MapEdge at the given index.
 	// If the index is invalid, an empty MapEdge will be returned.
 	// This empty MapEdge will have an index of -1.
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified. 
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapEdge& GetEdge(const int32 index);
+	FMapEdge GetEdge(const int32 index) const;
 
 	// Returns the MapEdge defined by two adjacent MapCenters.
 	// If the edge doesn't exist, an empty MapEdge will be returned.
@@ -140,30 +146,30 @@ public:
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapEdge& FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1);
+	FMapEdge FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1) const;
 	// Returns the MapEdge defined by two adjacent MapCorners.
 	// If the edge doesn't exist, an empty MapEdge will be returned.
 	// This empty MapEdge will have an index of -1.
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapEdge& FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1);
+	FMapEdge FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1) const;
 
 	// Returns the number of MapCenters in our graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	int32 GetCenterNum();
+	int32 GetCenterNum() const;
 	// Returns the number of MapCorners in our graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	int32 GetCornerNum();
+	int32 GetCornerNum() const;
 	// Returns the number of MapEdges in our graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	int32 GetEdgeNum();
+	int32 GetEdgeNum() const;
 
 	// Returns our Graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	UPolygonMap* GetGraph();
+	UPolygonMap* GetGraph() const;
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	UPolygonalMapHeightmap* GetHeightmap();
+	UPolygonalMapHeightmap* GetHeightmap() const;
 
 	// Update a MapCenter in the graph after it has been modified.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
@@ -188,10 +194,10 @@ public:
 	void DrawDelaunayGraph();
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
-		void DrawHeightmap(float PixelSize = 100.0f);
+	void DrawHeightmap(float PixelSize = 100.0f);
 
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
-		FIslandData IslandData;
+	FIslandData IslandData;
 
 protected:
 	// Adds a list of steps that we need to generate our island.
@@ -237,38 +243,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void AssignMoisture();
 
-	// Calculate downslope pointers.  At every point, we point to the
-	// point downstream from it, or to itself.  This is used for
-	// generating rivers and watersheds.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void CalculateDownslopes();
-
-	// Calculate the watershed of every land point. The watershed is
-	// the last downstream land point in the downslope graph. TODO:
-	// watersheds are currently calculated on corners, but it'd be
-	// more useful to compute them on polygon centers so that every
-	// polygon can be marked as being in one watershed.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void CalculateWatersheds();
-
-	// Create rivers along edges. Pick a random corner point, then
-	// move downslope. Mark the edges and corners as rivers.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void CreateRivers();
-	// Calculate moisture. Freshwater sources spread moisture: rivers
-	// and lakes (not oceans). Saltwater sources have moisture but do
-	// not spread it (we set it at the end, after propagation).
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void AssignCornerMoisture();
-
-	// Redistribute moisture to cover the entire range evenly 
-	// from 0.0 to 1.0.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void RedistributeMoisture(TArray<int32> landCorners);
-	// Assign polygon moisture as the average of the corner moisture.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void AssignPolygonMoisture();
-
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	virtual void DoPointPostProcess();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
@@ -299,6 +273,9 @@ public:
 	// The instance of our ElevationDistributor object.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
 	UElevationDistributor* ElevationDistributor;
+	// The instance of our MoistureDistributor object.
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
+	UMoistureDistributor* MoistureDistributor;
 	// The instance of our BiomeManager object.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
 	UBiomeManager* BiomeManager;

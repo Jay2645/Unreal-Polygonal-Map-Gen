@@ -48,7 +48,7 @@ public:
 	// The number of nearest points to consider is governed by the value of the NumberOfPointsToAverage in the UPolygonalMapHeightmap class.
 	// Each "pixel" in the heightmap will be supplied with its own biome, which is determined by the UBiomeManager passed to this function.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap")
-	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, int32 Size);
+	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, class UMoistureDistributor* MoistureDistributor, int32 Size);
 
 	// Returns a COPY of this object's raw heightmap.
 	// This can be iterated over easily, but keep in mind that any changes you make won't be made to the actual heightmap object (i.e., this).
@@ -59,4 +59,7 @@ public:
 	// If the position is out of bounds of the heightmap or the heightmap is not initialized, it will return a blank FMapData object.
 	UFUNCTION(BlueprintPure, Category = "Map Generation|Heightmap")
 	FMapData GetMapPoint(int32 x, int32 y);
+
+	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap")
+	void SetMapPoint(int32 X, int32 Y, FMapData MapData);
 };

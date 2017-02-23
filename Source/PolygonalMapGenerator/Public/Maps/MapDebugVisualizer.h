@@ -4,6 +4,7 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "PolygonMap.h"
+#include "Moisture/River.h"
 #include "MapDebugVisualizer.generated.h"
 
 /**
@@ -34,4 +35,13 @@ public:
 	// Voronoi edges which connect them.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
 	static void DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapCenter>& Centers, const TArray<FMapEdge>& Edges, int32 MapSize);
+	
+	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
+	static void DrawRivers(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* MapGraph, const TArray<URiver*>& Rivers, int32 MapSize);
+	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
+	static void DrawBeizerCurve(AActor* Actor, const FWorldSpaceMapData& WorldData, FVector2D v0, FVector2D control0, FVector2D v1, FVector2D control1, FColor color, int32 MapSize);
+
+private:
+	UFUNCTION(BlueprintPure, Category = "Map Generation|Debug")
+	static FVector2D CalculateBezierPoint(float t, FVector2D p0, FVector2D p1, FVector2D p2, FVector2D p3);
 };

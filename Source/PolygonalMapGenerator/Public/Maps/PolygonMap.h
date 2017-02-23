@@ -48,6 +48,7 @@ struct POLYGONALMAPGENERATOR_API FMapData
 
 struct FMapCorner;
 struct FMapEdge;
+class URiver;
 
 USTRUCT(BlueprintType)
 struct POLYGONALMAPGENERATOR_API FMapCenter
@@ -75,6 +76,11 @@ struct POLYGONALMAPGENERATOR_API FMapCenter
 	{
 		Index = -1;
 	}
+
+	FORCEINLINE	bool operator==(const FMapCenter& Other) const
+	{
+		return Other.Index == Index;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -101,17 +107,22 @@ struct POLYGONALMAPGENERATOR_API FMapCorner
 
 	// The size of the river flowing through this corner.
 	// If there is no river, this is 0.
-	UPROPERTY(Category = "Map Graph", BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
 	int32 RiverSize;
 	// Pointer to adjacent Corner most downhill from us, or -1
-	UPROPERTY(Category = "Map Graph", BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
 	int32 Downslope;
 	// Pointer to coastal Corner, or -1 for null
-	//UPROPERTY(Category = "Map Graph", BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
 	int32 Watershed;
 	// The size of the watershed
-	UPROPERTY(Category = "Map Graph", BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
 	int32 WatershedSize;
+	// The index in the river that we are in, or -1 for no river
+	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
+	int32 RiverIndex;
+	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
+	URiver* River;
 
 	FMapCorner()
 	{
@@ -119,12 +130,19 @@ struct POLYGONALMAPGENERATOR_API FMapCorner
 		RiverSize = 0;
 		Downslope = -1;
 		Watershed = -1;
+		RiverIndex = -1;
 		WatershedSize = 0;
+		River = NULL;
 	}
 
 	FORCEINLINE bool operator <(const FMapCorner& c) const
 	{
 		return CornerData.Elevation < c.CornerData.Elevation;
+	}
+
+	FORCEINLINE	bool operator==(const FMapCorner& Other) const
+	{
+		return Other.Index == Index;
 	}
 };
 
@@ -168,6 +186,11 @@ struct POLYGONALMAPGENERATOR_API FMapEdge
 		VoronoiEdge1 = -1;
 
 		RiverVolume = 0;
+	}
+
+	FORCEINLINE	bool operator==(const FMapEdge& Other) const
+	{
+		return Other.Index == Index;
 	}
 };
 
@@ -238,10 +261,10 @@ public:
 
 	// Creates an FMapCenter from the given point.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
-	FMapCenter& MakeCenter(const FVector2D& point);
+	FMapCenter MakeCenter(const FVector2D& point);
 	// Creates an FMapCorner from the given point.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
-	FMapCorner& MakeCorner(const FVector2D& point);
+	FMapCorner MakeCorner(const FVector2D& point);
 
 	// Although Lloyd relaxation improves the uniformity of polygon
 	// sizes, it doesn't help with the edge lengths. Short edges can
@@ -260,21 +283,21 @@ public:
 	// Make sure to use the function UpdateCenter() to update the graph
 	// after the MapCenter has been modified. 
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapCenter& GetCenter(const int32& index);
+	FMapCenter GetCenter(const int32& index) const;
 	// Returns a MapCorner at the given index.
 	// If the index is invalid, an empty MapCorner will be returned.
 	// This empty MapCorner will have an index of -1.
 	// Make sure to use the function UpdateCorner() to update the graph
 	// after the MapCorner has been modified. 
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapCorner& GetCorner(const int32& index);
+	FMapCorner GetCorner(const int32& index) const;
 	// Returns a MapEdge at the given index.
 	// If the index is invalid, an empty MapEdge will be returned.
 	// This empty MapEdge will have an index of -1.
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified. 
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapEdge& GetEdge(const int32& index);
+	FMapEdge GetEdge(const int32& index) const;
 
 	// Update a MapCenter in the graph after it has been modified.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
@@ -288,17 +311,17 @@ public:
 
 	// Returns the number of MapCenters in our graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	int32 GetCenterNum();
+	int32 GetCenterNum() const;
 	// Returns the number of MapCorners in our graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	int32 GetCornerNum();
+	int32 GetCornerNum() const;
 	// Returns the number of MapEdges in our graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	int32 GetEdgeNum();
+	int32 GetEdgeNum() const;
 
 	// Returns the size of our graph.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	int32 GetGraphSize();
+	int32 GetGraphSize() const;
 
 
 	// Returns ALL MapData points in our graph.
@@ -312,7 +335,7 @@ public:
 
 	// Gets a list of all MapCorners which are not marked as ocean.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	TArray<int32> FindLandCorners();
+	TArray<int32> FindLandCorners() const;
 
 	// Returns the MapEdge defined by two adjacent MapCenters.
 	// If the edge doesn't exist, an empty MapEdge will be returned.
@@ -320,14 +343,16 @@ public:
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapEdge& FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1);
+	FMapEdge FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1) const;
 	// Returns the MapEdge defined by two adjacent MapCorners.
 	// If the edge doesn't exist, an empty MapEdge will be returned.
 	// This empty MapEdge will have an index of -1.
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapEdge& FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1);
+	FMapEdge FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1) const;
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	FMapCenter FindCenterFromCorners(FMapCorner CornerA, FMapCorner CornerB) const;
 
 	// Compiles all map data into the CachedMapData array
 	// This is used by the PixelMap to create pixels
@@ -339,6 +364,20 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Island Generation")
 	static FVector ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize);
 
+	/// Graph Data
+	// The points in our graph
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
+	TArray<FVector2D> Points;
+	// The Centers in our graph
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
+	TArray<FMapCenter> Centers;
+	// The Corners in our graph
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
+	TArray<FMapCorner> Corners;
+	// The Edges of our graph
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
+	TArray<FMapEdge> Edges;
+
 private:
 	UPROPERTY()
 	UPointGenerator* PointSelector;
@@ -347,20 +386,6 @@ private:
 
 	UPROPERTY()
 	FWorldSpaceMapData MapData;
-
-	/// Graph Data
-	// The points in our graph
-	UPROPERTY()
-	TArray<FVector2D> Points;
-	// The Centers in our graph
-	UPROPERTY()
-	TArray<FMapCenter> Centers;
-	// The Corners in our graph
-	UPROPERTY()
-	TArray<FMapCorner> Corners;
-	// The Edges of our graph
-	UPROPERTY()
-	TArray<FMapEdge> Edges;
 
 	UPROPERTY()
 	TArray<FMapData> CachedMapData;

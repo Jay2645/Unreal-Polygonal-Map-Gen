@@ -23,9 +23,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 		virtual void AssignCornerElevations(UIslandShape* islandShape, bool bneedsMoreRandomness, FRandomStream& randomGenerator);
 
-	// Determine polygon and corner type: ocean, coast, land.
+	// Calculate downslope pointers.  At every point, we point to the
+	// point downstream from it, or to itself.  This is used for
+	// generating rivers and watersheds.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-		virtual void AssignOceanCoastAndLand(float lakeThreshold);
+		virtual void CalculateDownslopes();
 
 	// Rescale elevations so that the highest is 1.0, and they're
 	// distributed well. We want lower elevations to be more common

@@ -64,6 +64,16 @@ void AIslandMapGenerator::ResetMap()
 		ElevationDistributor = NewObject<UElevationDistributor>(this, IslandData.ElevationDistributor, TEXT("Elevation Distributor"));
 	}
 
+	if (IslandData.MoistureDistributor == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("Moisture Distributor was null!"));
+		MoistureDistributor = NewObject<UMoistureDistributor>(this, TEXT("Moisture Distributor"));
+	}
+	else
+	{
+		MoistureDistributor = NewObject<UMoistureDistributor>(this, IslandData.MoistureDistributor, TEXT("Moisture Distributor"));
+	}
+
 	RandomGenerator.Initialize(IslandData.Seed);
 }
 
@@ -175,17 +185,17 @@ void AIslandMapGenerator::BuildGraph()
 	MapGraph->ImproveCorners();
 }
 
-UPolygonMap* AIslandMapGenerator::GetGraph()
+UPolygonMap* AIslandMapGenerator::GetGraph() const
 {
 	return MapGraph;
 }
 
-UPolygonalMapHeightmap* AIslandMapGenerator::GetHeightmap()
+UPolygonalMapHeightmap* AIslandMapGenerator::GetHeightmap() const
 {
 	return MapHeightmap;
 }
 
-int32 AIslandMapGenerator::GetCenterNum()
+int32 AIslandMapGenerator::GetCenterNum() const
 {
 	if (MapGraph == NULL)
 	{
@@ -193,7 +203,7 @@ int32 AIslandMapGenerator::GetCenterNum()
 	}
 	return MapGraph->GetCenterNum();
 }
-int32 AIslandMapGenerator::GetCornerNum()
+int32 AIslandMapGenerator::GetCornerNum() const
 {
 	if (MapGraph == NULL)
 	{
@@ -201,7 +211,7 @@ int32 AIslandMapGenerator::GetCornerNum()
 	}
 	return MapGraph->GetCornerNum();
 }
-int32 AIslandMapGenerator::GetEdgeNum()
+int32 AIslandMapGenerator::GetEdgeNum() const
 {
 	if (MapGraph == NULL)
 	{
@@ -210,24 +220,24 @@ int32 AIslandMapGenerator::GetEdgeNum()
 	return MapGraph->GetEdgeNum();
 }
 
-FMapCenter& AIslandMapGenerator::GetCenter(const int32 index)
+FMapCenter AIslandMapGenerator::GetCenter(const int32 index) const
 {
 	return MapGraph->GetCenter(index);
 }
-FMapCorner& AIslandMapGenerator::GetCorner(const int32 index)
+FMapCorner AIslandMapGenerator::GetCorner(const int32 index) const
 {
 	return MapGraph->GetCorner(index);
 }
-FMapEdge& AIslandMapGenerator::GetEdge(const int32 index)
+FMapEdge AIslandMapGenerator::GetEdge(const int32 index) const
 {
 	return MapGraph->GetEdge(index);
 }
-FMapEdge& AIslandMapGenerator::FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1)
+FMapEdge AIslandMapGenerator::FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1) const
 {
 	return MapGraph->FindEdgeFromCenters(v0, v1);
 }
 
-FMapEdge& AIslandMapGenerator::FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1)
+FMapEdge AIslandMapGenerator::FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1) const
 {
 	return MapGraph->FindEdgeFromCorners(v0, v1);
 }
@@ -260,10 +270,11 @@ void AIslandMapGenerator::UpdateEdge(const FMapEdge& edge)
 void AIslandMapGenerator::AssignElevation()
 {
 	ElevationDistributor->SetGraph(GetGraph());
+	MoistureDistributor->SetGraph(MapGraph, IslandData.Size);
 	// Assign elevations
 	ElevationDistributor->AssignCornerElevations(IslandShape, PointSelector->NeedsMoreRandomness(), RandomGenerator);
 	// Determine polygon and corner type: ocean, coast, land.
-	ElevationDistributor->AssignOceanCoastAndLand(IslandData.LakeThreshold);
+	MoistureDistributor->AssignOceanCoastAndLand();
 
 	// Change the overall distribution of elevations so that lower
 	// elevations are more common than higher
@@ -284,233 +295,23 @@ void AIslandMapGenerator::AssignMoisture()
 	}
 	// Moisture distribution
 	// Determine downslope paths.
-	CalculateDownslopes();
+	ElevationDistributor->CalculateDownslopes();
 
 	// Determine watersheds: for every corner, where does it flow
 	// out into the ocean? 
-	CalculateWatersheds();
+	MoistureDistributor->CalculateWatersheds();
 
 	// Create rivers.
-	CreateRivers();
+	MoistureDistributor->CreateRivers(RandomGenerator);
 
 	// Determine moisture at corners, starting at rivers
 	// and lakes, but not oceans. Then redistribute
 	// moisture to cover the entire range evenly from 0.0
 	// to 1.0. Then assign polygon moisture as the average
 	// of the corner moisture.
-	AssignCornerMoisture();
-	RedistributeMoisture(MapGraph->FindLandCorners());
-	AssignPolygonMoisture();
-}
-
-void AIslandMapGenerator::CalculateDownslopes()
-{
-	for (int i = 0; i < GetCornerNum(); i++)
-	{
-		FMapCorner corner = GetCorner(i);
-		int32 downslopeIndex = corner.Index;
-		for (int j = 0; j < corner.Adjacent.Num(); j++)
-		{
-			FMapCorner adjacent = GetCorner(corner.Adjacent[j]);
-			if (adjacent.CornerData.Elevation <= GetCorner(downslopeIndex).CornerData.Elevation)
-			{
-				downslopeIndex = adjacent.Index;
-			}
-		}
-		corner.Downslope = downslopeIndex;
-		UpdateCorner(corner);
-	}
-}
-
-void AIslandMapGenerator::CalculateWatersheds()
-{
-	// Initially the watershed pointer points downslope one step.  
-	for (int i = 0; i < GetCornerNum(); i++)
-	{
-		FMapCorner corner = GetCorner(i);
-		corner.Watershed = corner.Index;
-		if (!UMapDataHelper::IsOcean(corner.CornerData) && !UMapDataHelper::IsCoast(corner.CornerData))
-		{
-			corner.Watershed = corner.Downslope;
-		}
-		UpdateCorner(corner);
-	}
-
-	// Follow the downslope pointers to the coast. Limit to 100
-	// iterations although most of the time with numPoints==2000 it
-	// only takes 20 iterations because most points are not far from
-	// a coast.
-	for (int i = 0; i < 100; i++)
-	{
-		bool bChanged = false;
-		for (int j = 0; j < GetCornerNum(); j++)
-		{
-			FMapCorner corner = GetCorner(j);
-			FMapCorner watershed = GetCorner(corner.Watershed);
-			if (!UMapDataHelper::IsOcean(corner.CornerData) && !UMapDataHelper::IsCoast(corner.CornerData) && !UMapDataHelper::IsCoast(watershed.CornerData))
-			{
-				FMapCorner downstreamWatershed = GetCorner(watershed.Watershed);
-				if (!UMapDataHelper::IsOcean(downstreamWatershed.CornerData))
-				{
-					corner.Watershed = downstreamWatershed.Index;
-					UpdateCorner(corner);
-					bChanged = true;
-				}
-			}
-		}
-		if (!bChanged)
-		{
-			break;
-		}
-	}
-
-	// How big is each watershed?
-	for (int i = 0; i < GetCornerNum(); i++)
-	{
-		FMapCorner corner = GetCorner(i);
-		FMapCorner watershed = GetCorner(corner.Watershed);
-		watershed.WatershedSize += 1;
-		UpdateCorner(watershed);
-	}
-}
-
-void AIslandMapGenerator::CreateRivers()
-{
-	bool hasCoastTile = false;
-	for (int i = 0; i < GetCornerNum(); i++)
-	{
-		if (UMapDataHelper::IsCoast(GetCorner(i).CornerData))
-		{
-			hasCoastTile = true;
-			break;
-		}
-	}
-	if (!hasCoastTile)
-	{
-		UE_LOG(LogWorldGen, Error, TEXT("No tiles were marked as being coastline!"));
-		return;
-	}
-
-	for (int i = 0; i < IslandData.Size / 2; i++)
-	{
-		int cornerIndex = RandomGenerator.RandRange(0, GetCornerNum() - 1);
-		FMapCorner riverSource = GetCorner(cornerIndex);
-		if (UMapDataHelper::IsOcean(riverSource.CornerData))
-		{
-			continue;
-		}
-		int j = 0;
-		while (!UMapDataHelper::IsCoast(riverSource.CornerData))
-		{
-			FMapCorner downslopeCorner = GetCorner(riverSource.Downslope);
-			if (downslopeCorner.Index == riverSource.Index || downslopeCorner.Index < 0)
-			{
-				break;
-			}
-			FMapEdge edge = FindEdgeFromCorners(riverSource, downslopeCorner);
-			edge.RiverVolume++;
-			riverSource.RiverSize++;
-			riverSource.CornerData = UMapDataHelper::SetRiver(riverSource.CornerData);
-			riverSource.CornerData.Elevation -= 0.05f;
-			downslopeCorner.RiverSize++;
-			downslopeCorner.CornerData = UMapDataHelper::SetRiver(downslopeCorner.CornerData);
-			downslopeCorner.CornerData.Elevation -= 0.05f;
-
-			UpdateEdge(edge);
-			UpdateCorner(riverSource);
-			UpdateCorner(downslopeCorner);
-
-			riverSource = downslopeCorner;
-			j++;
-			if (j > IslandData.NumberOfPoints) // Should never happen
-			{
-				break;
-			}
-		}
-	}
-}
-
-void AIslandMapGenerator::AssignCornerMoisture()
-{
-	TQueue<FMapCorner> moistureQueue;
-	for (int i = 0; i < GetCornerNum(); i++)
-	{
-		FMapCorner corner = GetCorner(i);
-		if ((UMapDataHelper::IsWater(corner.CornerData) || UMapDataHelper::IsRiver(corner.CornerData)) && !UMapDataHelper::IsOcean(corner.CornerData))
-		{
-			corner.CornerData.Moisture = UMapDataHelper::IsRiver(corner.CornerData) ? FMath::Min(3.0f, (0.2f * corner.RiverSize)) : 1.0f;
-			moistureQueue.Enqueue(corner);
-		}
-		else
-		{
-			corner.CornerData.Moisture = 0.0f;
-			UpdateCorner(corner);
-		}
-	}
-
-	while (!moistureQueue.IsEmpty())
-	{
-		FMapCorner corner;
-		moistureQueue.Dequeue(corner);
-		for (int i = 0; i < corner.Adjacent.Num(); i++)
-		{
-			FMapCorner neighbor = GetCorner(corner.Adjacent[i]);
-			float newMoisture = corner.CornerData.Moisture * 0.9f;
-			if (newMoisture > neighbor.CornerData.Moisture)
-			{
-				neighbor.CornerData.Moisture = newMoisture;
-				moistureQueue.Enqueue(neighbor);
-			}
-		}
-		UpdateCorner(corner);
-	}
-
-	// Saltwater
-	for (int i = 0; i < GetCornerNum(); i++)
-	{
-		FMapCorner corner = GetCorner(i);
-		if (UMapDataHelper::IsCoast(corner.CornerData) || UMapDataHelper::IsOcean(corner.CornerData))
-		{
-			corner.CornerData.Moisture = 1.0f;
-			UpdateCorner(corner);
-		}
-	}
-}
-
-void AIslandMapGenerator::RedistributeMoisture(TArray<int32> landCorners)
-{
-	float maxMoisture = -1.0f;
-	for (int i = 0; i < landCorners.Num(); i++)
-	{
-		FMapCorner corner = GetCorner(landCorners[i]);
-		if (corner.CornerData.Moisture > maxMoisture)
-		{
-			maxMoisture = corner.CornerData.Moisture;
-		}
-	}
-
-	for (int i = 0; i < landCorners.Num(); i++)
-	{
-		FMapCorner corner = GetCorner(landCorners[i]);
-		corner.CornerData.Moisture /= maxMoisture;
-		UpdateCorner(corner);
-	}
-}
-
-void AIslandMapGenerator::AssignPolygonMoisture()
-{
-	for (int i = 0; i < GetCenterNum(); i++)
-	{
-		FMapCenter center = GetCenter(i);
-		float sumMoisture = 0.0f;
-		for (int j = 0; j < center.Corners.Num(); j++)
-		{
-			FMapCorner corner = GetCorner(center.Corners[j]);
-			sumMoisture = corner.CornerData.Moisture;
-		}
-		center.CenterData.Moisture = sumMoisture / center.Corners.Num();
-		UpdateCenter(center);
-	}
+	MoistureDistributor->AssignCornerMoisture();
+	MoistureDistributor->RedistributeMoisture(MapGraph->FindLandCorners());
+	MoistureDistributor->AssignPolygonMoisture();
 }
 
 void AIslandMapGenerator::DoPointPostProcess()
@@ -557,7 +358,8 @@ void AIslandMapGenerator::FinalizeAllPoints()
 
 	// Compile to get ready to make heightmap pixels
 	MapGraph->CompileMapData();
-	MapHeightmap->CreateHeightmap(MapGraph,BiomeManager,IslandData.Size);
+	// Make the initial heightmap
+	MapHeightmap->CreateHeightmap(MapGraph,BiomeManager,MoistureDistributor, IslandData.Size);
 }
 
 void AIslandMapGenerator::DrawVoronoiGraph()
