@@ -4,185 +4,24 @@
 #include "Maps/MapDataHelper.h"
 #include "Biomes/BiomeManager.h"
 #include "Moisture/MoistureDistributor.h"
+#include "Maps/Heightmap/HeightmapPointTask.h"
 #include "PolygonalMapHeightmap.h"
 
-FMapData UPolygonalMapHeightmap::MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager)
-{
-	TArray<FMapData> closestPoints;
-	// Iterate over the entire mapData array to find how many points we need to average
-		for (int i = 0; i < MapData.Num(); i++)
-		{
-			if (closestPoints.Num() == 0)
-			{
-				closestPoints.Add(MapData[i]);
-				continue;
-			}
-			float distance = FVector2D::DistSquared(PixelPosition, MapData[i].Point);
-			if (distance <= 0.001f)
-			{
-				// Close enough
-				FMapData pixelData = MapData[i];
-				pixelData.Biome = BiomeManager->DetermineBiome(pixelData);
-				return pixelData;
-			}
-
-			// This will hold the index of first point we find that's further away than our point
-			int addPointIndex = -1;
-			for (int j = 0; j < closestPoints.Num(); j++)
-			{
-				// Get the distance of this point
-				float pointDist = FVector2D::DistSquared(PixelPosition, closestPoints[j].Point);
-				if (distance < pointDist)
-				{
-					addPointIndex = j;
-					break;
-				}
-			}
-
-			// If we found a point that's further away than our point, place it in the array and move everything else down
-			if (addPointIndex >= 0)
-			{
-				FMapData last = MapData[i];
-				for (int j = addPointIndex; j < closestPoints.Num(); j++)
-				{
-					FMapData temp = closestPoints[j];
-					closestPoints[j] = last;
-					last = temp;
-				}
-				// If we are below the number of points we need to add, then add the furthest point to the end
-				if (closestPoints.Num() < NumberOfPointsToAverage)
-				{
-					closestPoints.Add(last);
-				}
-			}
-			else if (closestPoints.Num() < NumberOfPointsToAverage)
-			{
-				closestPoints.Add(MapData[i]);
-			}
-		}
-
-	// Cache the distances
-	TArray<float> closestPointDistances;
-	float totalDistance = 0.0f;
-	for (int i = 0; i < closestPoints.Num(); i++)
-	{
-		float distance = FVector2D::DistSquared(PixelPosition, closestPoints[i].Point);
-		totalDistance += distance;
-		closestPointDistances.Add(distance);
-	}
-
-	float inversePercentageTotal = 0.0f;
-
-	for (int i = 0; i < closestPoints.Num(); i++)
-	{
-		// Get the total percentage that this point contributed to the overall distance
-		float percentageOfDistance = closestPointDistances[i] / totalDistance;
-
-		// Take the inverse of the distance percentage -- points which are closer get a larger weight
-		float inversePercentage = 1.0f - percentageOfDistance;
-
-		// We re-add the inverse percentage to the array so we can make sure it all totals up to 1
-		closestPointDistances[i] = inversePercentage;
-		inversePercentageTotal += inversePercentage;
-	}
-
-	// Now gather the weighted distance for each point
-	TArray<TPair<FMapData, float>> pointWeights;
-	for (int i = 0; i < closestPoints.Num(); i++)
-	{
-		TPair<FMapData, float> weight;
-		weight.Key = closestPoints[i];
-		weight.Value = closestPointDistances[i] / inversePercentageTotal;
-		pointWeights.Add(weight);
-	}
-
-	/*float isBorder = 0.0f;
-	float isWater = 0.0f;
-	float isOcean = 0.0f;
-	float isCoast = 0.0f;
-	float isRiver = 0.0f;*/
-
-	float elevation = 0.0f;
-	float moisture = 0.0f;
-
-	TMap<FGameplayTag, float> tagWeights;
-
-	for (int i = 0; i < pointWeights.Num(); i++)
-	{
-		FMapData curPoint = pointWeights[i].Key;
-		float weight = pointWeights[i].Value;
-
-		/*if (UMapDataHelper::IsBorder(curPoint))
-		{
-			isBorder += weight;
-		}
-		if (curPoint.bIsCoast)
-		{
-			isCoast += weight;
-		}
-		if (curPoint.bIsOcean)
-		{
-			isOcean += weight;
-		}
-		if (curPoint.bIsRiver)
-		{
-			isRiver += weight;
-		}
-		if (curPoint.bIsWater)
-		{
-			isWater += weight;
-		}*/
-
-		elevation += (curPoint.Elevation * weight);
-		moisture += (curPoint.Moisture * weight);
-
-		for (int j = 0; j < curPoint.Tags.Num(); j++)
-		{
-			FGameplayTag tag = curPoint.Tags.GetByIndex(i);
-			if (tag.MatchesTag(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Water.River"))))
-			{
-				// Rivers are handled later
-				continue;
-			}
-			float currentTagWeight = tagWeights.FindOrAdd(tag);
-			currentTagWeight += weight;
-			tagWeights[tag] = currentTagWeight;
-		}
-	}
-
-	FMapData pixelData;
-
-	pixelData.Point = PixelPosition;
-	/*pixelData.bIsBorder = isBorder >= 0.5f;
-	pixelData.bIsCoast = isCoast >= 0.5f;
-	pixelData.bIsOcean = isOcean >= 0.5f;
-	pixelData.bIsRiver = isRiver >= 0.5f;
-	pixelData.bIsWater = isWater >= 0.5f;*/
-
-	pixelData.Tags.Reset();
-	for (auto& elem : tagWeights)
-	{
-		if (elem.Value >= 0.5f)
-		{
-			pixelData.Tags.AddTagFast(elem.Key);
-		}
-	}
-
-	pixelData.Elevation = elevation;
-	pixelData.Moisture = moisture;
-	pixelData.Biome = BiomeManager->DetermineBiome(pixelData);
-	return pixelData;
-}
-
-void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDistributor, int32 Size)
+void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, int32 Size, const FIslandGeneratorDelegate OnComplete)
 {
 	if (PolygonMap == NULL)
 	{
 		return;
 	}
+	CreateHeightmapTimer = FPlatformTime::Seconds();
+	MoistureDistributor = MoistureDist;
 	HeightmapSize = Size;
+	OnGenerationComplete = OnComplete;
 	TArray<FMapData> graph = PolygonMap->GetAllMapData();
+	UE_LOG(LogWorldGen, Log, TEXT("Map Data fetched in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);
+
 	// First, insert a border around the map
+	CreateHeightmapTimer = FPlatformTime::Seconds();
 	for (int x = 0; x < HeightmapSize; x++)
 	{
 		FMapData borderPoint = FMapData();
@@ -207,21 +46,33 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 		borderPoint.Point = FVector2D(Size - 1, y);
 		graph.Add(borderPoint);
 	}
+	UE_LOG(LogWorldGen, Log, TEXT("Border generated in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);
 
 	// Now, interpolate between the actual points
-	for (int x = 0; x < HeightmapSize; x++)
-	{
-		for (int y = 0; y < HeightmapSize; y++)
-		{
-			FVector2D point = FVector2D(x, y);
-			HeightmapData.Add(MakeMapPoint(point,graph, BiomeManager));
-		}
-	}
+	CreateHeightmapTimer = FPlatformTime::Seconds();
+
+	FIslandGeneratorDelegate generatePoints;
+	generatePoints.BindDynamic(this, &UPolygonalMapHeightmap::CheckMapPointsDone);
+	FHeightmapPointGenerator::GenerateHeightmapPoints(HeightmapSize, NumberOfPointsToAverage, this, PolygonMap, BiomeManager, generatePoints);
+}
+
+void UPolygonalMapHeightmap::CheckMapPointsDone()
+{
+	HeightmapData = FHeightmapPointGenerator::HeightmapData;
+	UE_LOG(LogWorldGen, Log, TEXT("%d map points created in %f seconds."), HeightmapSize * HeightmapSize, FPlatformTime::Seconds() - CreateHeightmapTimer);
 
 	// Add the rivers
+	CreateHeightmapTimer = FPlatformTime::Seconds();
 	for (int i = 0; i < MoistureDistributor->Rivers.Num(); i++)
 	{
 		MoistureDistributor->Rivers[i]->MoveRiverToHeightmap(this);
+	}
+	UE_LOG(LogWorldGen, Log, TEXT("Rivers placed in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);
+
+	if (OnGenerationComplete.IsBound())
+	{
+		OnGenerationComplete.Execute();
+		OnGenerationComplete.Unbind();
 	}
 }
 

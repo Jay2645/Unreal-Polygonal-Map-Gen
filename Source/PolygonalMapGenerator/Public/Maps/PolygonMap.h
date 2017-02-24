@@ -8,6 +8,7 @@
 #include "PolygonMap.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogWorldGen, Log, All);
+DECLARE_DYNAMIC_DELEGATE(FIslandGeneratorDelegate);
 
 USTRUCT(BlueprintType)
 struct POLYGONALMAPGENERATOR_API FMapData

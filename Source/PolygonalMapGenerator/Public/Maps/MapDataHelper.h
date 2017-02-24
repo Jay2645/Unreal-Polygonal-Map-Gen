@@ -23,7 +23,7 @@ public:
 	static bool IsBorder(const FMapData& MapData);
 	// Returns true if the supplied MapData object is tagged with "Freshwater".
 	UFUNCTION(BlueprintPure, Category = "Map Data|Tags")
-	bool IsFreshwater(const FMapData& MapData);
+	static bool IsFreshwater(const FMapData& MapData);
 	// Returns true if the supplied MapData object is tagged with "Water".
 	UFUNCTION(BlueprintPure, Category = "Map Data|Tags")
 	static bool IsWater(const FMapData& MapData);

@@ -6,6 +6,8 @@
 #include "PolygonMap.h"
 #include "PolygonalMapHeightmap.generated.h"
 
+class UMoistureDistributor;
+
 /**
  * A class which creates a "heightmap" of FMapData objects from a UPolygonMap object.
  * This heightmap can be iterated over and its values used to create a voxel-based 3D representation in
@@ -25,11 +27,16 @@ private:
 	// Once populated, this is a 2D array of `HeightmapSize` by `HeightmapSize`, represented in a 1D array.
 	UPROPERTY()
 	TArray<FMapData> HeightmapData;
+	UPROPERTY()
+	UMoistureDistributor* MoistureDistributor;
 
-	// Creates a map point at the given pixel position and adds it to the end of the HeightmapData array.
+	UPROPERTY()
+	float CreateHeightmapTimer;
+
+	FIslandGeneratorDelegate OnGenerationComplete;
+
 	UFUNCTION()
-	FMapData MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager);
-
+	void CheckMapPointsDone();
 public:
 	// The number of "pixels" in the heightmap.
 	// Larger values create a higher-resolution heightmap, but also mean increased processing time.
@@ -48,7 +55,7 @@ public:
 	// The number of nearest points to consider is governed by the value of the NumberOfPointsToAverage in the UPolygonalMapHeightmap class.
 	// Each "pixel" in the heightmap will be supplied with its own biome, which is determined by the UBiomeManager passed to this function.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap")
-	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, class UMoistureDistributor* MoistureDistributor, int32 Size);
+	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, int32 Size, const FIslandGeneratorDelegate onComplete);
 
 	// Returns a COPY of this object's raw heightmap.
 	// This can be iterated over easily, but keep in mind that any changes you make won't be made to the actual heightmap object (i.e., this).

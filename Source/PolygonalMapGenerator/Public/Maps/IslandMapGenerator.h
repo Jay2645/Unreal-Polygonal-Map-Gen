@@ -12,8 +12,6 @@
 #include "Maps/IslandShapes/IslandShape.h"
 #include "IslandMapGenerator.generated.h"
 
-DECLARE_DYNAMIC_DELEGATE(FIslandGeneratorDelegate);
-
 /*
 * The IslandData struct manages all the attributes used to generate an island.
 */
@@ -245,12 +243,24 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	virtual void DoPointPostProcess();
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void NormalizePointsEvent();
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	void NormalizePoints();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void DetermineBiomesEvent();
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	void DetermineBiomes();
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
 	void FinalizeAllPointsEvent();
 	// Does final processing on the graph
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void FinalizeAllPoints();
-
+	UFUNCTION()
+	void OnPointFinalizationFinished();
 private:
 	UPROPERTY()
 	UPolygonMap* MapGraph;
@@ -259,6 +269,13 @@ private:
 
 	UPROPERTY()
 	FRandomStream RandomGenerator;
+	UPROPERTY()
+	float MapStartGenerationTime;
+	UPROPERTY()
+	float CurrentGenerationTime;
+
+	UPROPERTY()
+	bool bCurrentStepIsDone;
 
 	TQueue<FIslandGeneratorDelegate> IslandGeneratorSteps;
 

@@ -2,6 +2,7 @@
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "Maps/IslandShapes/IslandShape.h"
+#include "MapDataHelper.h"
 #include "Maps/Elevations/ElevationDistributor.h"
 
 
@@ -148,14 +149,76 @@ void UElevationDistributor::RedistributeElevations(TArray<int32> landCorners)
 
 void UElevationDistributor::FlattenWaterElevations()
 {
+	TArray<bool> processedCorners;
+	processedCorners.SetNumZeroed(MapGraph->GetCornerNum());
 	for (int i = 0; i < MapGraph->GetCornerNum(); i++)
 	{
+		if (processedCorners[i])
+		{
+			// Already finished this corner
+			continue;
+		}
+
 		FMapCorner corner = MapGraph->GetCorner(i);
-		if (UMapDataHelper::IsOcean(corner.CornerData) || UMapDataHelper::IsCoast(corner.CornerData))
+		if (UMapDataHelper::IsOcean(corner.CornerData))
 		{
 			corner.CornerData.Elevation = 0.0f;
+			MapGraph->UpdateCorner(corner);
+			processedCorners[i] = true;
 		}
-		MapGraph->UpdateCorner(corner);
+		/*else if (UMapDataHelper::IsFreshwater(corner.CornerData))
+		{
+			float currentElevation = corner.CornerData.Elevation;
+			
+			TArray<FMapCorner> waterBiomeCorners;
+			TArray<FMapCorner> toProcess;
+			toProcess.Add(corner);
+			
+			while(toProcess.Num() > 0)
+			{
+				FMapCorner current = toProcess[0];
+				toProcess.RemoveAt(0);
+
+				// Keep track of all corners in this biome
+				waterBiomeCorners.Add(current);
+
+				// Iterate over all the adjacent corners
+				for (int j = 0; j < current.Adjacent.Num(); j++)
+				{
+					// Check to see if we've already processed this neighbor
+					if (processedCorners[current.Adjacent[j]])
+					{
+						// Already processed
+						continue;
+					}
+
+					FMapCorner neighbor = MapGraph->GetCorner(current.Adjacent[j]);
+					if (!UMapDataHelper::IsFreshwater(neighbor.CornerData))
+					{
+						// Ignore non-water corners
+						continue;
+					}
+
+					// Minimum elevation is given by the minimum of the current elevation vs. this neighbor's elevation
+					// This will give us a flat water level
+					currentElevation = FMath::Min(currentElevation, neighbor.CornerData.Elevation);
+					// Add the neighbor to the process list to process its neighbors
+					toProcess.Add(neighbor);
+
+					// Mark the processing on this corner as done
+					processedCorners[current.Adjacent[j]] = true;
+				}
+			}
+
+			// Done finding all the corners to process for this biome
+			// We also found the water level we're aiming for
+			// Now we need to give that water level to all corners in the biome
+			for (int j = 0; j < waterBiomeCorners.Num(); j++)
+			{
+				waterBiomeCorners[j].CornerData.Elevation = currentElevation;
+				MapGraph->UpdateCorner(waterBiomeCorners[j]);
+			}
+		}*/
 	}
 }
 

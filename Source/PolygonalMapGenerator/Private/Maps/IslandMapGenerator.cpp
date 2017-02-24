@@ -10,6 +10,7 @@ AIslandMapGenerator::AIslandMapGenerator()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.bTickEvenWhenPaused = true;
+	bCurrentStepIsDone = true;
 }
 
 void AIslandMapGenerator::Tick(float deltaSeconds)
@@ -79,6 +80,7 @@ void AIslandMapGenerator::ResetMap()
 
 void AIslandMapGenerator::CreateMap(const FIslandGeneratorDelegate onComplete)
 {
+	MapStartGenerationTime = FPlatformTime::Seconds();
 	OnGenerationComplete = onComplete;
 	AddMapSteps();
 	GenerateMap();
@@ -86,8 +88,13 @@ void AIslandMapGenerator::CreateMap(const FIslandGeneratorDelegate onComplete)
 
 void AIslandMapGenerator::GenerateMap()
 {
+	if (!bCurrentStepIsDone)
+	{
+		return;
+	}
 	if (IslandGeneratorSteps.IsEmpty() && OnGenerationComplete.IsBound())
 	{
+		UE_LOG(LogWorldGen, Log, TEXT("Finished map generation. Total time to create map was %f seconds."), FPlatformTime::Seconds() - MapStartGenerationTime);
 		// Done with all steps, execute onComplete delegate
 		OnGenerationComplete.Execute();
 		OnGenerationComplete.Unbind();
@@ -105,7 +112,7 @@ void AIslandMapGenerator::GenerateMap()
 
 void AIslandMapGenerator::AddMapSteps_Implementation()
 {
-	UE_LOG(LogWorldGen, Log, TEXT("Generating a new map at %f."), GetWorld()->GetRealTimeSeconds());
+	UE_LOG(LogWorldGen, Log, TEXT("Generating a new map at %f."), FPlatformTime::Seconds());
 
 	FIslandGeneratorDelegate resetMap;
 	resetMap.BindDynamic(this, &AIslandMapGenerator::ResetMap);
@@ -142,6 +149,14 @@ void AIslandMapGenerator::AddMapSteps_Implementation()
 	postProcess.BindDynamic(this, &AIslandMapGenerator::DoPointPostProcess);
 	AddGenerationStep(postProcess);
 
+	FIslandGeneratorDelegate normalizePoints;
+	normalizePoints.BindDynamic(this, &AIslandMapGenerator::NormalizePoints);
+	AddGenerationStep(normalizePoints);
+
+	FIslandGeneratorDelegate determineBiomes;
+	determineBiomes.BindDynamic(this, &AIslandMapGenerator::DetermineBiomes);
+	AddGenerationStep(determineBiomes);
+
 	// Package the map up to send to the voxel engine
 	FIslandGeneratorDelegate finalizePoints;
 	finalizePoints.BindDynamic(this, &AIslandMapGenerator::FinalizeAllPoints);
@@ -165,6 +180,8 @@ void AIslandMapGenerator::ClearAllGenerationSteps()
 
 void AIslandMapGenerator::InitializeMap()
 {
+	CurrentGenerationTime = FPlatformTime::Seconds();
+
 	MapGraph = NewObject<UPolygonMap>();
 	MapHeightmap = NewObject<UPolygonalMapHeightmap>();
 	IslandShape->SetSeed(IslandData.Seed, IslandData.Size);
@@ -177,12 +194,14 @@ void AIslandMapGenerator::BuildGraph()
 	{
 		return;
 	}
+	CurrentGenerationTime = FPlatformTime::Seconds();
 	// Place points
 	MapGraph->CreatePoints(PointSelector, IslandData.NumberOfPoints);
 
 	// Build graph
 	MapGraph->BuildGraph(IslandData.Size, IslandData.PolygonMapSettings);
 	MapGraph->ImproveCorners();
+	UE_LOG(LogWorldGen, Log, TEXT("Created graph in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
 }
 
 UPolygonMap* AIslandMapGenerator::GetGraph() const
@@ -269,6 +288,8 @@ void AIslandMapGenerator::UpdateEdge(const FMapEdge& edge)
 
 void AIslandMapGenerator::AssignElevation()
 {
+	CurrentGenerationTime = FPlatformTime::Seconds();
+
 	ElevationDistributor->SetGraph(GetGraph());
 	MoistureDistributor->SetGraph(MapGraph, IslandData.Size);
 	// Assign elevations
@@ -284,6 +305,8 @@ void AIslandMapGenerator::AssignElevation()
 	ElevationDistributor->RedistributeElevations(MapGraph->FindLandCorners());
 	ElevationDistributor->FlattenWaterElevations();
 	ElevationDistributor->AssignPolygonElevations();
+
+	UE_LOG(LogWorldGen, Log, TEXT("Elevations assigned in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
 }
 
 
@@ -293,6 +316,8 @@ void AIslandMapGenerator::AssignMoisture()
 	{
 		return;
 	}
+	CurrentGenerationTime = FPlatformTime::Seconds();
+
 	// Moisture distribution
 	// Determine downslope paths.
 	ElevationDistributor->CalculateDownslopes();
@@ -312,6 +337,8 @@ void AIslandMapGenerator::AssignMoisture()
 	MoistureDistributor->AssignCornerMoisture();
 	MoistureDistributor->RedistributeMoisture(MapGraph->FindLandCorners());
 	MoistureDistributor->AssignPolygonMoisture();
+
+	UE_LOG(LogWorldGen, Log, TEXT("Moisture distributed in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
 }
 
 void AIslandMapGenerator::DoPointPostProcess()
@@ -319,12 +346,14 @@ void AIslandMapGenerator::DoPointPostProcess()
 	// Intentionally left blank
 }
 
-void AIslandMapGenerator::FinalizeAllPoints()
+void AIslandMapGenerator::NormalizePoints()
 {
 	if (MapGraph == NULL)
 	{
 		return;
 	}
+	CurrentGenerationTime = FPlatformTime::Seconds();
+
 	for (int i = 0; i < GetCornerNum(); i++)
 	{
 		FMapCorner corner = GetCorner(i);
@@ -333,11 +362,10 @@ void AIslandMapGenerator::FinalizeAllPoints()
 
 		if (!UMapDataHelper::IsOcean(corner.CornerData))
 		{
-			corner.CornerData.Elevation = 0.1f + (corner.CornerData.Elevation * 0.9f);
+			// If this point is not ocean, raise it above ocean level
+			corner.CornerData.Elevation = FMath::Clamp(0.1f + (corner.CornerData.Elevation * 0.9f), 0.0f, 1.0f);
 		}
 
-		FGameplayTag biome = BiomeManager->DetermineBiome(corner.CornerData);
-		corner.CornerData.Biome = biome;
 		UpdateCorner(corner);
 	}
 
@@ -349,17 +377,69 @@ void AIslandMapGenerator::FinalizeAllPoints()
 
 		if (!UMapDataHelper::IsOcean(center.CenterData))
 		{
-			center.CenterData.Elevation = 0.1f + (center.CenterData.Elevation * 0.9f);
+			// If this point is not ocean, raise it above ocean level
+			center.CenterData.Elevation = FMath::Clamp(0.1f + (center.CenterData.Elevation * 0.9f), 0.0f, 1.0f);
 		}
+		UpdateCenter(center);
+	}
+
+	UE_LOG(LogWorldGen, Log, TEXT("Points normalized in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
+}
+
+void AIslandMapGenerator::DetermineBiomes()
+{
+	if (MapGraph == NULL)
+	{
+		return;
+	}
+
+	CurrentGenerationTime = FPlatformTime::Seconds();
+	
+	for (int i = 0; i < GetCornerNum(); i++)
+	{
+		FMapCorner corner = GetCorner(i);
+		FGameplayTag biome = BiomeManager->DetermineBiome(corner.CornerData);
+		corner.CornerData.Biome = biome;
+		UpdateCorner(corner);
+	}
+
+	for (int i = 0; i < GetCenterNum(); i++)
+	{
+		FMapCenter center = GetCenter(i);
 		FGameplayTag biome = BiomeManager->DetermineBiome(center.CenterData);
 		center.CenterData.Biome = biome;
 		UpdateCenter(center);
 	}
 
+	UE_LOG(LogWorldGen, Log, TEXT("Biomes determined in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
+}
+
+void AIslandMapGenerator::FinalizeAllPoints()
+{
+	if (MapGraph == NULL)
+	{
+		return;
+	}
+	bCurrentStepIsDone = false;
+	CurrentGenerationTime = FPlatformTime::Seconds();
+
 	// Compile to get ready to make heightmap pixels
+	float compileMapTime = FPlatformTime::Seconds();
 	MapGraph->CompileMapData();
+	UE_LOG(LogWorldGen, Log, TEXT("Map Data compiled in %f seconds."), FPlatformTime::Seconds() - compileMapTime);
+
 	// Make the initial heightmap
-	MapHeightmap->CreateHeightmap(MapGraph,BiomeManager,MoistureDistributor, IslandData.Size);
+	float heightmapGenerationTime = FPlatformTime::Seconds();
+	FIslandGeneratorDelegate finalizationFinished;
+	finalizationFinished.BindDynamic(this, &AIslandMapGenerator::OnPointFinalizationFinished);
+	MapHeightmap->CreateHeightmap(MapGraph, BiomeManager, MoistureDistributor, IslandData.Size, finalizationFinished);
+	UE_LOG(LogWorldGen, Log, TEXT("Heightmap generated in %f seconds."), FPlatformTime::Seconds() - heightmapGenerationTime);
+}
+
+void AIslandMapGenerator::OnPointFinalizationFinished()
+{
+	bCurrentStepIsDone = true;
+	UE_LOG(LogWorldGen, Log, TEXT("Points finalized in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
 }
 
 void AIslandMapGenerator::DrawVoronoiGraph()
