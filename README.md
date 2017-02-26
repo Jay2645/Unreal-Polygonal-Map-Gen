@@ -8,7 +8,7 @@ This project also uses [Bl4ckb0ne's C++ Delaunay Triangulation algorithm](https:
 
 #Installation
 
-First, make a `Plugins` folder at your project root (where the .uproject file is), if you haven't already. Then, clone this project into a subfolder in your Plugins directory. After that, open up your project's .uproject file in Notepad (or a similar text editor), and change the `"AdditionalDependencies"` and `"Plugins"` sections to look like this:
+1. Make a `Plugins` folder at your project root (where the .uproject file is), if you haven't already. Then, clone this project into a subfolder in your Plugins directory. After that, open up your project's .uproject file in Notepad (or a similar text editor), and change the `"AdditionalDependencies"` and `"Plugins"` sections to look like this:
 
 ```
 	"Modules": [
@@ -31,13 +31,35 @@ First, make a `Plugins` folder at your project root (where the .uproject file is
 	]
 ```
 
-You can now open up your project in Unreal. You might be told that your project is out of date, and the editor will ask if you want to rebuild them. You do. After that, open up the Plugins menu, scroll down to the bottom, and ensure that the "PolygonalMapGenerator" plugin is enabled.
+If you don't have a `"Modules"` section, then that usually means that your project isn't set up for C++ yet. First, set your project up to handle C++ code, then you should see the `"Modules"` section. It's okay if you don't see a `"Plugins"` section, however -- just add one in there.
 
-**Very important!** This project uses Unreal's FGameplayTags system that got brought out of experimental with Unreal Engine 4.15. 
+2. Open up your project in Unreal. If you get a prompt asking for an Unreal Engine version, you probably missed a comma somewhere in your .uproject file -- make sure all the commas and syntax are correct and try again. If Unreal does start to load, you might be told that your project is out of date, and the editor will ask if you want to rebuild your project. Go ahead and say yes so the plugin can be installed properly, keeping in mind that it might take a while to rebuild). After that, open up the Plugins menu, scroll down to the bottom, and ensure that the "PolygonalMapGenerator" plugin is enabled.
 
-In order for the system to work properly, you ***need*** to also enable the "GameplayTags" plugin in the Plugins menu. Once you restart the Unreal Editor, you need to go to your Project Settings/GameplayTags and find `Gameplay Tag Table List`. Add two elements to the array, pointing to `/PolygonalMapGenerator/GameplayTags/BiomeTags` and `/PolygonalMapGenerator/GameplayTags/MapMetadataTags`. Once this is done, restart the editor one more time (I know, it's a pain) so the GameplayTag array gets populated properly.
+3. **Very important!** This project uses Unreal's FGameplayTags system that got brought out of experimental with Unreal Engine 4.15. In order for the system to work properly, you ***need*** to also enable the "GameplayTags" plugin in the Plugins menu (if it's not enabled already).
 
-Once the editor has reloaded, you can either spawn in the `IslandMapGenerator` Actor raw, or create a Blueprint asset inheriting from it. Place the Actor in your level somewhere and call `CreateMap` on the `IslandMapGenerator`. This will create the actual map and notify you on completion. More details about how to use the data inside `IslandMapGenerator` are provided below.
+![Enable the GameplayTags Plugin](https://cloud.githubusercontent.com/assets/2058763/23337272/035e0798-fb9d-11e6-88ad-86426ac5cd6d.jpg)
+
+Once you restart the Unreal Editor, you need to go to your Project Settings/GameplayTags and find `Gameplay Tag Table List`. Add two elements to the array, pointing to `/PolygonalMapGenerator/GameplayTags/BiomeTags` and `/PolygonalMapGenerator/GameplayTags/MapMetadataTags`.
+
+![Add to the GameplayTags array](https://cloud.githubusercontent.com/assets/2058763/23337280/35faf58a-fb9d-11e6-9cbd-029c59499250.jpg)
+
+
+If you don't see anything in the array, you need to go to enable your content browser to show plugin content. In the bottom-left of the content browser, you'll see "View Options". Make sure "Show Plugin Content" is checked, then go back into your Project Settings and see if you can add the GameplayTag tables.
+
+![Enabling "Show Plugin Content"](https://cloud.githubusercontent.com/assets/2058763/23337287/4ac9d03a-fb9d-11e6-9138-263c55c5f059.jpg)
+
+
+Once you've added the two tables to your GameplayTags array, restart the editor one more time (I know, it's a pain) so the GameplayTag array gets populated properly.
+
+4. Once the editor has reloaded, you can either spawn in the `IslandMapGenerator` Actor raw, or create a Blueprint asset inheriting from it. Tweak the settings in `IslandData` to your liking -- you likely want to set `IslandType` to `RadialIsland` and `Island Point Selector` to `RandomPointGenerator`. 
+
+![An example settings panel](https://cloud.githubusercontent.com/assets/2058763/23337290/7bb8f068-fb9d-11e6-93a9-25b623c9b017.jpg)
+
+Place the Actor in your level somewhere and call `CreateMap` on the `IslandMapGenerator`. This will create the actual map and notify you on completion. More details about how to use the data inside `IslandMapGenerator` are provided below.
+
+![Blueprint example](https://cloud.githubusercontent.com/assets/2058763/23337302/bfde088c-fb9d-11e6-9ec4-7d5ef6792a6c.jpg)
+
+![Output](https://cloud.githubusercontent.com/assets/2058763/23337305/cff8818e-fb9d-11e6-9290-b3c82c3bb004.jpg)
 
 #Changes from Source Article
 
