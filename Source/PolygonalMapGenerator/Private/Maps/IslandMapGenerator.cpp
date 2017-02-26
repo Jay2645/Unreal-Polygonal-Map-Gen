@@ -158,14 +158,13 @@ void AIslandMapGenerator::AddMapSteps_Implementation()
 	AddGenerationStep(determineBiomes);
 
 	// Package the map up to send to the voxel engine
-	FIslandGeneratorDelegate finalizePoints;
-	finalizePoints.BindDynamic(this, &AIslandMapGenerator::FinalizeAllPoints);
-	AddGenerationStep(finalizePoints);
-	//FinalizeAllPoints();
+	FIslandGeneratorDelegate compileMap;
+	compileMap.BindDynamic(this, &AIslandMapGenerator::CompileMapData);
+	AddGenerationStep(compileMap);
 
-	//MapGraph->DrawDebugVoronoiGrid(IslandData.GameWorld);
-	//MapGraph->DrawDebugDelaunayGrid(IslandData.GameWorld);
-	//PixelMap->DrawDebugPixelGrid(IslandData.GameWorld);
+	//FIslandGeneratorDelegate createHeightmap;
+	//createHeightmap.BindDynamic(this, &AIslandMapGenerator::CreateHeightmap);
+	//AddGenerationStep(createHeightmap);
 }
 
 void AIslandMapGenerator::AddGenerationStep(const FIslandGeneratorDelegate step)
@@ -414,29 +413,34 @@ void AIslandMapGenerator::DetermineBiomes()
 	UE_LOG(LogWorldGen, Log, TEXT("Biomes determined in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
 }
 
-void AIslandMapGenerator::FinalizeAllPoints()
+void AIslandMapGenerator::CompileMapData()
+{
+	if (MapGraph == NULL)
+	{
+		return;
+	}
+	CurrentGenerationTime = FPlatformTime::Seconds();
+
+	// Compile to get ready to make heightmap pixels
+	MapGraph->CompileMapData();
+	UE_LOG(LogWorldGen, Log, TEXT("Map Data compiled in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
+}
+
+void AIslandMapGenerator::CreateHeightmap()
 {
 	if (MapGraph == NULL)
 	{
 		return;
 	}
 	bCurrentStepIsDone = false;
-	CurrentGenerationTime = FPlatformTime::Seconds();
-
-	// Compile to get ready to make heightmap pixels
-	float compileMapTime = FPlatformTime::Seconds();
-	MapGraph->CompileMapData();
-	UE_LOG(LogWorldGen, Log, TEXT("Map Data compiled in %f seconds."), FPlatformTime::Seconds() - compileMapTime);
-
 	// Make the initial heightmap
-	float heightmapGenerationTime = FPlatformTime::Seconds();
+	CurrentGenerationTime = FPlatformTime::Seconds();
 	FIslandGeneratorDelegate finalizationFinished;
-	finalizationFinished.BindDynamic(this, &AIslandMapGenerator::OnPointFinalizationFinished);
+	finalizationFinished.BindDynamic(this, &AIslandMapGenerator::OnHeightmapFinished);
 	MapHeightmap->CreateHeightmap(MapGraph, BiomeManager, MoistureDistributor, IslandData.Size, finalizationFinished);
-	UE_LOG(LogWorldGen, Log, TEXT("Heightmap generated in %f seconds."), FPlatformTime::Seconds() - heightmapGenerationTime);
 }
 
-void AIslandMapGenerator::OnPointFinalizationFinished()
+void AIslandMapGenerator::OnHeightmapFinished()
 {
 	bCurrentStepIsDone = true;
 	UE_LOG(LogWorldGen, Log, TEXT("Points finalized in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);

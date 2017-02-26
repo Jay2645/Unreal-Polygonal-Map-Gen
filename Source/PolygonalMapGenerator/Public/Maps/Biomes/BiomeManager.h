@@ -69,5 +69,6 @@ public:
 	bool bAllowSnow = true;
 	
 	UFUNCTION(BlueprintNativeEvent, Category="Biome")
+	//Somehow this code got called and an error got thrown
 	FGameplayTag DetermineBiome(const FMapData& MapData);
 };

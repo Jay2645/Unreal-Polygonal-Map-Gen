@@ -255,12 +255,16 @@ protected:
 	void DetermineBiomes();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
-	void FinalizeAllPointsEvent();
+	void CompileMapDataEvent();
 	// Does final processing on the graph
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void FinalizeAllPoints();
+	void CompileMapData();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
+	void CreateHeightmapEvent();
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	void CreateHeightmap();
 	UFUNCTION()
-	void OnPointFinalizationFinished();
+	void OnHeightmapFinished();
 private:
 	UPROPERTY()
 	UPolygonMap* MapGraph;
