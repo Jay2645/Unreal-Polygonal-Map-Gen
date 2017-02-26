@@ -61,6 +61,10 @@ Place the Actor in your level somewhere and call `CreateMap` on the `IslandMapGe
 
 ![Output](https://cloud.githubusercontent.com/assets/2058763/23337305/cff8818e-fb9d-11e6-9290-b3c82c3bb004.jpg)
 
+#Example Project
+
+An example project using this system [can be found here](https://github.com/Jay2645/UnrealPolygonalMapGenExample).
+
 #Changes from Source Article
 
 There have been a few changes from the ActionScript source. There's nothing too drastic, just a couple changes for better ease-of-use:
