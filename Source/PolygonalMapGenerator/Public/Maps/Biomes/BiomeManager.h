@@ -51,7 +51,7 @@ class POLYGONALMAPGENERATOR_API UBiomeManager : public UActorComponent
 {
 	GENERATED_BODY()
 protected:
-	virtual FGameplayTag DetermineBiome_Implementation(const FMapData& MapData);
+	//virtual FGameplayTag DetermineBiome_Implementation(const FMapData& MapData);
 
 public:	
 	// Sets default values for this component's properties
@@ -68,7 +68,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Biome")
 	bool bAllowSnow = true;
 	
-	UFUNCTION(BlueprintNativeEvent, Category="Biome")
+	//UFUNCTION(BlueprintNativeEvent, Category="Biome")
 	//Somehow this code got called and an error got thrown
 	FGameplayTag DetermineBiome(const FMapData& MapData);
 };

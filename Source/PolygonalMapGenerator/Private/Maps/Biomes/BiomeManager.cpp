@@ -25,7 +25,8 @@ UBiomeManager::UBiomeManager()
 	Biomes.Add(coastalBiome);
 }
 
-FGameplayTag UBiomeManager::DetermineBiome_Implementation(const FMapData& MapData)
+//FGameplayTag UBiomeManager::DetermineBiome_Implementation(const FMapData& MapData)
+FGameplayTag UBiomeManager::DetermineBiome(const FMapData& MapData)
 {
 	//UE_LOG(LogWorldGen, Warning, TEXT("Beginning new point: %f, %f"), MapData.Point.X, MapData.Point.Y); 
 	for (int i = 0; i < Biomes.Num(); i++)

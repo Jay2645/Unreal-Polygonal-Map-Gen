@@ -95,7 +95,7 @@ Keep in mind that the above functions all return ***copies*** of objects; once m
 
 This system doesn't physically create anything inside the Unreal Engine itself, except for perhaps a debug diagram if the user chooses. It is up to the user to find or implement a system which can take the data from this graph and transform it into something tangible within the engine itself.
 
-There is a class provided, `UPolygonalMapHeightmap`, which can create a heightmap from a `UPolygonMap`. If you are using the default implementation of `AIslandMapGenerator`, this will be done for you and you can access the heightmap after map generation is complete with `AIslandMapGenerator::GetHeightmap()`.
+There is a class provided, `UPolygonalMapHeightmap`, which can create a heightmap from a `UPolygonMap`. To get this heightmap, call the function `CreateHeightmap()` and supply a function callback. This function will asynchronously generate a heightmap array, which can take several seconds. Once the array is complete, the callback will be called and you can safely access the heightmap array through `AIslandMapGenerator::GetHeightmap()`.
 
 The `UPolygonalMapHeightmap` class provides a couple helper classes:
 

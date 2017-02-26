@@ -394,11 +394,4 @@ private:
 	TMap<FVector2D, int32> CenterLookup;
 	UPROPERTY()
 	TMap<FVector2D, int32> CornerLookup;
-
-	UPROPERTY()
-	FMapCenter emptyCenter;
-	UPROPERTY()
-	FMapCorner emptyCorner;
-	UPROPERTY()
-	FMapEdge emptyEdge;
 };

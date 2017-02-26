@@ -2,6 +2,7 @@
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "Maps/PolygonalMapHeightmap.h"
+#include "Async/Async.h"
 #include "Maps/Heightmap/HeightmapPointTask.h"
 
 // The heightmap generator
@@ -51,9 +52,12 @@ void FHeightmapPointGenerator::CheckComplete()
 {
 	if(OnAllPointsComplete.IsBound() && TasksAreComplete())
 	{
-		UE_LOG(LogWorldGen, Log, TEXT("All tasks are complete!"));
-		OnAllPointsComplete.Execute();
-		OnAllPointsComplete.Unbind();
+		// Call the delegate on the game thread
+		AsyncTask(ENamedThreads::GameThread, []() {
+			UE_LOG(LogWorldGen, Log, TEXT("All tasks are complete!"));
+			OnAllPointsComplete.Execute();
+			OnAllPointsComplete.Unbind();
+		});
 	}
 }
 

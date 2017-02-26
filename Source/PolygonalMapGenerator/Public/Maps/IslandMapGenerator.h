@@ -9,7 +9,7 @@
 #include "Maps/Biomes/BiomeManager.h"
 #include "Maps/Moisture/MoistureDistributor.h"
 #include "PolygonalMapHeightmap.h"
-#include "Maps/IslandShapes/IslandShape.h"
+#include "Maps/IslandShapes/RadialIsland.h"
 #include "IslandMapGenerator.generated.h"
 
 /*
@@ -80,10 +80,11 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 		NumberOfPoints = 1500;
 		ScaleFactor = 1.1f;
 
-		IslandType = UIslandShape::StaticClass();
+		IslandType = URadialIsland::StaticClass();
 		IslandPointSelector = UPointGenerator::StaticClass();
 		BiomeManager = UBiomeManager::StaticClass();
 		ElevationDistributor = UElevationDistributor::StaticClass();
+		MoistureDistributor = UMoistureDistributor::StaticClass();
 	}
 };
 
@@ -104,11 +105,11 @@ public:
 	virtual void Tick(float deltaSeconds) override;
 	// Sets the IslandData that will be used for Island Generation.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
-		void SetData(FIslandData islandData);
+	void SetData(FIslandData islandData);
 
 	// Resets the map back to its default state.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
-		void ResetMap();
+	void ResetMap();
 
 	// Adds all the necessary steps for Island Generation, then
 	// generates an island.
@@ -185,12 +186,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
 	void ClearAllGenerationSteps();
 
+	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	void CreateHeightmap(const FIslandGeneratorDelegate onComplete);
+
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
 	void DrawVoronoiGraph();
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
 	void DrawDelaunayGraph();
 
+	// Draws this map's heightmap.
+	// Be sure to call CreateHeightmap() before calling this function.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
 	void DrawHeightmap(float PixelSize = 100.0f);
 
@@ -212,7 +218,7 @@ protected:
 	// own steps to the queue or create a new queue altogether in the
 	// Blueprint Event Graph.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation")
-	void GenerateMap();
+	void ExecuteNextMapStep();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
 	void ResetMapEvent();
@@ -221,7 +227,7 @@ protected:
 	void InitializeMapEvent();
 	// Initializes the IslandShape and PointSelector classes
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void InitializeMap();
+	void InitializeMapClasses();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
 	void BuildGraphEvent();
@@ -254,15 +260,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
 	void DetermineBiomes();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
-	void CompileMapDataEvent();
-	// Does final processing on the graph
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void CompileMapData();
-	UFUNCTION(BlueprintImplementableEvent, Category = "Island Generation|Map")
-	void CreateHeightmapEvent();
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void CreateHeightmap();
 	UFUNCTION()
 	void OnHeightmapFinished();
 private:
@@ -280,10 +277,13 @@ private:
 
 	UPROPERTY()
 	bool bCurrentStepIsDone;
+	UPROPERTY()
+	bool bHasGeneratedHeightmap;
 
 	TQueue<FIslandGeneratorDelegate> IslandGeneratorSteps;
 
 	FIslandGeneratorDelegate OnGenerationComplete;
+	FIslandGeneratorDelegate OnHeightmapComplete;
 public:
 	// The instance of our IslandShape object.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
