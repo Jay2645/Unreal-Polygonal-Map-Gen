@@ -41,7 +41,19 @@ void UPolygonMap::BuildGraph(const int32& mapSize, const FWorldSpaceMapData& dat
 			FMapCenter centerOne = MakeCenter(FVector2D(dEdge.X, dEdge.Y));
 			FMapCenter centerTwo = MakeCenter(FVector2D(dEdge.Z, dEdge.W));
 
-			int32 edgeIndex = -1;
+			FMapEdge edge;
+			edge.DelaunayEdge0 = centerOne.Index;
+			edge.DelaunayEdge1 = centerTwo.Index;
+			edge.VoronoiEdge0 = cornerOne.Index;
+			edge.VoronoiEdge1 = cornerTwo.Index;
+			if(cornerOne.Index >=0 && cornerTwo.Index >= 0)
+			{
+				edge.Midpoint = FVector2D(FMath::Lerp(vEdge.X, vEdge.Z, 0.5f), FMath::Lerp(vEdge.Y, vEdge.W, 0.5f));
+			}
+			edge.Index = Edges.Num();
+			Edges.Add(edge);
+
+			/*int32 edgeIndex = -1;
 			for (int32 j = 0; j < Edges.Num(); j++)
 			{
 				int32 d0 = Edges[j].DelaunayEdge0;
@@ -76,14 +88,14 @@ void UPolygonMap::BuildGraph(const int32& mapSize, const FWorldSpaceMapData& dat
 					edge.Midpoint = FVector2D(FMath::Lerp(vEdge.X, vEdge.Z, 0.5f), FMath::Lerp(vEdge.Y, vEdge.W, 0.5f));
 				}
 				Edges.Add(edge);
-			}
+			}*/
 
 			// Corners point to edges
-			if (cornerOne.Index >= 0) { cornerOne.Protrudes.AddUnique(edgeIndex); }
-			if (cornerTwo.Index >= 0) { cornerTwo.Protrudes.AddUnique(edgeIndex); }
+			if (cornerOne.Index >= 0) { cornerOne.Protrudes.AddUnique(edge.Index); }
+			if (cornerTwo.Index >= 0) { cornerTwo.Protrudes.AddUnique(edge.Index); }
 			// Centers point to edges
-			if (centerOne.Index >= 0) { centerOne.Borders.AddUnique(edgeIndex); }
-			if (centerTwo.Index >= 0) { centerTwo.Borders.AddUnique(edgeIndex); }
+			if (centerOne.Index >= 0) { centerOne.Borders.AddUnique(edge.Index); }
+			if (centerTwo.Index >= 0) { centerTwo.Borders.AddUnique(edge.Index); }
 
 			// Centers point to centers
 			if (centerOne.Index >= 0 && centerTwo.Index >= 0)
@@ -135,10 +147,6 @@ void UPolygonMap::BuildGraph(const int32& mapSize, const FWorldSpaceMapData& dat
 
 FMapCenter UPolygonMap::MakeCenter(const FVector2D& point)
 {
-	if (point.X > MapSize || point.Y > MapSize)
-	{
-		return GetCenter(-1);
-	}
 	if (CenterLookup.Contains(point))
 	{
 		return GetCenter(CenterLookup[point]);
@@ -167,10 +175,6 @@ FMapCenter UPolygonMap::GetCenter(const int32& index) const
 
 FMapCorner UPolygonMap::MakeCorner(const FVector2D& point)
 {
-	if (point.X > MapSize || point.Y > MapSize)
-	{
-		return GetCorner(-1);
-	}
 	if (CornerLookup.Contains(point))
 	{
 		return GetCorner(CornerLookup[point]);
@@ -391,4 +395,149 @@ FVector UPolygonMap::ConvertGraphPointToWorldSpace(const FMapData& MapData, cons
 	worldLocation.Z = (MapData.Elevation * elevationScale) + elevationOffset;
 
 	return worldLocation;
+}
+
+FMapCenter UPolygonMap::FindPolygonLocalSpace(const FVector2D& Point) const
+{
+	for (int i = 0; i < Centers.Num(); i++)
+	{
+		FMapCenter center = Centers[i];
+		if (PolygonContainsPoint(Point, center))
+		{
+			return center;
+		}
+	}
+	return FMapCenter();
+}
+
+bool UPolygonMap::PolygonContainsPoint(const FVector2D& Point, const FMapCenter& Center) const
+{
+	float minX = Center.CenterData.Point.X;
+	float maxX = Center.CenterData.Point.X;
+	float minY = Center.CenterData.Point.Y;
+	float maxY = Center.CenterData.Point.Y;
+	for (int i = 0; i < Center.Corners.Num(); i++)
+	{
+		// Iterate over the borders, creating a bounding box for the polygon
+		FMapCorner corner = GetCorner(Center.Corners[i]);
+		if(corner.Index < 0)
+		{
+			// Invalid corner
+			continue;
+		}
+		maxX = FMath::Max(maxX, corner.CornerData.Point.X);
+		minX = FMath::Min(minX, corner.CornerData.Point.X);
+		maxY = FMath::Max(maxY, corner.CornerData.Point.Y);
+		minY = FMath::Min(minY, corner.CornerData.Point.Y);
+	}
+
+	// Check to see if bounding box contains point
+	if(Point.X < minX || Point.X > maxX || Point.Y < minY || Point.Y > maxY)
+	{
+		// Not even in the polygon's bounding box
+		return false;
+	}
+
+	// Set the padding to be 1% of the polygon size
+	float epsilon = ((maxX - minX) / 100.0f);
+	FVector2D pointTarget = FVector2D(minX - epsilon, Point.Y);
+
+	int32 intersections = 0;
+	for (int i = 0; i < Center.Borders.Num(); i++)
+	{
+		FMapEdge border = GetEdge(Center.Borders[i]);
+		if (border.Index < 0)
+		{
+			// Invalid index
+			UE_LOG(LogWorldGen, Warning, TEXT("Invalid border! Center number %d, Edge index was %d."), Center.Index, Center.Borders[i]);
+			continue;
+		}
+		if (SegementsIntersect(border, Point, pointTarget))
+		{
+			intersections++;
+			//UE_LOG(LogWorldGen, Log, TEXT("Checking if point (%f, %f)-(%f, %f) and point (%f, %f)-(%f, %f) intersect."), p1.X, p1.Y, q1.X, q1.Y, p2.X, p2.Y, q2.X, q2.Y);
+		}
+	}
+	
+	return (intersections & 1) == 1; // True if point is odd (inside of polygon)
+}
+
+// The main function that returns true if line segment 'p1q1'
+// and 'p2q2' intersect.
+bool UPolygonMap::SegementsIntersect(const FMapEdge& Edge, const FVector2D& StartPoint, const FVector2D& EndPoint) const
+{
+	FMapCorner corner1 = GetCorner(Edge.VoronoiEdge0);
+	FMapCorner corner2 = GetCorner(Edge.VoronoiEdge1);
+	if (corner1.Index < 0 || corner2.Index < 0)
+	{
+		// Invalid corner
+		UE_LOG(LogWorldGen, Warning, TEXT("Invalid corner! Edge number %d, Corner 1 index was %d, Corner 2 index was %d."), Edge.Index, Edge.VoronoiEdge0, Edge.VoronoiEdge1);
+		return false;
+	}
+	const float v1x1 = corner1.CornerData.Point.X;
+	const float v1y1 = corner1.CornerData.Point.Y;
+	const float v1x2 = corner2.CornerData.Point.X;
+	const float v1y2 = corner2.CornerData.Point.Y;
+	const float v2x1 = StartPoint.X;
+	const float v2y1 = StartPoint.Y;
+	const float v2x2 = EndPoint.X;
+	const float v2y2 = EndPoint.Y;
+
+	float d1, d2;
+	float a1, a2, b1, b2, c1, c2;
+
+	// Convert the first vector to a line of infinite length
+	// We want this line in a linear equation
+	a1 = v1y2 - v1y1;
+	b1 = v1x1 - v1x2;
+	c1 = (v1x2 * v1y1) - (v1x1 * v1y2);
+
+	// Every point (x, y) that solves the equation above is on the line.
+	// Every point that does not solve it is not.
+	// The equation will have a positive result if it is on one side of the line
+	// and a negative result if it is on the other.
+	// We insert our start and end points into the equation above.
+	d1 = (a1 * v2x1) + (b1 * v2y1) + c1;
+	d2 = (a1 * v2x2) + (b1 * v2y2) + c1;
+
+	// If d1 and d2 have the same sign, they are both on the same side of our Edge.
+	// In this case, no intersection is possible.
+	// 0 is a special case, which is why < and > are used instead of <= and >=.
+	if((d1 > 0 && d2 > 0) || (d1 < 0 && d2 < 0))
+	{
+		return false;
+	}
+
+	// If we have gotten to this point, the infinite lines intersect somewhere (i.e., they are not parallel).
+	// However, we are looking for an intersection in a specific interval (the edge).
+	// The edge is a subset of the infinite line, and it is possible that the intersection happened before or after that interval
+	// In order to know for sure, we have to do the same test the other way around.
+	// Starting with converting the second segment into an infinite line:
+	a2 = v2y2 - v2y1;
+	b2 = v2x1 - v2x2;
+	c2 = (v2x2 * v2y1) - (v2x1 * v2y2);
+
+	// Calculate d1 and d2 again, using the other segment
+	d1 = (a2 * v1x1) + (b2 * v1y1) + c2;
+	d2 = (a2 * v1x2) + (b2 * v1y2) + c2;
+
+	// Again, if both have the same sign, no intersection is possible
+	if ((d1 > 0 && d2 > 0) || (d1 < 0 && d2 < 0))
+	{
+		return false;
+	}
+
+	// Now we have 2 options.
+	// Either they intersect at exactly one point, or they are colinear and intersect at any number of points.
+	// We treat colinear lines as failing this test.
+	if((a1 * b2) - (a2 * b1) < 0.001f)
+	{
+		// Points are colinear
+		return false;
+	}
+	else
+	{
+		// Points intersect somewhere
+		return true;
+	}
 }

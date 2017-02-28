@@ -7,7 +7,7 @@
 #include "Maps/Heightmap/HeightmapPointTask.h"
 #include "PolygonalMapHeightmap.h"
 
-void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, int32 Size, const FIslandGeneratorDelegate OnComplete)
+void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, const int32 Size, const FIslandGeneratorDelegate OnComplete)
 {
 	if (PolygonMap == NULL)
 	{

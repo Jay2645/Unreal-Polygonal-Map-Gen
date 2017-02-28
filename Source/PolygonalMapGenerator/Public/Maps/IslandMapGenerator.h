@@ -57,16 +57,10 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	int32 Size;
 
-	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
-	float ScaleFactor;
-
-	// The number of points to generate
+	// The number of points to generate.
+	// Higher values creates a higher-quality island, but can dramatically slow down generation time
 	UPROPERTY(Category = "Points", BlueprintReadWrite, EditAnywhere)
 	int32 NumberOfPoints;
-
-	// 0 to 1, fraction of water corners for water polygon
-	UPROPERTY(Category = "Water", BlueprintReadWrite, EditAnywhere)
-	float LakeThreshold;
 
 	// This is the settings for converting the points we generate into Unreal world space.
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
@@ -75,10 +69,8 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 	//Constructor
 	FIslandData()
 	{
-		LakeThreshold = 0.3;
 		Size = 1024;
 		NumberOfPoints = 1500;
-		ScaleFactor = 1.1f;
 
 		IslandType = URadialIsland::StaticClass();
 		IslandPointSelector = UPointGenerator::StaticClass();
@@ -187,7 +179,7 @@ public:
 	void ClearAllGenerationSteps();
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
-	void CreateHeightmap(const FIslandGeneratorDelegate onComplete);
+	void CreateHeightmap(const int32 HeightmapSize, const FIslandGeneratorDelegate onComplete);
 
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Debug")
 	void DrawVoronoiGraph();
@@ -264,8 +256,6 @@ protected:
 	void OnHeightmapFinished();
 private:
 	UPROPERTY()
-	UPolygonMap* MapGraph;
-	UPROPERTY()
 	UPolygonalMapHeightmap* MapHeightmap;
 
 	UPROPERTY()
@@ -285,6 +275,8 @@ private:
 	FIslandGeneratorDelegate OnGenerationComplete;
 	FIslandGeneratorDelegate OnHeightmapComplete;
 public:
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Island Generation")
+	UPolygonMap* MapGraph;
 	// The instance of our IslandShape object.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Island Generation")
 	UIslandShape* IslandShape;

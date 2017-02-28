@@ -10,6 +10,20 @@
 struct FMapData;
 class UPolygonalMapHeightmap;
 
+enum EPointSelectionMode : uint8
+{
+	// Each pixel is a reflection of the entire polygon with no blending.
+	// This creates a "stepped" look and is very fast.
+	UsePolygon,
+	// This uses the cached MapData array and interpolates between the nearest point.
+	// This provides decent results, but is slow.
+	Interpolated,
+	// The same as using interpolated, but biomes are just fetched from the parent polygon.
+	// This provides consistent results (free from errors generated from interpolation),
+	// but polygon edges are very distinct
+	InterpolatedWithPolygonBiome
+};
+
 /**
  * 
  */
@@ -17,16 +31,18 @@ class FHeightmapPointTask
 {
 
 public:
-	FHeightmapPointTask(int32 XCoord, int32 YCoord, int32 NumberOfPoints)
+	FHeightmapPointTask(int32 XCoord, int32 YCoord, int32 NumberOfPoints, EPointSelectionMode SelectionMode)
 	{
 		X = XCoord;
 		Y = YCoord;
 		NumberOfPointsToAverage = NumberOfPoints;
+		PointSelectionMode = SelectionMode;
 	}
 
 	int32 X;
 	int32 Y;
 	int32 NumberOfPointsToAverage;
+	EPointSelectionMode PointSelectionMode;
 
 	/** return the name of the task **/
 	static const TCHAR* GetTaskName()

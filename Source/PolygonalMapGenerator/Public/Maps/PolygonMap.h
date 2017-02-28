@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Object.h"
+#include "Components/ActorComponent.h"
 #include "Engine/World.h"
 #include "GameplayTagContainer.h"
 #include "PolygonMap.generated.h"
@@ -238,7 +238,7 @@ struct POLYGONALMAPGENERATOR_API FWorldSpaceMapData
 * 'MapData' class, which is used in the actual MapGenerator.
 */
 UCLASS(Blueprintable)
-class POLYGONALMAPGENERATOR_API UPolygonMap : public UObject
+class POLYGONALMAPGENERATOR_API UPolygonMap : public UActorComponent
 {
 	GENERATED_BODY()
 	friend class AIslandMapGenerator;
@@ -365,6 +365,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Island Generation")
 	static FVector ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize);
 
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	FMapCenter FindPolygonLocalSpace(const FVector2D& Point) const;
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	bool PolygonContainsPoint(const FVector2D& Point, const FMapCenter& Center) const;
+
 	/// Graph Data
 	// The points in our graph
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
@@ -394,4 +399,7 @@ private:
 	TMap<FVector2D, int32> CenterLookup;
 	UPROPERTY()
 	TMap<FVector2D, int32> CornerLookup;
+
+	UFUNCTION()
+	bool SegementsIntersect(const FMapEdge& Edge, const FVector2D& StartPoint, const FVector2D& EndPoint) const;
 };

@@ -12,6 +12,8 @@ AIslandMapGenerator::AIslandMapGenerator()
 	PrimaryActorTick.bTickEvenWhenPaused = true;
 	bCurrentStepIsDone = true;
 	bHasGeneratedHeightmap = false;
+
+	MapGraph = CreateDefaultSubobject<UPolygonMap>(TEXT("Polygon Map"));
 }
 
 void AIslandMapGenerator::Tick(float deltaSeconds)
@@ -177,7 +179,12 @@ void AIslandMapGenerator::InitializeMapClasses()
 {
 	CurrentGenerationTime = FPlatformTime::Seconds();
 
-	MapGraph = NewObject<UPolygonMap>();
+	//MapGraph = NewObject<UPolygonMap>();
+	MapGraph->Corners.Empty();
+	MapGraph->Edges.Empty();
+	MapGraph->Centers.Empty();
+	MapGraph->Points.Empty();
+
 	MapHeightmap = NewObject<UPolygonalMapHeightmap>();
 	IslandShape->SetSeed(IslandData.Seed, IslandData.Size);
 	PointSelector->InitializeSelector(IslandData.Size, IslandData.Seed);
@@ -408,7 +415,7 @@ void AIslandMapGenerator::DetermineBiomes()
 
 	UE_LOG(LogWorldGen, Log, TEXT("Biomes determined in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
 }
-void AIslandMapGenerator::CreateHeightmap(const FIslandGeneratorDelegate OnHeightmapGenerationFinished)
+void AIslandMapGenerator::CreateHeightmap(const int32 HeightmapSize, const FIslandGeneratorDelegate OnHeightmapGenerationFinished)
 {
 	if (MapGraph == NULL)
 	{
@@ -424,7 +431,7 @@ void AIslandMapGenerator::CreateHeightmap(const FIslandGeneratorDelegate OnHeigh
 
 	FIslandGeneratorDelegate finalizationFinished;
 	finalizationFinished.BindDynamic(this, &AIslandMapGenerator::OnHeightmapFinished);
-	MapHeightmap->CreateHeightmap(MapGraph, BiomeManager, MoistureDistributor, IslandData.Size, finalizationFinished);
+	MapHeightmap->CreateHeightmap(MapGraph, BiomeManager, MoistureDistributor, HeightmapSize, finalizationFinished);
 }
 
 void AIslandMapGenerator::OnHeightmapFinished()
