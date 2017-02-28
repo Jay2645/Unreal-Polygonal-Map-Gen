@@ -183,6 +183,6 @@ EWhittakerBiome UWhittakerBiomeManager::ConvertToWhittakerBiomeEnum(const FGamep
 	else
 	{
 		UE_LOG(LogWorldGen, Warning, TEXT("Could not find biome for %s!"), *BiomeName.ToString());
-		return EWhittakerBiome::Snow;
+		return EWhittakerBiome::Ocean;
 	}
 }

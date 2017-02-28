@@ -40,11 +40,12 @@ FGameplayTag UBiomeManager::DetermineBiome_Implementation(const FMapData& MapDat
 		}
 
 		// Verify that the biome is in the right elevation with the right moisture level
-		if (MapData.Elevation <= Biomes[i].MaxElevation && MapData.Elevation >= Biomes[i].MinElevation &&
-			MapData.Moisture <= Biomes[i].MaxMoisture && MapData.Moisture >= Biomes[i].MinMoisture)
+		if (MapData.Elevation > Biomes[i].MaxElevation || MapData.Elevation < Biomes[i].MinElevation ||
+			MapData.Moisture > Biomes[i].MaxMoisture || MapData.Moisture < Biomes[i].MinMoisture)
 		{
 			continue;
 		}
+
 		// Verify that the biome has the required tags
 		bool bHasRequiredTags = Biomes[i].RequiredTags.Num() == 0;
 

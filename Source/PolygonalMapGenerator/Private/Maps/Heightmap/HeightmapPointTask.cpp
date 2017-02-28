@@ -204,8 +204,8 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, TArray<FMapD
 			FMapCenter center = FHeightmapPointGenerator::MapGraph->FindPolygonLocalSpace(PixelPosition);
 			if (center.Index < 0)
 			{
-				UE_LOG(LogWorldGen, Warning, TEXT("Could not find polygon!"));
-				return FMapData();
+				//UE_LOG(LogWorldGen, Warning, TEXT("Could not find polygon! Returning what we have."));
+				return pixelData;
 			}
 			pixelData.Tags = center.CenterData.Tags;
 			pixelData.Biome = center.CenterData.Biome;
@@ -217,7 +217,7 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, TArray<FMapD
 		FMapCenter center = FHeightmapPointGenerator::MapGraph->FindPolygonLocalSpace(PixelPosition);
 		if (center.Index < 0)
 		{
-			UE_LOG(LogWorldGen, Warning, TEXT("Could not find polygon!"));
+			//UE_LOG(LogWorldGen, Warning, TEXT("Could not find polygon! Returning blank FMapData!"));
 			return FMapData();
 		}
 
@@ -240,7 +240,8 @@ void FHeightmapPointTask::DoTask(ENamedThreads::Type CurrentThread, const FGraph
 	FHeightmapPointGenerator::HeightmapData.Add(mapData);
 	FHeightmapPointGenerator::CompletedThreads++;
 
-	UE_LOG(LogTemp, Warning, TEXT("Generated map data point %d of %d."), FHeightmapPointGenerator::CompletedThreads, FHeightmapPointGenerator::TotalNumberOfThreads);
+	float percentComplete = (float)FHeightmapPointGenerator::CompletedThreads / (float)FHeightmapPointGenerator::TotalNumberOfThreads;
+	//UE_LOG(LogWorldGen, Log, TEXT("Heightmap completion percent: %f percent. Created MapData with biome: %s, at elevation %f with moisture level %f."), percentComplete, *mapData.Biome.ToString(), mapData.Elevation, mapData.Moisture);
 	if (FHeightmapPointGenerator::CompletedThreads == FHeightmapPointGenerator::TotalNumberOfThreads)
 	{
 		// If we're all done, check in with the on completion delegate
