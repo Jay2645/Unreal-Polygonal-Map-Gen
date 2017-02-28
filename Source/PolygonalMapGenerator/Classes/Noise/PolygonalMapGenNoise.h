@@ -61,33 +61,33 @@ struct FNoiseSettings
 {
 	GENERATED_BODY()
 
-		// The seed of our fractal
-		UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
-		int32 Seed;
+	// The seed of our fractal
+	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
+	int32 Seed;
 
 	// The number of octaves that the noise generator will use. More octaves creates "messier" noise.
 	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
-		int32 NoiseOctaves;
+	int32 NoiseOctaves;
 
 	// The frequency of the noise
 	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
-		float NoiseFrequency;
+	float NoiseFrequency;
 
 	// The detail found in the noise
 	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
-		float Lacunarity;
+	float Lacunarity;
 
 	// The contrast of the noise
 	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
-		float Gain;
+	float Gain;
 
 	// The type of fractal to use to generate the noise
 	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
-		EFractalType FractalType;
+	EFractalType FractalType;
 
 	// The type of noise to use
 	UPROPERTY(Category = "Noise Settings", BlueprintReadWrite, EditAnywhere)
-		ENoiseType NoiseType;
+	ENoiseType NoiseType;
 
 	// How to interpolate the noise
 	// Linear produces the smoothest result
@@ -118,21 +118,21 @@ struct FNoiseProfile
 {
 	GENERATED_BODY()
 
-		UPROPERTY(Category = "Voxel Biome", BlueprintReadWrite, EditAnywhere)
-		FName ProfileName;
+	UPROPERTY(Category = "Voxel Biome", BlueprintReadWrite, EditAnywhere)
+	FName ProfileName;
 
 	UPROPERTY(Category = "Voxel Biome", BlueprintReadWrite, EditAnywhere)
-		int32 MaterialIndex;
+	int32 MaterialIndex;
 
 	UPROPERTY(Category = "Voxel Terrain", BlueprintReadWrite, EditAnywhere)
-		FNoiseSettings NoiseSettings;
+	FNoiseSettings NoiseSettings;
 
 	// How "squished" the noise is
 	UPROPERTY(Category = "Voxel Terrain", BlueprintReadWrite, EditAnywhere)
-		float TerrainHeightScale;
+	float TerrainHeightScale;
 
 	UPROPERTY(Category = "Voxel Terrain", BlueprintReadWrite, EditAnywhere)
-		float NoiseVerticalOffset;
+	float NoiseVerticalOffset;
 
 	//Constructor
 	FNoiseProfile()

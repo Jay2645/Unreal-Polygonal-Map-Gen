@@ -28,171 +28,161 @@ UWhittakerBiomeManager::UWhittakerBiomeManager()
 	oceanBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_OceanTag);
 	oceanBiome.RequiredTags.AddTagFast(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Water.Saltwater")));
 	Biomes.Add(oceanBiome);
+	BiomeEnumMap.Add(oceanBiome.BiomeTag, EWhittakerBiome::Ocean);
 
 	FBiome iceBiome;
 	iceBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_IceTag);
 	iceBiome.RequiredTags.AddTagFast(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Water.Freshwater")));
-	FBiomeSettings iceBiomeSettings;
-	iceBiomeSettings.MinElevation = 0.75f;
-	iceBiome.BiomeSettings.Add(iceBiomeSettings);
+	iceBiome.MinElevation = 0.75f;
 	Biomes.Add(iceBiome);
+	BiomeEnumMap.Add(iceBiome.BiomeTag, EWhittakerBiome::Ice);
 
 	FBiome marshBiome;
 	marshBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_MarshTag);
 	marshBiome.RequiredTags.AddTagFast(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Water.Freshwater")));
-	FBiomeSettings marshBiomeSettings;
-	marshBiomeSettings.MaxElevation = 0.25f;
-	marshBiome.BiomeSettings.Add(marshBiomeSettings);
+	marshBiome.MaxElevation = 0.25f;
 	Biomes.Add(marshBiome);
+	BiomeEnumMap.Add(marshBiome.BiomeTag, EWhittakerBiome::Marsh);
 
 	FBiome lakeBiome;
 	lakeBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_LakeTag);
 	lakeBiome.RequiredTags.AddTagFast(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Water.Freshwater")));
-	FBiomeSettings lakeBiomeSettings;
-	lakeBiomeSettings.MinElevation = 0.25f;
-	lakeBiomeSettings.MaxElevation = 0.75f;
-	lakeBiome.BiomeSettings.Add(lakeBiomeSettings);
+	lakeBiome.MinElevation = 0.25f;
+	lakeBiome.MaxElevation = 0.75f;
 	Biomes.Add(lakeBiome);
+	BiomeEnumMap.Add(lakeBiome.BiomeTag, EWhittakerBiome::Lake);
 
 	FBiome coastalBiome;
 	coastalBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_CoastTag);
 	coastalBiome.RequiredTags.AddTagFast(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Coast")));
 	Biomes.Add(coastalBiome);
+	BiomeEnumMap.Add(coastalBiome.BiomeTag, EWhittakerBiome::Coast);
 
 	FBiome snowBome;
 	snowBome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_SnowTag);
-	FBiomeSettings snowBiomeSettings;
-	snowBiomeSettings.MinElevation = 0.75f;
-	snowBiomeSettings.MinMoisture = 0.5f;
-	snowBome.BiomeSettings.Add(snowBiomeSettings);
+	snowBome.MinElevation = 0.75f;
+	snowBome.MinMoisture = 0.5f;
 	Biomes.Add(snowBome);
+	BiomeEnumMap.Add(snowBome.BiomeTag, EWhittakerBiome::Snow);
 
 	FBiome tundraBiome;
 	tundraBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TundraTag);
-	FBiomeSettings tundraBiomeSettings;
-	tundraBiomeSettings.MinElevation = 0.75f;
-	tundraBiomeSettings.MaxMoisture = 0.5f;
-	tundraBiomeSettings.MinMoisture = 0.33f;
-	tundraBiome.BiomeSettings.Add(tundraBiomeSettings);
+	tundraBiome.MinElevation = 0.75f;
+	tundraBiome.MaxMoisture = 0.5f;
+	tundraBiome.MinMoisture = 0.33f;
 	Biomes.Add(tundraBiome);
+	BiomeEnumMap.Add(tundraBiome.BiomeTag, EWhittakerBiome::Tundra);
 
 	FBiome bareBiome;
 	bareBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_BareTag);
-	FBiomeSettings bareBiomeSettings;
-	bareBiomeSettings.MinElevation = 0.75f;
-	bareBiomeSettings.MinMoisture = 0.16f;
-	bareBiome.BiomeSettings.Add(bareBiomeSettings);
+	bareBiome.MinElevation = 0.75f;
+	bareBiome.MinMoisture = 0.16f;
 	Biomes.Add(bareBiome);
+	BiomeEnumMap.Add(bareBiome.BiomeTag, EWhittakerBiome::Bare);
 
 	FBiome scorchedBiome;
 	scorchedBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_ScorchedTag);
-	FBiomeSettings scorchedBiomeSettings;
-	scorchedBiomeSettings.MinElevation = 0.75f;
-	scorchedBiomeSettings.MaxMoisture = 0.16f;
-	scorchedBiome.BiomeSettings.Add(scorchedBiomeSettings);
+	scorchedBiome.MinElevation = 0.75f;
+	scorchedBiome.MaxMoisture = 0.16f;
 	Biomes.Add(scorchedBiome);
+	BiomeEnumMap.Add(scorchedBiome.BiomeTag, EWhittakerBiome::Scorched);
 
 	FBiome taigaBiome;
 	taigaBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TaigaTag);
-	FBiomeSettings taigaBiomeSettings;
-	taigaBiomeSettings.MaxElevation = 0.75f;
-	taigaBiomeSettings.MinElevation = 0.5f;
-	taigaBiomeSettings.MinMoisture = 0.66f;
-	taigaBiome.BiomeSettings.Add(taigaBiomeSettings);
+	taigaBiome.MaxElevation = 0.75f;
+	taigaBiome.MinElevation = 0.5f;
+	taigaBiome.MinMoisture = 0.66f;
 	Biomes.Add(taigaBiome);
+	BiomeEnumMap.Add(taigaBiome.BiomeTag, EWhittakerBiome::Taiga);
 
 	FBiome shrublandBiome;
 	shrublandBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_ShrublandTag);
-	FBiomeSettings shrublandBiomeSettings;
-	shrublandBiomeSettings.MaxElevation = 0.75f;
-	shrublandBiomeSettings.MinElevation = 0.5f;
-	shrublandBiomeSettings.MinMoisture = 0.33f;
-	shrublandBiome.BiomeSettings.Add(shrublandBiomeSettings);
+	shrublandBiome.MaxElevation = 0.75f;
+	shrublandBiome.MinElevation = 0.5f;
+	shrublandBiome.MinMoisture = 0.33f;
 	Biomes.Add(shrublandBiome);
+	BiomeEnumMap.Add(shrublandBiome.BiomeTag, EWhittakerBiome::Shrubland);
 
-	FBiome temperateDesertBiome;
-	temperateDesertBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TemperateDesertTag);
-	FBiomeSettings temperateDesertBiomeHighSettings;
-	temperateDesertBiomeHighSettings.MaxElevation = 0.75f;
-	temperateDesertBiomeHighSettings.MinElevation = 0.5f;
-	temperateDesertBiomeHighSettings.MaxMoisture = 0.33f;
-	temperateDesertBiome.BiomeSettings.Add(temperateDesertBiomeHighSettings);
-	FBiomeSettings temperateDesertBiomeLowSettings;
-	temperateDesertBiomeLowSettings.MaxElevation = 0.5f;
-	temperateDesertBiomeLowSettings.MinElevation = 0.25f;
-	temperateDesertBiomeLowSettings.MaxMoisture = 0.16f;
-	temperateDesertBiome.BiomeSettings.Add(temperateDesertBiomeLowSettings);
-	Biomes.Add(temperateDesertBiome);
+	FBiome temperateDesertBiomeLow;
+	temperateDesertBiomeLow.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TemperateDesertTag);
+	temperateDesertBiomeLow.MaxElevation = 0.5f;
+	temperateDesertBiomeLow.MinElevation = 0.25f;
+	temperateDesertBiomeLow.MaxMoisture = 0.16f;
+	Biomes.Add(temperateDesertBiomeLow);
+	BiomeEnumMap.Add(temperateDesertBiomeLow.BiomeTag, EWhittakerBiome::TemperateDesert);
+
+	FBiome temperateDesertBiomeHigh;
+	temperateDesertBiomeHigh.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TemperateDesertTag);
+	temperateDesertBiomeHigh.MaxElevation = 0.75f;
+	temperateDesertBiomeHigh.MinElevation = 0.5f;
+	temperateDesertBiomeHigh.MaxMoisture = 0.33f;
+	Biomes.Add(temperateDesertBiomeHigh);
 
 	FBiome temperateRainForestBiome;
 	temperateRainForestBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TemperateRainForestTag);
-	FBiomeSettings temperateRainForestBiomeSettings;
-	temperateRainForestBiomeSettings.MaxElevation = 0.5f;
-	temperateRainForestBiomeSettings.MinElevation = 0.25f;
-	temperateRainForestBiomeSettings.MinMoisture = 0.83f;
-	temperateRainForestBiome.BiomeSettings.Add(temperateRainForestBiomeSettings);
+	temperateRainForestBiome.MaxElevation = 0.5f;
+	temperateRainForestBiome.MinElevation = 0.25f;
+	temperateRainForestBiome.MinMoisture = 0.83f;
 	Biomes.Add(temperateRainForestBiome);
+	BiomeEnumMap.Add(temperateRainForestBiome.BiomeTag, EWhittakerBiome::TemperateRainForest);
 
 	FBiome temperateDeciduousForestBiome;
 	temperateDeciduousForestBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TemperateDeciduousForestTag);
-	FBiomeSettings temperateDeciduousForestBiomeSettings;
-	temperateDeciduousForestBiomeSettings.MaxElevation = 0.5f;
-	temperateDeciduousForestBiomeSettings.MinElevation = 0.25f;
-	temperateDeciduousForestBiomeSettings.MaxMoisture = 0.83f;
-	temperateDeciduousForestBiomeSettings.MinMoisture = 0.5f;
-	temperateDeciduousForestBiome.BiomeSettings.Add(temperateDeciduousForestBiomeSettings);
+	temperateDeciduousForestBiome.MaxElevation = 0.5f;
+	temperateDeciduousForestBiome.MinElevation = 0.25f;
+	temperateDeciduousForestBiome.MaxMoisture = 0.83f;
+	temperateDeciduousForestBiome.MinMoisture = 0.5f;
 	Biomes.Add(temperateDeciduousForestBiome);
+	BiomeEnumMap.Add(temperateDeciduousForestBiome.BiomeTag, EWhittakerBiome::TemperateDeciduousForest);
 
-	FBiome grasslandBiome;
-	grasslandBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_GrasslandTag);
-	FBiomeSettings grasslandBiomeHighSettings;
-	grasslandBiomeHighSettings.MaxElevation = 0.5f;
-	grasslandBiomeHighSettings.MinElevation = 0.25f;
-	grasslandBiomeHighSettings.MaxMoisture = 0.5f;
-	grasslandBiomeHighSettings.MinMoisture = 0.16f;
-	grasslandBiome.BiomeSettings.Add(grasslandBiomeHighSettings);
-	FBiomeSettings grasslandBiomeLowSettings;
-	grasslandBiomeLowSettings.MaxElevation = 0.25f;
-	grasslandBiomeLowSettings.MaxMoisture = 0.33f;
-	grasslandBiomeLowSettings.MinMoisture = 0.16f;
-	grasslandBiome.BiomeSettings.Add(grasslandBiomeLowSettings);
-	Biomes.Add(grasslandBiome);
+	FBiome grasslandBiomeHigh;
+	grasslandBiomeHigh.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_GrasslandTag);
+	grasslandBiomeHigh.MaxElevation = 0.5f;
+	grasslandBiomeHigh.MinElevation = 0.25f;
+	grasslandBiomeHigh.MaxMoisture = 0.5f;
+	grasslandBiomeHigh.MinMoisture = 0.16f;
+	Biomes.Add(grasslandBiomeHigh);
+	BiomeEnumMap.Add(grasslandBiomeHigh.BiomeTag, EWhittakerBiome::Grassland);
+
+	FBiome grasslandBiomeLow;
+	grasslandBiomeLow.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_GrasslandTag);
+	grasslandBiomeLow.MaxElevation = 0.25f;
+	grasslandBiomeLow.MaxMoisture = 0.33f;
+	grasslandBiomeLow.MinMoisture = 0.16f;
+	Biomes.Add(grasslandBiomeLow);
 
 	FBiome tropicalRainForestBiome;
 	tropicalRainForestBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TropicalRainForestTag);
-	FBiomeSettings tropicalRainForestBiomeSettings;
-	tropicalRainForestBiomeSettings.MaxElevation = 0.25f;
-	tropicalRainForestBiomeSettings.MinMoisture = 0.66f;
-	tropicalRainForestBiome.BiomeSettings.Add(tropicalRainForestBiomeSettings);
+	tropicalRainForestBiome.MaxElevation = 0.25f;
+	tropicalRainForestBiome.MinMoisture = 0.66f;
 	Biomes.Add(tropicalRainForestBiome);
+	BiomeEnumMap.Add(tropicalRainForestBiome.BiomeTag, EWhittakerBiome::TropicalRainForest);
 
 	FBiome tropicalSeasonalForestBiome;
 	tropicalSeasonalForestBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_TropicalSeasonalForestTag);
-	FBiomeSettings tropicalSeasonalForestBiomeSettings;
-	tropicalSeasonalForestBiomeSettings.MaxElevation = 0.25f;
-	tropicalSeasonalForestBiomeSettings.MaxMoisture = 0.66f;
-	tropicalSeasonalForestBiomeSettings.MinMoisture = 0.33f;
-	tropicalSeasonalForestBiome.BiomeSettings.Add(tropicalSeasonalForestBiomeSettings);
+	tropicalSeasonalForestBiome.MaxElevation = 0.25f;
+	tropicalSeasonalForestBiome.MaxMoisture = 0.66f;
+	tropicalSeasonalForestBiome.MinMoisture = 0.33f;
 	Biomes.Add(tropicalSeasonalForestBiome);
+	BiomeEnumMap.Add(tropicalSeasonalForestBiome.BiomeTag, EWhittakerBiome::TropicalSeasonalForest);
 
 	FBiome subtropicalDesertBiome;
 	subtropicalDesertBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_SubtropicalDesertTag);
-	FBiomeSettings subtropicalDesertBiomeSettings;
-	subtropicalDesertBiomeSettings.MaxElevation = 0.25f;
-	subtropicalDesertBiomeSettings.MaxMoisture = 0.33f;
-	subtropicalDesertBiome.BiomeSettings.Add(subtropicalDesertBiomeSettings);
+	subtropicalDesertBiome.MaxElevation = 0.25f;
+	subtropicalDesertBiome.MaxMoisture = 0.33f;
 	Biomes.Add(subtropicalDesertBiome);
+	BiomeEnumMap.Add(subtropicalDesertBiome.BiomeTag, EWhittakerBiome::SubtropicalDesert);
 }
 
 EWhittakerBiome UWhittakerBiomeManager::ConvertToWhittakerBiomeEnum(const FGameplayTag& BiomeName)
 {
-	for (int i = 0; i < Biomes.Num(); i++)
+	if (BiomeEnumMap.Contains(BiomeName))
 	{
-		if (Biomes[i].BiomeTag.MatchesTag(BiomeName))
-		{
-			return (EWhittakerBiome)i;
-		}
+		return BiomeEnumMap[BiomeName];
 	}
-	UE_LOG(LogWorldGen, Warning, TEXT("Could not find biome for %s!"), *BiomeName.ToString());
-	return EWhittakerBiome::Snow;
+	else
+	{
+		UE_LOG(LogWorldGen, Warning, TEXT("Could not find biome for %s!"), *BiomeName.ToString());
+		return EWhittakerBiome::Snow;
+	}
 }

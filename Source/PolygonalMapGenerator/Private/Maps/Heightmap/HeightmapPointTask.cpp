@@ -194,6 +194,9 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, TArray<FMapD
 					pixelData.Tags.AddTagFast(elem.Key);
 				}
 			}
+			// Right now, this sometimes causes a crash
+			// TODO: Find out why it crashes (maybe due to multithreading?)
+			// In the meantime, use EPointSelectionMode::InterpolatedWithPolygonBiome instead
 			pixelData.Biome = BiomeManager->DetermineBiome(pixelData);
 		}
 		else if(PointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome)

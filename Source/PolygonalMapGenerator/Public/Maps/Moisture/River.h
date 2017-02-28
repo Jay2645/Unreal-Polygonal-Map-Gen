@@ -9,20 +9,17 @@
 
 class URiver;
 
-/*USTRUCT(BlueprintType)
-struct FFeederRiver
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
-	TArray<URiver*> FeederRivers;
-};*/
-
+/*
+* Where the river feeds into.
+* Provides access to the URiver pointer that this river feeds into as well
+* as the index in the URiver corners array showing where the river feeds.
+*/
 USTRUCT(BlueprintType)
 struct FRiverFeedLocation
 {
 	GENERATED_BODY()
 public:
+	// The river this river feeds into, or NULL if it doesn't feed into anything.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
 	URiver* Key;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
@@ -42,40 +39,59 @@ public:
 
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
 	FString RiverName;*/
+	// A list of all corners making up this River object.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
 	TArray<FMapCorner> RiverCorners;
+	// The MapGraph that serves as the source for all data regarding this river.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Graph")
 	UPolygonMap* MapGraph;
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
 	//TMap<int, FFeederRiver> FeederRivers;
+	// A reference to the river that this river feeds into, if it exists.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
 	FRiverFeedLocation FeedsInto;
 
+	// Whether the river is a tributary.
 	UFUNCTION(BlueprintPure, Category = "River")
 	bool IsTributary() const;
+	// Does this river terminate properly?
 	UFUNCTION(BlueprintPure, Category = "River")
 	bool Terminates() const;
+	// Returns a copy of the FMapCorner at the given index.
+	// Be sure to call UpdateCorner() on the UPolygonMap if the corner gets modified at all.
 	UFUNCTION(BlueprintPure, Category = "River|Graph")
 	FMapCorner GetCorner(const int32 Index) const;
+	// Returns the 2D location of the FMapCorner at the given index.
 	UFUNCTION(BlueprintPure, Category = "River|Graph")
 	FVector2D GetPointAtIndex(const int32 Index) const;
+	// Returns the point representing the "center" of the river.
 	UFUNCTION(BlueprintPure, Category = "River|Graph")
 	FVector2D GetCenter() const;
+	// Gets the edge downstream from the given index.
+	// Be sure to call UpdateEdge() on the UPolygonMap if the edge gets modified.
 	UFUNCTION(BlueprintPure, Category = "River|Graph")
 	FMapEdge GetDownstreamEdge(const int32 Index) const;
 
+	// Adds a corner to the river.
+	// All points downstream get increased by the IncreaseRiverAmount.
 	UFUNCTION(BlueprintCallable, Category = "River")
 	FMapCorner AddCorner(FMapCorner Corner, const int32 IncreaseRiverAmount = 1);
+	// Joins the feeder river to this river.
+	// Also sets the FeedsInto data for the feeder river.
 	UFUNCTION(BlueprintCallable, Category = "River")
 	bool JoinRiver(URiver* FeederRiver, FMapCorner JoinLocation, bool bIncreaseRiverVolume = true);
 
+	// Makes this river into a tributary.
 	UFUNCTION(BlueprintCallable, Category = "River")
 	void MakeTributary();
+	// Clears the river entirely.
 	UFUNCTION(BlueprintCallable, Category = "River")
 	void Clear();
+	// Clears the cache used to look up rivers.
 	UFUNCTION(BlueprintCallable, Category = "River")
 	static void ClearRiverLookupCache();
 
+	// "Draw" this river on the given heightmap.
 	UFUNCTION(BlueprintCallable, Category = "River")
 	void MoveRiverToHeightmap(UPolygonalMapHeightmap* MapHeightmap);
 

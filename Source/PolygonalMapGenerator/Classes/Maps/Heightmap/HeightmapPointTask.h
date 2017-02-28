@@ -41,7 +41,9 @@ public:
 
 	int32 X;
 	int32 Y;
+	// How many points to take into account when generating an interpolated heightmap
 	int32 NumberOfPointsToAverage;
+	// What mode to be in for generating the heightmap.
 	EPointSelectionMode PointSelectionMode;
 
 	/** return the name of the task **/
@@ -85,15 +87,20 @@ public:
 	// This is the array of thread completions, used to determine if all threads are done
 	static FGraphEventArray CompletionEvents;
 
+	// How many threads have completed so far.
 	static int32 CompletedThreads;
+	// How many threads there are total.
 	static int32 TotalNumberOfThreads;
+	// The delegate to call when all points are complete.
 	static FIslandGeneratorDelegate OnAllPointsComplete;
 
 	// Are all tasks complete?
 	static bool TasksAreComplete();
 
-	// Initiation point
+	// Initiation point to start the heightmap generation process.
 	static void GenerateHeightmapPoints(const int32 HeightmapSize, int32 NumberOfPointsToAverage, UPolygonalMapHeightmap* HeightmapGenerator, UPolygonMap* Graph, UBiomeManager* BiomeMgr, const FIslandGeneratorDelegate OnComplete);
 
+	// Check to see if all threads are complete.
+	// If so, call the OnAllPointsComplete delegate.
 	static void CheckComplete();
 };

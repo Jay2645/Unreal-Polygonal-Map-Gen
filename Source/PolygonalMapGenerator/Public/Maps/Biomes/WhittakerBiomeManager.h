@@ -84,4 +84,7 @@ public:
 	// The enum returned can be used in a switch statement or converted into a uint8 (for example, for use as a material ID).
 	UFUNCTION(BlueprintPure, Category = "Biome")
 	EWhittakerBiome ConvertToWhittakerBiomeEnum(const FGameplayTag& BiomeName);
+
+protected:
+	TMap<FGameplayTag, EWhittakerBiome> BiomeEnumMap;
 };

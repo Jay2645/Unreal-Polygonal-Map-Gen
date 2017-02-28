@@ -23,16 +23,16 @@ public:
 	// Sets the seed and the size of the island.
 	// Will be called before any IsPointLand calls.
 	UFUNCTION(BlueprintNativeEvent, Category = "Island Generation|Graph|Points")
-		void SetSeed(int32 seed, int32 size);
+	void SetSeed(int32 seed, int32 size);
 
 	// Whether the given point is land or not.
 	// By default, all points will be considered water.
 	UFUNCTION(BlueprintNativeEvent, Category = "Island Generation|Graph|Points")
-		bool IsPointLand(FVector2D point);
+	bool IsPointLand(FVector2D point);
 
 	// 1.0 means no small islands; 2.0 leads to a lot
 	UPROPERTY(Category = "Island Size", BlueprintReadWrite, EditAnywhere)
-		float IslandFactor = 1.07f;
+	float IslandFactor = 1.07f;
 
 	// The size of our island.
 	UPROPERTY(Category = "Island Size", BlueprintReadWrite, EditAnywhere)
@@ -47,5 +47,5 @@ protected:
 	// The RandomStream that has been initialized with our seed.
 	// Will be used if any RNG is needed.
 	UPROPERTY(Category = "Island Randomness", BlueprintReadWrite, EditAnywhere)
-		FRandomStream StreamRNG;
+	FRandomStream StreamRNG;
 };

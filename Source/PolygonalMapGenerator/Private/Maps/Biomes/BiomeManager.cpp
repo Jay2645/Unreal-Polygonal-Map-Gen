@@ -14,6 +14,8 @@ UBiomeManager::UBiomeManager()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 
+	// By default, we only assign two kinds of biomes: ocean and coast
+	// To add more, override this class and add them by hand
 	FBiome oceanBiome;
 	oceanBiome.BiomeTag = FGameplayTag::RequestGameplayTag(BIOME_OceanTag);
 	oceanBiome.RequiredTags.AddTagFast(FGameplayTag::RequestGameplayTag(TEXT("MapData.MetaData.Water.Saltwater")));
@@ -25,8 +27,7 @@ UBiomeManager::UBiomeManager()
 	Biomes.Add(coastalBiome);
 }
 
-//FGameplayTag UBiomeManager::DetermineBiome_Implementation(const FMapData& MapData)
-FGameplayTag UBiomeManager::DetermineBiome(const FMapData& MapData)
+FGameplayTag UBiomeManager::DetermineBiome_Implementation(const FMapData& MapData)
 {
 	//UE_LOG(LogWorldGen, Warning, TEXT("Beginning new point: %f, %f"), MapData.Point.X, MapData.Point.Y); 
 	for (int i = 0; i < Biomes.Num(); i++)
@@ -39,25 +40,11 @@ FGameplayTag UBiomeManager::DetermineBiome(const FMapData& MapData)
 		}
 
 		// Verify that the biome is in the right elevation with the right moisture level
-		bool bSettingsOkay = Biomes[i].BiomeSettings.Num() == 0;
-		if(!bSettingsOkay)
+		if (MapData.Elevation <= Biomes[i].MaxElevation && MapData.Elevation >= Biomes[i].MinElevation &&
+			MapData.Moisture <= Biomes[i].MaxMoisture && MapData.Moisture >= Biomes[i].MinMoisture)
 		{
-			for(int j = 0; j < Biomes[i].BiomeSettings.Num(); j++)
-			{
-				if (MapData.Elevation <= Biomes[i].BiomeSettings[j].MaxElevation && MapData.Elevation >= Biomes[i].BiomeSettings[j].MinElevation &&
-					MapData.Moisture <= Biomes[i].BiomeSettings[j].MaxMoisture && MapData.Moisture >= Biomes[i].BiomeSettings[j].MinMoisture)
-				{
-					bSettingsOkay = true;
-					break;
-				}
-			}
-		}
-		if (!bSettingsOkay)
-		{
-			//UE_LOG(LogWorldGen, Log, TEXT("Passing on %s because the map data's elevation (%f) or moisture (%f) is out of range."), *Biomes[i].BiomeTag.ToString(), MapData.Elevation, MapData.Moisture);
 			continue;
 		}
-
 		// Verify that the biome has the required tags
 		bool bHasRequiredTags = Biomes[i].RequiredTags.Num() == 0;
 
@@ -84,6 +71,6 @@ FGameplayTag UBiomeManager::DetermineBiome(const FMapData& MapData)
 			return Biomes[i].BiomeTag;
 		}
 	}
-	UE_LOG(LogWorldGen, Error, TEXT("A MapData point was missing a biome!"));
+	UE_LOG(LogWorldGen, Warning, TEXT("A MapData point was missing a biome! Point: (%f, %f); Elevation: %f; Moisture: %f"), MapData.Point.X, MapData.Point.Y, MapData.Elevation, MapData.Moisture);
 	return FGameplayTag::EmptyTag;
 }

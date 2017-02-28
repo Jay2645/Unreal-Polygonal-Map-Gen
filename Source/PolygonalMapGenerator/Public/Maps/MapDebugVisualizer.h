@@ -8,7 +8,8 @@
 #include "MapDebugVisualizer.generated.h"
 
 /**
- * 
+ * A helper class for visualizing our map.
+ * Intended to be used for debugging purposes.
  */
 UCLASS(BlueprintType)
 class POLYGONALMAPGENERATOR_API UMapDebugVisualizer : public UBlueprintFunctionLibrary
@@ -21,6 +22,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
 	static void DrawDebugPixelGrid(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapData>& HeightmapData, int32 HeightmapSize, float PixelSize);
 	
+	// Same as DrawDebugPixelGrid(), but only draws the parts of the debug grid which contain a river.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
 	static void DrawDebugPixelRivers(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapData>& HeightmapData, int32 HeightmapSize, float PixelSize);
 	
@@ -36,8 +38,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
 	static void DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapCenter>& Centers, const TArray<FMapEdge>& Edges, int32 MapSize);
 	
+	// Draws all the rivers in our map, as smooth lines.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
 	static void DrawRivers(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* MapGraph, const TArray<URiver*>& Rivers, int32 MapSize);
+	// Draws a smooth curve in world space.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
 	static void DrawBeizerCurve(AActor* Actor, const FWorldSpaceMapData& WorldData, FVector2D v0, FVector2D control0, FVector2D v1, FVector2D control1, FColor color, int32 MapSize);
 

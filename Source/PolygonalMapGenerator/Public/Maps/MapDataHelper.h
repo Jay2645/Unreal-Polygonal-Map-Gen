@@ -8,6 +8,7 @@
 
 /**
  * A helper class for FMapData objects.
+ * Mostly used to control tags and such.
  */
 UCLASS(BlueprintType)
 class POLYGONALMAPGENERATOR_API UMapDataHelper : public UBlueprintFunctionLibrary

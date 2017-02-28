@@ -8,7 +8,8 @@
 #include "MoistureDistributor.generated.h"
 
 /**
- * 
+ * The MoistureDistributor class distributes moisture across a map.
+ * It is also in charge of calculating stream flow direction, rivers, and watersheds.
  */
 UCLASS(Blueprintable)
 class POLYGONALMAPGENERATOR_API UMoistureDistributor : public UActorComponent

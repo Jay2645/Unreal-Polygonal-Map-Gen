@@ -67,6 +67,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Map Generation|Heightmap")
 	FMapData GetMapPoint(int32 x, int32 y);
 
+	// Sets the map point at the given (X, Y) position on the heightmap.
+	// If the point is out of bounds, a warning is generated and nothing happens.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap")
 	void SetMapPoint(int32 X, int32 Y, FMapData MapData);
 };

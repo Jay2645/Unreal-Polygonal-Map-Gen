@@ -26,12 +26,15 @@ struct POLYGONALMAPGENERATOR_API FMapData
 	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere)
 	float Moisture;
 
-	// The Biome this MapData resides in
+	// The Biome this MapData resides in.
+	// Biomes are determined by the BiomeManager class.
+	// Users can override the BiomeManager class if they would like to implement a different biome distribution.
 	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere, meta = (Categories = "MapData.Biome"))
 	FGameplayTag Biome;
 
 	// Any special tags associated with the MapData object.
-	// This can be used to tag this with things such as "volcano"
+	// This can be used to tag this with things such as "volcano", "water", "player start", etc.
+	// Later steps in world generation can then look at the tags and give this point special behavior based on them.
 	UPROPERTY(Category = "Map Biome", BlueprintReadWrite, EditAnywhere, meta = (Categories = "MapData.MetaData"))
 	FGameplayTagContainer Tags;
 
@@ -55,7 +58,9 @@ USTRUCT(BlueprintType)
 struct POLYGONALMAPGENERATOR_API FMapCenter
 {
 	GENERATED_BODY()
-	// The index of this Center
+	// The index of this Center.
+	// This can be used to look up the "main" reference of this Center in the
+	// main UPolygonMap class.
 	UPROPERTY(Category = "Map Graph", BlueprintReadWrite, VisibleAnywhere)
 	int32 Index;
 
@@ -88,7 +93,9 @@ USTRUCT(BlueprintType)
 struct POLYGONALMAPGENERATOR_API FMapCorner
 {
 	GENERATED_BODY()
-	// The index of this Corner
+	// The index of this Corner.
+	// This can be used to look up the "main" reference of this Corner in the
+	// main UPolygonMap class.
 	UPROPERTY(Category = "Map Graph", BlueprintReadWrite, VisibleAnywhere)
 	int32 Index;
 
@@ -106,22 +113,25 @@ struct POLYGONALMAPGENERATOR_API FMapCorner
 	UPROPERTY(Category = "Map Graph", BlueprintReadOnly, VisibleAnywhere)
 	TArray<int32> Adjacent;
 
+	// Pointer to adjacent Corner most downhill from us, or -1
+	UPROPERTY(Category = "Watershed", BlueprintReadWrite, EditAnywhere)
+	int32 Downslope;
+	// Pointer to coastal Corner, or -1 for null
+	UPROPERTY(Category = "Watershed", BlueprintReadWrite, EditAnywhere)
+	int32 Watershed;
+	// The size of the watershed
+	UPROPERTY(Category = "Watershed", BlueprintReadWrite, EditAnywhere)
+	int32 WatershedSize;
 	// The size of the river flowing through this corner.
 	// If there is no river, this is 0.
 	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
 	int32 RiverSize;
-	// Pointer to adjacent Corner most downhill from us, or -1
-	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
-	int32 Downslope;
-	// Pointer to coastal Corner, or -1 for null
-	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
-	int32 Watershed;
-	// The size of the watershed
-	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
-	int32 WatershedSize;
-	// The index in the river that we are in, or -1 for no river
+	// This index refers to where in the river this point resides.
+	// It refers to an array of FMapCorners in the URiver object.
+	// If there is no river, this is -1.
 	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
 	int32 RiverIndex;
+	// A pointer to any River which flows through this corner.
 	UPROPERTY(Category = "River", BlueprintReadWrite, EditAnywhere)
 	URiver* River;
 
@@ -156,20 +166,28 @@ struct POLYGONALMAPGENERATOR_API FMapEdge
 	int32 Index;
 
 	// The Delaunay Edge points to a center.
+	// Right now, this is just an index of that center, rather than an actual reference to it.
+	// I'm not happy with this implementation, so it may be changed in the future.
 	UPROPERTY(Category = "Map Graph", BlueprintReadOnly, VisibleAnywhere)
 	int32 DelaunayEdge0;
 	// The Delaunay Edge points to a center.
+	// Right now, this is just an index of that center, rather than an actual reference to it.
+	// I'm not happy with this implementation, so it may be changed in the future.
 	UPROPERTY(Category = "Map Graph", BlueprintReadOnly, VisibleAnywhere)
 	int32 DelaunayEdge1;
 
 	// The Voronoi Edge points to a corner.
+	// Right now, this is just an index of that corner, rather than an actual reference to it.
+	// I'm not happy with this implementation, so it may be changed in the future.
 	UPROPERTY(Category = "Map Graph", BlueprintReadOnly, VisibleAnywhere)
 	int32 VoronoiEdge0;
 	// The Voronoi Edge points to a corner.
+	// Right now, this is just an index of that corner, rather than an actual reference to it.
+	// I'm not happy with this implementation, so it may be changed in the future.
 	UPROPERTY(Category = "Map Graph", BlueprintReadOnly, VisibleAnywhere)
 	int32 VoronoiEdge1;
 
-	// The midway pont between our two voronoi edges
+	// The midway point between our two voronoi edges
 	UPROPERTY(Category = "Map Graph", BlueprintReadOnly, VisibleAnywhere)
 	FVector2D Midpoint;
 
@@ -204,26 +222,26 @@ struct POLYGONALMAPGENERATOR_API FWorldSpaceMapData
 {
 	GENERATED_BODY()
 
-		// The size each debug point is rendered
-		UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-		int32 PointSize;
+	// The size each debug point is rendered
+	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+	int32 PointSize;
 	// The Z offset of the bottom of the ocean -- what's the lowest
 	// point on the entire map?
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-		float ElevationOffset;
+	float ElevationOffset;
 	// How much to scale the map on the XY scale.
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-		float XYScaleFactor;
+	float XYScaleFactor;
 	// How tall the map should be -- how much higher is the highest
 	// point in the map from the lowest point?
 	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
-		float ElevationScale;
+	float ElevationScale;
 
 	FWorldSpaceMapData()
 	{
-		PointSize = 256;
-		ElevationOffset = -6350.0f;
-		XYScaleFactor = 102.4f;
+		PointSize = 16;
+		ElevationOffset = 0.0f;
+		XYScaleFactor = 100.0f;
 		ElevationScale = 3200.0f;
 	}
 };
@@ -301,12 +319,21 @@ public:
 	FMapEdge GetEdge(const int32& index) const;
 
 	// Update a MapCenter in the graph after it has been modified.
+	// Due to the way Unreal handles TArrays, we can only return
+	// a copy of an element, not the element itself.
+	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 	void UpdateCenter(const FMapCenter& center);
 	// Update a MapCorner in the graph after it has been modified.
+	// Due to the way Unreal handles TArrays, we can only return
+	// a copy of an element, not the element itself.
+	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 	void UpdateCorner(const FMapCorner& corner);
 	// Update a MapEdge in the graph after it has been modified.
+	// Due to the way Unreal handles TArrays, we can only return
+	// a copy of an element, not the element itself.
+	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 	void UpdateEdge(const FMapEdge& edge);
 
@@ -320,7 +347,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	int32 GetEdgeNum() const;
 
-	// Returns the size of our graph.
+	// Returns the size of one side of our graph.
+	// The full graph is a square with each side of this length.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	int32 GetGraphSize() const;
 
@@ -343,20 +371,36 @@ public:
 	// This empty MapEdge will have an index of -1.
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified.
+	// Due to the way Unreal handles TArrays, we can only return
+	// a copy of an element, not the element itself.
+	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	FMapEdge FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1) const;
+
 	// Returns the MapEdge defined by two adjacent MapCorners.
 	// If the edge doesn't exist, an empty MapEdge will be returned.
 	// This empty MapEdge will have an index of -1.
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified.
+	// Due to the way Unreal handles TArrays, we can only return
+	// a copy of an element, not the element itself.
+	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	FMapEdge FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1) const;
+
+	// Returns the MapCenter defined by two adjacent MapCorners.
+	// If the center polygon doesn't exist, an empty MapCenter will be returned.
+	// This empty MapCenter will have an index of -1.
+	// Make sure to use the function UpdateCenter() to update the graph
+	// after the MapCenter has been modified.
+	// Due to the way Unreal handles TArrays, we can only return
+	// a copy of an element, not the element itself.
+	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	FMapCenter FindCenterFromCorners(FMapCorner CornerA, FMapCorner CornerB) const;
 
-	// Compiles all map data into the CachedMapData array
-	// This is used by the PixelMap to create pixels
+	// Compiles all map data into the CachedMapData array.
+	// This is used by the PixelMap to create pixels.
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 	void CompileMapData();
 
@@ -365,41 +409,64 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Island Generation")
 	static FVector ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize);
 
+	// This takes a 2D point and returns a copy of the polygon encompassing that point.
+	// If no polygon can be found, an empty MapCenter will be returned.
+	// This empty MapCenter will have an index of -1.
+	// Make sure to use the function UpdateCenter() to update the graph
+	// after the MapCenter has been modified.
+	// Due to the way Unreal handles TArrays, we can only return
+	// a copy of an element, not the element itself.
+	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	FMapCenter FindPolygonLocalSpace(const FVector2D& Point) const;
+
+	// Checks if a given MapCenter polygon contains a 2D point.
+	// If it does, this function returns true. Otherwise, it returns false.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	bool PolygonContainsPoint(const FVector2D& Point, const FMapCenter& Center) const;
 
 	/// Graph Data
 	// The points in our graph
+	// I don't like this implementation, and it may be changed in the future.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
 	TArray<FVector2D> Points;
 	// The Centers in our graph
+	// I don't like this implementation, and it may be changed in the future.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
 	TArray<FMapCenter> Centers;
 	// The Corners in our graph
+	// I don't like this implementation, and it may be changed in the future.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
 	TArray<FMapCorner> Corners;
 	// The Edges of our graph
+	// I don't like this implementation, and it may be changed in the future.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
 	TArray<FMapEdge> Edges;
 
 private:
+	// This variable generates our initial points
 	UPROPERTY()
 	UPointGenerator* PointSelector;
+	// The size of an edge in the 2D map
 	UPROPERTY()
 	int32 MapSize;
 
+	// A conversion from local space to world space
 	UPROPERTY()
 	FWorldSpaceMapData MapData;
 
+	// ALL MapData from both MapCenters and MapCorners.
+	// Must be compiled first.
 	UPROPERTY()
 	TArray<FMapData> CachedMapData;
+	// A map of centers connected to their location
 	UPROPERTY()
 	TMap<FVector2D, int32> CenterLookup;
+	// A map of corners connected to their location
 	UPROPERTY()
 	TMap<FVector2D, int32> CornerLookup;
 
+	// Returns true if 2 segments are intersecting, otherwise returns false.
 	UFUNCTION()
 	bool SegementsIntersect(const FMapEdge& Edge, const FVector2D& StartPoint, const FVector2D& EndPoint) const;
 };
