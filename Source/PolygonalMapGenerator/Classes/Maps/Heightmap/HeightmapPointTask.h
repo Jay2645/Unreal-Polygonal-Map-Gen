@@ -83,6 +83,7 @@ public:
 
 	// Results of the threads
 	static TArray<FMapData> HeightmapData;
+	static TArray<FMapData> StartingMapDataArray;
 
 	// This is the array of thread completions, used to determine if all threads are done
 	static FGraphEventArray CompletionEvents;

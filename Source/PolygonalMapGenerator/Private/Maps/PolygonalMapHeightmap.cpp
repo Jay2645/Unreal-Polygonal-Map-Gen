@@ -13,42 +13,11 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 	{
 		return;
 	}
-	CreateHeightmapTimer = FPlatformTime::Seconds();
 	MoistureDistributor = MoistureDist;
 	HeightmapSize = Size;
 	OnGenerationComplete = OnComplete;
-	TArray<FMapData> graph = PolygonMap->GetAllMapData();
-	UE_LOG(LogWorldGen, Log, TEXT("Map Data fetched in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);
 
-	// First, insert a border around the map
-	CreateHeightmapTimer = FPlatformTime::Seconds();
-	for (int x = 0; x < HeightmapSize; x++)
-	{
-		FMapData borderPoint = FMapData();
-		borderPoint.Elevation = 0.0f;
-		borderPoint.Moisture = 0.0f;
-		borderPoint = UMapDataHelper::SetOcean(borderPoint);
-		borderPoint = UMapDataHelper::SetBorder(borderPoint);
-		borderPoint.Point = FVector2D(x, 0);
-		graph.Add(borderPoint);
-		borderPoint.Point = FVector2D(x, Size - 1);
-		graph.Add(borderPoint);
-	}
-	for (int y = 0; y < HeightmapSize; y++)
-	{
-		FMapData borderPoint = FMapData();
-		borderPoint.Elevation = 0.0f;
-		borderPoint.Moisture = 0.0f;
-		borderPoint = UMapDataHelper::SetOcean(borderPoint);
-		borderPoint = UMapDataHelper::SetBorder(borderPoint);
-		borderPoint.Point = FVector2D(0, y);
-		graph.Add(borderPoint);
-		borderPoint.Point = FVector2D(Size - 1, y);
-		graph.Add(borderPoint);
-	}
-	UE_LOG(LogWorldGen, Log, TEXT("Border generated in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);
-
-	// Now, interpolate between the actual points
+	// Interpolate between the actual points
 	CreateHeightmapTimer = FPlatformTime::Seconds();
 
 	FIslandGeneratorDelegate generatePoints;

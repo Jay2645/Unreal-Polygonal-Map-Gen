@@ -12,6 +12,7 @@ UBiomeManager* FHeightmapPointGenerator::BiomeManager = NULL;
 
 // Results of the threads
 TArray<FMapData> FHeightmapPointGenerator::HeightmapData = TArray<FMapData>();
+TArray<FMapData> FHeightmapPointGenerator::StartingMapDataArray = TArray<FMapData>();
 
 // This is the array of thread completions, used to determine if all threads are done
 FGraphEventArray FHeightmapPointGenerator::CompletionEvents = FGraphEventArray();
@@ -37,12 +38,46 @@ void FHeightmapPointGenerator::GenerateHeightmapPoints(const int32 HeightmapSize
 	CompletedThreads = 0;
 	HeightmapData.Empty();
 
+	StartingMapDataArray = FHeightmapPointGenerator::MapGraph->GetAllMapData();
+
+	EPointSelectionMode pointSelectionMode = EPointSelectionMode::InterpolatedWithPolygonBiome;
+
+	if (pointSelectionMode == EPointSelectionMode::Interpolated || pointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome)
+	{
+		int32 graphSize = FHeightmapPointGenerator::MapGraph->GetGraphSize();
+		// First, insert a border around the map
+		for (int x = 0; x < graphSize; x++)
+		{
+			FMapData borderPoint = FMapData();
+			borderPoint.Elevation = 0.0f;
+			borderPoint.Moisture = 0.0f;
+			borderPoint = UMapDataHelper::SetOcean(borderPoint);
+			borderPoint = UMapDataHelper::SetBorder(borderPoint);
+			borderPoint.Point = FVector2D(x, 0);
+			StartingMapDataArray.Add(borderPoint);
+			borderPoint.Point = FVector2D(x, graphSize - 1);
+			StartingMapDataArray.Add(borderPoint);
+		}
+		for (int y = 0; y < graphSize; y++)
+		{
+			FMapData borderPoint = FMapData();
+			borderPoint.Elevation = 0.0f;
+			borderPoint.Moisture = 0.0f;
+			borderPoint = UMapDataHelper::SetOcean(borderPoint);
+			borderPoint = UMapDataHelper::SetBorder(borderPoint);
+			borderPoint.Point = FVector2D(0, y);
+			StartingMapDataArray.Add(borderPoint);
+			borderPoint.Point = FVector2D(graphSize - 1, y);
+			StartingMapDataArray.Add(borderPoint);
+		}
+	}
+
 	// Add a task for each prime number
 	for (int32 x = 0; x < HeightmapSize; x++)
 	{
 		for(int32 y = 0; y < HeightmapSize; y++)
 		{
-			CompletionEvents.Add(TGraphTask<FHeightmapPointTask>::CreateTask(NULL, ENamedThreads::GameThread).ConstructAndDispatchWhenReady(x, y, NumberOfPointsToAverage, EPointSelectionMode::InterpolatedWithPolygonBiome)); 
+			CompletionEvents.Add(TGraphTask<FHeightmapPointTask>::CreateTask(NULL, ENamedThreads::GameThread).ConstructAndDispatchWhenReady(x, y, NumberOfPointsToAverage, pointSelectionMode));
 			TotalNumberOfThreads++;
 		}
 	}
@@ -50,8 +85,13 @@ void FHeightmapPointGenerator::GenerateHeightmapPoints(const int32 HeightmapSize
 
 void FHeightmapPointGenerator::CheckComplete()
 {
-	if(OnAllPointsComplete.IsBound() && TasksAreComplete())
+	if(TasksAreComplete())
 	{
+		FHeightmapPointGenerator::TotalNumberOfThreads = 0;
+		FHeightmapPointGenerator::CompletedThreads = 0;
+
+		UE_LOG(LogWorldGen, Log, TEXT("Heightmap is complete!"));
+
 		// Call the delegate on the game thread
 		AsyncTask(ENamedThreads::GameThread, []() {
 			OnAllPointsComplete.Execute();
@@ -236,12 +276,14 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, TArray<FMapD
 void FHeightmapPointTask::DoTask(ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
 {
 	FVector2D point = FVector2D(X, Y);
-	FMapData mapData = MakeMapPoint(point, FHeightmapPointGenerator::MapGraph->GetAllMapData(), FHeightmapPointGenerator::BiomeManager);
+
+	// Now make the actual map point
+	FMapData mapData = MakeMapPoint(point, FHeightmapPointGenerator::StartingMapDataArray, FHeightmapPointGenerator::BiomeManager);
 	FHeightmapPointGenerator::HeightmapData.Add(mapData);
 	FHeightmapPointGenerator::CompletedThreads++;
 
 	float percentComplete = (float)FHeightmapPointGenerator::CompletedThreads / (float)FHeightmapPointGenerator::TotalNumberOfThreads;
-	//UE_LOG(LogWorldGen, Log, TEXT("Heightmap completion percent: %f percent. Created MapData with biome: %s, at elevation %f with moisture level %f."), percentComplete, *mapData.Biome.ToString(), mapData.Elevation, mapData.Moisture);
+	UE_LOG(LogWorldGen, Log, TEXT("Heightmap completion percent: %f percent."), percentComplete);
 	if (FHeightmapPointGenerator::CompletedThreads == FHeightmapPointGenerator::TotalNumberOfThreads)
 	{
 		// If we're all done, check in with the on completion delegate
