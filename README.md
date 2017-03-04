@@ -2,10 +2,6 @@
 
 This is a port of [the ActionScript code](https://github.com/amitp/mapgen2) of [Red Blob Games' *Polygonal Map Generation for Games*](http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/). This port is written in C++ and designed to work in Unreal Engine 4 using the Unreal Engine 4 "Plugin" system. This port works fully with games written in C++ as well as games that use Unreal Engine 4's "Blueprint" system.
 
-The original ActionScript code was released under the MIT Open Source license; this C++ port of the code is also released under the MIT Open Source license.
-
-This project also uses [Bl4ckb0ne's C++ Delaunay Triangulation algorithm](https://github.com/Bl4ckb0ne/delaunay-triangulation), modified slightly to work with the Unreal Engine. This code is also used under the MIT License. Conversion from Delaunay to Voronoi is (very loosely) based off of [Joseph Marshall's voronoi-c++ code](https://bitbucket.org/jlm/voronoi-c/src/b06aa9cccba6392d28ad7d7cae9a7361efb22c94?at=default), also modified under an MIT License.
-
 #Installation
 
 1. Make a `Plugins` folder at your project root (where the .uproject file is), if you haven't already. Then, clone this project into a subfolder in your Plugins directory. After that, open up your project's .uproject file in Notepad (or a similar text editor), and change the `"AdditionalDependencies"` and `"Plugins"` sections to look like this:
@@ -51,7 +47,7 @@ If you don't see anything in the array, you need to go to enable your content br
 
 Once you've added the two tables to your GameplayTags array, restart the editor one more time (I know, it's a pain) so the GameplayTag array gets populated properly.
 
-4. Once the editor has reloaded, you can either spawn in the `IslandMapGenerator` Actor raw, or create a Blueprint asset inheriting from it. Tweak the settings in `IslandData` to your liking -- you likely want to set `IslandType` to `RadialIsland` and `Island Point Selector` to `RandomPointGenerator`. 
+4. Once the editor has reloaded, you can either spawn in the `IslandMapGenerator` Actor raw, or create a Blueprint asset inheriting from it. Tweak the settings in `IslandData` to your liking -- you likely want to set `IslandType` to `RadialIsland` and `Island Point Selector` to `RandomPointGenerator`.
 
 ![An example settings panel](https://cloud.githubusercontent.com/assets/2058763/23337290/7bb8f068-fb9d-11e6-93a9-25b623c9b017.jpg)
 
@@ -89,7 +85,7 @@ Both the FMapCenter and FMapCorner contain an FMapData struct on the inside, whi
 
 #Using in Unreal
 
-To use in Unreal, simply place an `AIslandMapGenerator` actor in your level and call `CreateMap` on it. `CreateMap` takes a delegate which will be called when the map is complete. After the map is complete, you can access map corners, centers, or edges by calling `GetCorner`, `GetCenter`, or `GetEdge`, all of which ask for an index of the element in question, which is bound between 0 and `GetCornerNum`, `GetCenterNum`, or `GetEdgeNum`. 
+To use in Unreal, simply place an `AIslandMapGenerator` actor in your level and call `CreateMap` on it. `CreateMap` takes a delegate which will be called when the map is complete. After the map is complete, you can access map corners, centers, or edges by calling `GetCorner`, `GetCenter`, or `GetEdge`, all of which ask for an index of the element in question, which is bound between 0 and `GetCornerNum`, `GetCenterNum`, or `GetEdgeNum`.
 
 Keep in mind that the above functions all return ***copies*** of objects; once modified, you need to call `UpdateCorner`, `UpdateCenter`, or `UpdateEdge`. You can also access an array of ***all** MapData objects across the entire graph; that is to say, it is an array of every single MapData object within every MapCorner and MapCenter. Doing this can give you a representation of the entire map as a whole, which can then be converted into a heightmap for whatever you need.
 
@@ -104,6 +100,18 @@ The `UPolygonalMapHeightmap` class provides a couple helper classes:
 * `GetMapPoint()` takes in an integer X and Y value and safely outputs the FMapData object corresponding to that location. If that location is outside of the heightmap, it will output a "blank" FMapData object.
 
 This array of FMapData objects can be turned into a 2D grayscale image by the user (using `FMapData::Elevation` to create the color value), or it can be used to create data points in a 3D voxel implementation.
+
+# Credits
+
+The original ActionScript code was released under the MIT Open Source license; this C++ port of the code is also released under the MIT Open Source license.
+
+This project also uses [Bl4ckb0ne's C++ Delaunay Triangulation algorithm](https://github.com/Bl4ckb0ne/delaunay-triangulation), modified slightly to work with the Unreal Engine. This code is also used under the MIT License.
+
+Conversion from Delaunay to Voronoi is (very loosely) based off of [Joseph Marshall's voronoi-c++ code](https://bitbucket.org/jlm/voronoi-c/src/b06aa9cccba6392d28ad7d7cae9a7361efb22c94?at=default), also modified under an MIT License.
+
+The Markov Chain generator for generating strings from an array of FText was [based off of a version built in C# for the Unity game engine, created by Dave Carlile](http://crappycoding.com/2015/02/procedural-names/) used under the MIT license and converted to C++/modified to work with Unreal. This might be split off into a separate project at some point in the future, as it is only tangentally related to map generation.
+
+Also used is a noise generator, which is heavily based on the [Jordan Peck's FastNoise code](https://github.com/Auburns/FastNoise) and is used under the MIT License. Minor modifications have been made to make it work with the Unreal Editor.
 
 # Future Changes
 
