@@ -35,7 +35,7 @@ class POLYGONALMAPGENERATOR_API URiver : public UObject
 	GENERATED_BODY()
 public:
 	URiver();
-	//~URiver();
+	~URiver();
 
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
 	FString RiverName;*/

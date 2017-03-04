@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
-#include "Maps/PolygonalMapHeightmap.h"
+#include "PolygonalMapHeightmap.h"
 #include "Async/Async.h"
 #include "Maps/Heightmap/HeightmapPointTask.h"
 

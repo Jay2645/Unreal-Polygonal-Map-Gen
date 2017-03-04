@@ -14,10 +14,10 @@ URiver::URiver()
 	RiverLookup.Add(RiverID, this);
 }
 
-/*URiver::~URiver()
+URiver::~URiver()
 {
 	Clear();
-}*/
+}
 
 bool URiver::IsTributary() const
 {
