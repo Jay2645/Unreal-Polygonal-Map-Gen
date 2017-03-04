@@ -6,7 +6,7 @@
 #include "Engine/DataTable.h"
 #include "ProceduralNameGenerator.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMarkovData : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -67,5 +67,5 @@ private:
 	static void CalculateProbability();
 	static void AnalyzeWords(TArray<FString> words, uint8 order);
 	static FMarkovCharacter* GetCharacterByProbability(FString key, float probability);
-	static FString GenerateRandomWord(uint8 minLength, uint8 maxLength, FRandomStream RandomGenerator, bool bConvertToTitleCase);
+	static FString GenerateRandomWord(uint8 minLength, uint8 maxLength, FRandomStream& RandomGenerator, bool bConvertToTitleCase);
 };

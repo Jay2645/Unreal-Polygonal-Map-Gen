@@ -41,6 +41,9 @@ bool UProceduralNameGenerator::IsVowel(TCHAR ch)
 
 FString UProceduralNameGenerator::GetWordPattern(FString word)
 {
+	// This takes a string and converts it to a pattern
+	// The pattern is the ratio of vowels to consonants
+	// As an example, "consonants" would be "cvccvcvccc"
 	std::string pattern = "";
 
 	TArray<TCHAR> wordArray = word.GetCharArray();
@@ -55,6 +58,8 @@ FString UProceduralNameGenerator::GetWordPattern(FString word)
 
 void UProceduralNameGenerator::IdentifyWordPattern(FString word)
 {
+	// Determines the word's pattern and adds it
+	// to the list of word patterns
 	WordPatterns.Add(GetWordPattern(word));
 }
 
@@ -62,6 +67,7 @@ void UProceduralNameGenerator::AddCharacter(FString key, TCHAR ch)
 {
 	TArray<FMarkovCharacter> chain;
 
+	// Ensure that the dictionary contains the key
 	if (Chains.Contains(key))
 	{
 		chain = Chains[key];
@@ -71,45 +77,59 @@ void UProceduralNameGenerator::AddCharacter(FString key, TCHAR ch)
 		Chains.Add(key, chain);
 	}
 
+	// Check to see if it is already in this chain
 	bool bFound = false;
-	FMarkovCharacter letter = FMarkovCharacter();
 	for (int i = 0; i < chain.Num(); i++)
 	{
 		if (chain[i].Letter == ch)
 		{
-			letter = chain[i];
+			// We have a match!
+			// Update the number of instances of this letter
+			chain[i].Instances++;
 			bFound = true;
 			break;
 		}
 	}
 
+	// If we didn't find a match, update the chain with a new letter
 	if (!bFound)
 	{
+		FMarkovCharacter letter = FMarkovCharacter();
 		letter.Letter = ch;
+		letter.Instances = 1;
 		chain.Add(letter);
 	}
-
-	letter.Instances++;
+	
+	// Update the main Chains array
+	Chains[key] = chain;
 }
 
 void UProceduralNameGenerator::ProcessWord(FString word)
 {
 	std::string wordStr = "";
 	// Convert to a std string
+	// Begin with a few underscores
 	for (int i = 0; i < Order; i++)
 	{
 		wordStr += '_';
 	}
+	// Actually convert the string
 	for (int i = 0; i < word.Len(); i++)
 	{
 		wordStr += word[i];
 	}
+	// Terminate with an underscore
 	wordStr += '_';
 
+	// Add the keys to the Chains array
 	for (int i = 0; i < wordStr.size() - Order; i++)
 	{
-		std::string key = wordStr.substr(i, Order); //word.Substring(i, order);
-		AddCharacter(FString(key.c_str()), wordStr[i + Order]);
+		// Each key is a substring from the current index plus the order
+		std::string key = wordStr.substr(i, Order);
+		FString unrealKey = FString(key.c_str());
+		// Now add each character to the array
+		// We add Order to the index to compensate for the underscores we added
+		AddCharacter(unrealKey, wordStr[i + Order]);
 	}
 }
 
@@ -140,7 +160,7 @@ void UProceduralNameGenerator::CalculateProbability()
 			characterArray[i].Probability = characterArray[i].Instances / totalInstances;
 		}
 		characterArray.HeapSort();
-		newChains[kvp.Key] = characterArray;
+		newChains.Add(kvp.Key, characterArray);
 	}
 
 	Chains.Empty();
@@ -167,7 +187,12 @@ FMarkovCharacter* UProceduralNameGenerator::GetCharacterByProbability(FString ke
 	TArray<FMarkovCharacter> chain;
 	if (!Chains.Contains(key))
 	{
+		UE_LOG(LogWorldGen, Warning, TEXT("Chain does not contain %s!"), *key);
 		return NULL;
+	}
+	else
+	{
+		chain = Chains[key];
 	}
 
 	float cumulative = 0;
@@ -197,19 +222,25 @@ FString UProceduralNameGenerator::GenerateRandomWord(TArray<FText> Words, FRando
 	{
 		wordStrings[i] = Words[i].ToString();
 	}
+	for(int i = 0; i < wordStrings.Num(); i++)
+	{
+		UE_LOG(LogWorldGen, Log, TEXT("%d: %s"), i, *wordStrings[i]);
+	}
 	AnalyzeWords(wordStrings, WordOrder);
 	for (int i = 0; i < 64; i++)
 	{
 		FString word = GenerateRandomWord(MinLength, MaxLength, RandomGenerator, bConvertToTitleCase);
+		UE_LOG(LogWorldGen, Log, TEXT("Generated word: %s"), *word);
 		if (word.Len() < MinLength) continue;
 		if (!bMatchWordPattern) return word;
 		if (WordPatterns.Contains(GetWordPattern(word))) return word;
 	}
 
+	UE_LOG(LogWorldGen, Error, TEXT("Could not generate word!"));
 	return FString();
 }
 
-FString UProceduralNameGenerator::GenerateRandomWord(uint8 minLength, uint8 maxLength, FRandomStream RandomGenerator, bool bConvertToTitleCase)
+FString UProceduralNameGenerator::GenerateRandomWord(uint8 minLength, uint8 maxLength, FRandomStream& RandomGenerator, bool bConvertToTitleCase)
 {
 	std::string result;
 
