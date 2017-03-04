@@ -71,9 +71,9 @@ class POLYGONALMAPGENERATOR_API UProceduralNameGenerator : public UBlueprintFunc
 public:
 	//UFUNCTION(BlueprintCallable, Category = "Procedural|Markov Chain")
 	//static TArray<FText> ConvertRiverDataToTextArray()
-	UFUNCTION(BlueprintCallable, Category = "Procedural|Markov Chain")
+	UFUNCTION(BlueprintCallable, Category = "Utilities|Markov Chain")
 	static FString GenerateRandomWord(TArray<FText> Words, FRandomStream RandomGenerator, uint8 WordOrder = 2, uint8 MinLength = 3, uint8 MaxLength = 16, bool bConvertToTitleCase = true, bool bMatchWordPattern = false);
-	UFUNCTION(BlueprintCallable, Category = "Procedural|Markov Chain")
+	UFUNCTION(BlueprintCallable, Category = "Utilities|Markov Chain")
 	static FString UppercaseWords(FString value);
 
 private:
