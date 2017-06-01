@@ -37,7 +37,11 @@ public:
 	// Voronoi edges which connect them.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
 	static void DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapCenter>& Centers, const TArray<FMapEdge>& Edges, int32 MapSize);
-	
+
+	// Draws a triangle using the 3 given points.
+	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
+	static void DrawTriangle(AActor* Actor, FVector PointA, FVector PointB, FVector PointC);
+
 	// Draws all the rivers in our map, as smooth lines.
 	UFUNCTION(BlueprintCallable, Category = "Map Generation|Debug")
 	static void DrawRivers(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* MapGraph, const TArray<URiver*>& Rivers, int32 MapSize);

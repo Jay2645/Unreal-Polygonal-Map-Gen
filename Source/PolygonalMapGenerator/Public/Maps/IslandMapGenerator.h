@@ -10,6 +10,8 @@
 #include "Maps/Moisture/MoistureDistributor.h"
 #include "PolygonalMapHeightmap.h"
 #include "Maps/IslandShapes/RadialIsland.h"
+#include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "IslandMapGenerator.generated.h"
 
 /*
@@ -44,10 +46,12 @@ struct POLYGONALMAPGENERATOR_API FIslandData
 	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
 	TSubclassOf<UElevationDistributor> ElevationDistributor;
 
-
 	// What ElevationDistributor to use.
 	UPROPERTY(Category = "Biomes", BlueprintReadWrite, EditAnywhere)
 	TSubclassOf<UMoistureDistributor> MoistureDistributor;
+	// This is the table of all possible river names.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Biomes")
+	UDataTable* RiverNameTable;
 
 	// The random seed to use for the island.
 	// The same seed will produce the same island.
@@ -215,6 +219,15 @@ public:
 	// Changing these settings will produce different-looking islands.
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
 	FIslandData IslandData;
+
+	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+	UTextureRenderTarget2D* IslandRenderTarget;
+
+	UPROPERTY(Category = "Map", BlueprintReadWrite, EditAnywhere)
+	UMaterialInstanceDynamic* IslandMaterialInstanceDynamic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	UStaticMeshComponent* TestMesh;
 
 protected:
 	// Adds a list of steps that we need to generate our island.

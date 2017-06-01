@@ -4,6 +4,7 @@
 
 #include "Components/ActorComponent.h"
 #include "PolygonMap.h"
+#include "Engine/DataTable.h"
 #include "River.h"
 #include "MoistureDistributor.generated.h"
 
@@ -49,7 +50,9 @@ public:
 	// The maximum width a river can grow to.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rivers")
 	uint8 MaxRiverSize = 4;
-	
+	// This is the table of all possible river names.
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Rivers")
+	UDataTable* RiverNameTable;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Rivers")
 	TArray<URiver*> Rivers;
 

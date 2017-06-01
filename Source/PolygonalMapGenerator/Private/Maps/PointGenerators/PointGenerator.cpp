@@ -15,6 +15,16 @@ bool UPointGenerator::NeedsMoreRandomness()
 	return bNeedsMoreRandomness;
 }
 
+int32 UPointGenerator::MinPoint()
+{
+	return Border;
+}
+
+int32 UPointGenerator::MaxPoint()
+{
+	return MapSize - Border;
+}
+
 bool UPointGenerator::PointIsOnBorder(FVector2D point)
 {
 	if (point.X <= (Border * 2) || point.Y <= (Border * 2))

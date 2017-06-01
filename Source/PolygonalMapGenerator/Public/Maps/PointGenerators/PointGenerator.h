@@ -33,6 +33,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph|Points")
 		bool NeedsMoreRandomness();
 
+	// The lowest possible value our points can reach
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph|Points")
+	virtual int32 MinPoint();
+	// The highest possible value our points can reach
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph|Points")
+	virtual int32 MaxPoint();
+
 	// Will return true if the given point is on or beyond our border.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph|Points")
 		bool PointIsOnBorder(FVector2D point);

@@ -273,6 +273,19 @@ void UMapDebugVisualizer::DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpace
 	}
 }
 
+void UMapDebugVisualizer::DrawTriangle(AActor* Actor, FVector PointA, FVector PointB, FVector PointC)
+{
+	UWorld* world = Actor->GetWorld();
+	if (world == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("World was null!"));
+		return;
+	}
+	DrawDebugLine(world, PointA, PointB, FColor::White);
+	DrawDebugLine(world, PointB, PointC, FColor::White);
+	DrawDebugLine(world, PointC, PointA, FColor::White);
+}
+
 void UMapDebugVisualizer::DrawRivers(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* MapGraph, const TArray<URiver*>& Rivers, int32 MapSize)
 {
 	UWorld* world = Actor->GetWorld();

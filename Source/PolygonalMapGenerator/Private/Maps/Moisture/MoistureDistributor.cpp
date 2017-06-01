@@ -611,6 +611,7 @@ void UMoistureDistributor::CreateRivers(FRandomStream& RandomGenerator)
 						river->MakeTributary();
 					}
 				}
+				river->InitializeRiver(RiverNameTable, RandomGenerator);
 				Rivers.Add(river);
 			}
 			else

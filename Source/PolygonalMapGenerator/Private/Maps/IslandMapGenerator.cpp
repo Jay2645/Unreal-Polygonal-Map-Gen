@@ -13,6 +13,13 @@ AIslandMapGenerator::AIslandMapGenerator()
 	bCurrentStepIsDone = true;
 	bHasGeneratedHeightmap = false;
 
+	TestMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Test Mesh"));
+	this->RootComponent = TestMesh;
+
+	// and finally register the static mesh component
+	TestMesh->RegisterComponent();
+
+
 	MapGraph = CreateDefaultSubobject<UPolygonMap>(TEXT("Polygon Map"));
 }
 
@@ -77,6 +84,7 @@ void AIslandMapGenerator::ResetMap()
 	{
 		MoistureDistributor = NewObject<UMoistureDistributor>(this, IslandData.MoistureDistributor, TEXT("Moisture Distributor"));
 	}
+	MoistureDistributor->RiverNameTable = IslandData.RiverNameTable;
 
 	RandomGenerator.Initialize(IslandData.Seed);
 }
@@ -117,52 +125,45 @@ void AIslandMapGenerator::AddMapSteps_Implementation()
 {
 	UE_LOG(LogWorldGen, Log, TEXT("Generating a new map at %f."), FPlatformTime::Seconds());
 
+	// First step: Reset the map
 	FIslandGeneratorDelegate resetMap;
 	resetMap.BindDynamic(this, &AIslandMapGenerator::ResetMap);
 	AddGenerationStep(resetMap);
 
-	/*if (IslandShape == NULL || PointSelector == NULL)
-	{
-	UE_LOG(LogWorldGen, Error, TEXT("IslandShape or PointSelector were null!"));
-	return;
-	}*/
-
-	// Initialization
+	// Second step: Empty MapGraph and initialize heightmap classes
 	FIslandGeneratorDelegate initialization;
 	initialization.BindDynamic(this, &AIslandMapGenerator::InitializeMapClasses);
 	AddGenerationStep(initialization);
-	//InitializeMap();
 
+	// Place the initial points
 	FIslandGeneratorDelegate buildGraph;
 	buildGraph.BindDynamic(this, &AIslandMapGenerator::BuildGraph);
 	AddGenerationStep(buildGraph);
-	//BuildGraph();
 
+	// Assign elevations to points
 	FIslandGeneratorDelegate assignElevation;
 	assignElevation.BindDynamic(this, &AIslandMapGenerator::AssignElevation);
 	AddGenerationStep(assignElevation);
-	//AssignElevation();
 
+	// Assign moisture to points
 	FIslandGeneratorDelegate assignMoisture;
 	assignMoisture.BindDynamic(this, &AIslandMapGenerator::AssignMoisture);
 	AddGenerationStep(assignMoisture);
-	//AssignMoisture();
 
+	// Do any tasks which are needed after assigning elevation/moisture
 	FIslandGeneratorDelegate postProcess;
 	postProcess.BindDynamic(this, &AIslandMapGenerator::DoPointPostProcess);
 	AddGenerationStep(postProcess);
 
+	// Normalize all values between 0 and 1
 	FIslandGeneratorDelegate normalizePoints;
 	normalizePoints.BindDynamic(this, &AIslandMapGenerator::NormalizePoints);
 	AddGenerationStep(normalizePoints);
 
+	// Work out which points correspond to which biome
 	FIslandGeneratorDelegate determineBiomes;
 	determineBiomes.BindDynamic(this, &AIslandMapGenerator::DetermineBiomes);
 	AddGenerationStep(determineBiomes);
-
-	//FIslandGeneratorDelegate createHeightmap;
-	//createHeightmap.BindDynamic(this, &AIslandMapGenerator::CreateHeightmap);
-	//AddGenerationStep(createHeightmap);
 }
 
 void AIslandMapGenerator::AddGenerationStep(const FIslandGeneratorDelegate step)
@@ -179,7 +180,6 @@ void AIslandMapGenerator::InitializeMapClasses()
 {
 	CurrentGenerationTime = FPlatformTime::Seconds();
 
-	//MapGraph = NewObject<UPolygonMap>();
 	MapGraph->Corners.Empty();
 	MapGraph->Edges.Empty();
 	MapGraph->Centers.Empty();
@@ -437,6 +437,10 @@ void AIslandMapGenerator::CreateHeightmap(const int32 HeightmapSize, const FIsla
 void AIslandMapGenerator::OnHeightmapFinished()
 {
 	bHasGeneratedHeightmap = true;
+	if (TestMesh != NULL)
+	{
+		IslandMaterialInstanceDynamic = TestMesh->CreateAndSetMaterialInstanceDynamic(0);
+	}
 	if (OnHeightmapComplete.IsBound())
 	{
 		OnHeightmapComplete.Execute();

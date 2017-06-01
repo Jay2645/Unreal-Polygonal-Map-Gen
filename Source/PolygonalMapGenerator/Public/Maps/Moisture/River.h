@@ -4,6 +4,8 @@
 
 #include "UObject/NoExportTypes.h"
 #include "PolygonMap.h"
+#include "Engine/DataTable.h"
+#include "RandomStream.h"
 #include "PolygonalMapHeightmap.h"
 #include "River.generated.h"
 
@@ -34,7 +36,6 @@ class POLYGONALMAPGENERATOR_API URiver : public UObject
 {
 	GENERATED_BODY()
 public:
-	URiver();
 	~URiver();
 
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
@@ -42,6 +43,9 @@ public:
 	// A list of all corners making up this River object.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
 	TArray<FMapCorner> RiverCorners;
+	// The name of this River
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "River")
+	FString RiverName;
 	// The MapGraph that serves as the source for all data regarding this river.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Graph")
 	UPolygonMap* MapGraph;
@@ -71,6 +75,10 @@ public:
 	// Be sure to call UpdateEdge() on the UPolygonMap if the edge gets modified.
 	UFUNCTION(BlueprintPure, Category = "River|Graph")
 	FMapEdge GetDownstreamEdge(const int32 Index) const;
+	
+	// Sets the River's name and adds it to the global river lookup
+	UFUNCTION(BlueprintCallable, Category = "River")
+	void InitializeRiver(UDataTable* NameDataTable, FRandomStream& RandomGenerator);
 
 	// Adds a corner to the river.
 	// All points downstream get increased by the IncreaseRiverAmount.
@@ -97,17 +105,15 @@ public:
 
 	FORCEINLINE	bool operator==(const URiver& Other) const
 	{
-		return Other.RiverID == RiverID;		
+		return Other.RiverName.ToLower() == RiverName.ToLower();		
 	}
 
 private:
-	int32 RiverID;
 	//int32 Size;
 	int32 FeederRiverCount;
 	bool bIsTributary;
-
-	static int32 CurrentRiverID;
-	static TMap<int32, URiver*> RiverLookup;
+	
+	static TMap<FString, URiver*> RiverLookup;
 
 	UFUNCTION()
 	void DrawBeizerCurve(UPolygonalMapHeightmap* MapHeightmap, FVector2D v0, FVector2D control0, FVector2D v1, FVector2D control1);

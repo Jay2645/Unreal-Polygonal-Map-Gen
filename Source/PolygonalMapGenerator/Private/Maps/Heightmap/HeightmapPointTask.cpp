@@ -241,7 +241,7 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, TArray<FMapD
 		}
 		else if(PointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome)
 		{
-			FMapCenter center = FHeightmapPointGenerator::MapGraph->FindPolygonLocalSpace(PixelPosition);
+			FMapCenter center = FHeightmapPointGenerator::MapGraph->FindMapCenterForCoordinate(PixelPosition);
 			if (center.Index < 0)
 			{
 				//UE_LOG(LogWorldGen, Warning, TEXT("Could not find polygon! Returning what we have."));
@@ -254,7 +254,7 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, TArray<FMapD
 	}
 	else if(PointSelectionMode == EPointSelectionMode::UsePolygon)
 	{
-		FMapCenter center = FHeightmapPointGenerator::MapGraph->FindPolygonLocalSpace(PixelPosition);
+		FMapCenter center = FHeightmapPointGenerator::MapGraph->FindMapCenterForCoordinate(PixelPosition);
 		if (center.Index < 0)
 		{
 			//UE_LOG(LogWorldGen, Warning, TEXT("Could not find polygon! Returning blank FMapData!"));

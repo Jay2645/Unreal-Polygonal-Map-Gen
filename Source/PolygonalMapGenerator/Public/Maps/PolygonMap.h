@@ -409,6 +409,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Island Generation")
 	static FVector ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize);
 
+	static FVector2D ConvertWorldPointToGraphSpace(const FVector WorldPoint, const FWorldSpaceMapData& WorldData, int32 MapSize);
+
 	// This takes a 2D point and returns a copy of the polygon encompassing that point.
 	// If no polygon can be found, an empty MapCenter will be returned.
 	// This empty MapCenter will have an index of -1.
@@ -418,12 +420,16 @@ public:
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapCenter FindPolygonLocalSpace(const FVector2D& Point) const;
+	FMapCenter FindMapCenterForCoordinate(const FVector2D& Point) const;
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	FMapCorner FindMapCornerForCoordinate(const FVector2D& Point) const;
 
 	// Checks if a given MapCenter polygon contains a 2D point.
 	// If it does, this function returns true. Otherwise, it returns false.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	bool PolygonContainsPoint(const FVector2D& Point, const FMapCenter& Center) const;
+	bool CenterContainsPoint(const FVector2D& Point, const FMapCenter& Center) const;
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	bool CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const;
 
 	/// Graph Data
 	// The points in our graph
@@ -465,6 +471,11 @@ private:
 	// A map of corners connected to their location
 	UPROPERTY()
 	TMap<FVector2D, int32> CornerLookup;
+
+	UPROPERTY()
+	int32 MinPointLocation;
+	UPROPERTY()
+	int32 MaxPointLocation;
 
 	// Returns true if 2 segments are intersecting, otherwise returns false.
 	UFUNCTION()

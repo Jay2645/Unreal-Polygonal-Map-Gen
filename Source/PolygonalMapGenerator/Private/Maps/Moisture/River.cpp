@@ -2,17 +2,10 @@
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
 #include "MapDataHelper.h"
+#include "Naming/ProceduralNameGenerator.h"
 #include "River.h"
 
-int URiver::CurrentRiverID = 0;
-TMap<int32, URiver*> URiver::RiverLookup = TMap<int32, URiver*>();
-
-URiver::URiver()
-{
-	RiverID = CurrentRiverID;
-	CurrentRiverID++;
-	RiverLookup.Add(RiverID, this);
-}
+TMap<FString, URiver*> URiver::RiverLookup = TMap<FString, URiver*>();
 
 URiver::~URiver()
 {
@@ -73,6 +66,46 @@ FMapEdge URiver::GetDownstreamEdge(const int32 Index) const
 	{
 		return MapGraph->FindEdgeFromCorners(RiverCorners[Index], RiverCorners[Index + 1]);
 	}
+}
+
+void URiver::InitializeRiver(UDataTable* NameDataTable, FRandomStream& RandomGenerator)
+{
+	TArray<FText> textArray;
+	FString contextString;
+	TArray<FName> rowNames;
+	rowNames = NameDataTable->GetRowNames();
+
+	for ( auto& name : rowNames )
+	{
+		FMarkovData* row = NameDataTable->FindRow<FMarkovData>(name, contextString);
+		if (row)
+		{
+			FText rowText = row->MarkovText;
+			textArray.Add(rowText);
+		}
+	}
+	
+	const uint8 randomOrder = 2;
+	const uint8 minLength = 3;
+	const uint8 maxLength = 16;
+	const bool bConvertToTitleCase = true;
+	const bool bUseNamePattern = false;
+	
+	RiverName = UProceduralNameGenerator::GenerateRandomWord(textArray, RandomGenerator, randomOrder, minLength, maxLength, bConvertToTitleCase, bUseNamePattern);
+	FString lastAttempt = RiverName;
+	while(RiverLookup.Contains(RiverName))
+	{
+		int32 nextSeed = RandomGenerator.RandRange(0, 2147483647);
+		RandomGenerator.Initialize(nextSeed);
+		RiverName = UProceduralNameGenerator::GenerateRandomWord(textArray, RandomGenerator, randomOrder, minLength, maxLength, bConvertToTitleCase, bUseNamePattern);
+		if (RiverName.Equals(lastAttempt))
+		{
+			UE_LOG(LogWorldGen, Error, TEXT("Generated the same name (%s) twice in a row! Random seed: %d"), *lastAttempt, nextSeed);
+			break;
+		}
+		lastAttempt = RiverName;
+	}
+	RiverLookup.Add(RiverName, this);
 }
 
 FMapCorner URiver::AddCorner(FMapCorner Corner, const int32 IncreaseRiverAmount /*= 1*/)

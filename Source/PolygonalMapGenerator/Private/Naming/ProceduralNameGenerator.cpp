@@ -223,18 +223,24 @@ FString UProceduralNameGenerator::GenerateRandomWord(TArray<FText> Words, FRando
 	{
 		wordStrings[i] = Words[i].ToString();
 	}
-	for(int i = 0; i < wordStrings.Num(); i++)
-	{
-		UE_LOG(LogWorldGen, Log, TEXT("%d: %s"), i, *wordStrings[i]);
-	}
 	AnalyzeWords(wordStrings, WordOrder);
 	for (int i = 0; i < 64; i++)
 	{
 		FString word = GenerateRandomWord(MinLength, MaxLength, RandomGenerator, bConvertToTitleCase);
-		UE_LOG(LogWorldGen, Log, TEXT("Generated word: %s"), *word);
-		if (word.Len() < MinLength) continue;
-		if (!bMatchWordPattern) return word;
-		if (WordPatterns.Contains(GetWordPattern(word))) return word;
+		if (word.Len() < MinLength)
+		{
+			continue;
+		}
+		if (!bMatchWordPattern)
+		{
+			UE_LOG(LogWorldGen, Log, TEXT("Generated word: %s"), *word);
+			return word;
+		}
+		if (WordPatterns.Contains(GetWordPattern(word)))
+		{
+			UE_LOG(LogWorldGen, Log, TEXT("Generated word: %s"), *word);
+			return word;
+		}
 	}
 
 	UE_LOG(LogWorldGen, Error, TEXT("Could not generate word!"));

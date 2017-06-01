@@ -1,6 +1,7 @@
 // Original Work Copyright (c) 2010 Amit J Patel, Modified Work Copyright (c) 2016 Jay M Stevens
 
 #include "PolygonalMapGeneratorPrivatePCH.h"
+#include "Maps/PointGenerators/PointGenerator.h"
 #include "Maps/PolygonMap.h"
 #include "MapDebugVisualizer.h"
 #include "Maps/MapDataHelper.h"
@@ -14,8 +15,11 @@ void UPolygonMap::CreatePoints(UPointGenerator* pointSelector, const int32& numb
 	{
 		return;
 	}
+
 	PointSelector = pointSelector;
 	Points = PointSelector->GeneratePoints(numberOfPoints);
+	MinPointLocation = PointSelector->MinPoint();
+	MaxPointLocation = PointSelector->MaxPoint();
 }
 
 void UPolygonMap::BuildGraph(const int32& mapSize, const FWorldSpaceMapData& data)
@@ -383,6 +387,17 @@ void UPolygonMap::CompileMapData()
 	}
 }
 
+FVector2D UPolygonMap::ConvertWorldPointToGraphSpace(const FVector WorldPoint, const FWorldSpaceMapData& WorldData, int32 MapSize)
+{
+	float xyScale = WorldData.XYScaleFactor / MapSize;
+
+	FVector2D graphLocation = FVector2D::ZeroVector;
+	graphLocation.X = WorldPoint.X / MapSize / xyScale;
+	graphLocation.Y = WorldPoint.Y / MapSize / xyScale;
+
+	return graphLocation;
+}
+
 FVector UPolygonMap::ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize)
 {
 	float elevationOffset = WorldData.ElevationOffset;
@@ -397,12 +412,17 @@ FVector UPolygonMap::ConvertGraphPointToWorldSpace(const FMapData& MapData, cons
 	return worldLocation;
 }
 
-FMapCenter UPolygonMap::FindPolygonLocalSpace(const FVector2D& Point) const
+FMapCenter UPolygonMap::FindMapCenterForCoordinate(const FVector2D& Point) const
 {
+	if (Point.X > MaxPointLocation || Point.Y > MaxPointLocation || Point.X < MinPointLocation || Point.Y < MinPointLocation)
+	{
+		// Point out of bounds
+		return FMapCenter();
+	}
 	for (int i = 0; i < Centers.Num(); i++)
 	{
 		FMapCenter center = Centers[i];
-		if (PolygonContainsPoint(Point, center))
+		if (CenterContainsPoint(Point, center))
 		{
 			return center;
 		}
@@ -410,7 +430,27 @@ FMapCenter UPolygonMap::FindPolygonLocalSpace(const FVector2D& Point) const
 	return FMapCenter();
 }
 
-bool UPolygonMap::PolygonContainsPoint(const FVector2D& Point, const FMapCenter& Center) const
+FMapCorner UPolygonMap::FindMapCornerForCoordinate(const FVector2D& Point) const
+{
+	if (Point.X > MaxPointLocation || Point.Y > MaxPointLocation || Point.X < MinPointLocation || Point.Y < MinPointLocation)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Point out of bounds: (%f, %f)."), Point.X, Point.Y);
+		// Point out of bounds
+		return FMapCorner();
+	}
+	for (int i = 0; i < Corners.Num(); i++)
+	{
+		FMapCorner corner = Corners[i];
+		if (CornerContainsPoint(Point, corner))
+		{
+			return corner;
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("No polygon found for point: (%f, %f)."), Point.X, Point.Y);
+	return FMapCorner();
+}
+
+bool UPolygonMap::CenterContainsPoint(const FVector2D& Point, const FMapCenter& Center) const
 {
 	float minX = Center.CenterData.Point.X;
 	float maxX = Center.CenterData.Point.X;
@@ -460,6 +500,44 @@ bool UPolygonMap::PolygonContainsPoint(const FVector2D& Point, const FMapCenter&
 	}
 	
 	return (intersections & 1) == 1; // True if point is odd (inside of polygon)
+}
+
+bool UPolygonMap::CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const
+{
+	if (Corner.Touches.Num() != 3)
+	{
+		return false;
+	}
+	FVector2D p1 = GetCenter(Corner.Touches[0]).CenterData.Point;
+	FVector2D p2 = GetCenter(Corner.Touches[1]).CenterData.Point;
+	FVector2D p3 = GetCenter(Corner.Touches[2]).CenterData.Point;
+
+	float y1 = p1.Y;
+	float y2 = p2.Y;
+	float y3 = p3.Y;
+
+	float x1 = p1.X;
+	float x2 = p2.X;
+	float x3 = p3.X;
+
+	// Calculate determinant
+	float det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+	if (det == 0.0f)
+	{
+		// Shouldn't happen, but okay
+		return false;
+	}
+
+	float x = Point.X;
+	float y = Point.Y;
+
+	// https://stackoverflow.com/questions/36090269/finding-height-of-point-on-height-map-triangles
+	float a = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
+	float b = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
+	float c = 1 - a - b;
+
+	// p lies in T if and only if 0 <= a <= 1 and 0 <= b <= 1 and 0 <= c <= 1
+	return 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= c && c <= 1;
 }
 
 // The main function that returns true if line segment 'p1q1'
