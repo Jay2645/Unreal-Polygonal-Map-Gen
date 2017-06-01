@@ -75,9 +75,9 @@ The actual map generation works by generating an array of points using a user-sp
 
 Once a map is created, it will generate 3 different arrays:
 
-* `FMapCenter`: This is the "center" of our polygon, and for all intents and purposes is treated as it being a polygon itself.
+* `FMapCenter`: This is the "center" of our polygon, and for all intents and purposes is treated as it being a polygon itself. This polygon can have any number (>=3) of sides, the vertices of which are contained in the `Corners` array.
 
-* `FMapCorner`: This is a "vertex" of our polygon, which runs along the edge of the polygon. Rivers and such flow from FMapCorner to FMapCorner.
+* `FMapCorner`: This is a "vertex" of our polygon, which runs along the edge of the polygon. Rivers and such flow from FMapCorner to FMapCorner. A valid `FMapCorner` will ALWAYS be bordered by 3 `FMapCenter` structures, accessible from the `Touches` array. This means that a `FMapCorner` structure can be roughly associated with a triangle, with the three `FMapCenter` structures acting as vertices.
 
 * `FMapEdge`: This is a helper class, and contains details on two different graphs. The Delaunay Triangulation can be found by looking at the DelaunayEdge, linking together two neighboring FMapCenters. The Voronoi Diagram can be found by looking at the VoronoiEdge, linking together two neighboring FMapCorners. Note that the order in which Center/Corner comes first cannot be guaranteed; sometimes it may be left-to-right, while other times it may be right-to-left.
 
@@ -122,3 +122,7 @@ Also used is a noise generator, which is heavily based on the [Jordan Peck's Fas
 * More in-editor visualizations would be nice -- for example, seeing a view of the moisture distribution, or what biomes are where, or general debugging stuff like that.
 
 * There should be a way to have the generator select a number of "player start" positions, so that the player always gets placed in a playable spot.
+
+* Some of the map needs to be "cleaned up" -- there are random "spikes" which randomly occur along water edges for some reason, as an example.
+
+* I still don't like how UPolygonMap handles its graph data objects. Essentially, right now everything is stored as an index to an array contained within the UPolygonMap object. I'd like to have them all be pointers to the actual elements in that array, but as it stands Unreal's `TArray` class (to my knowledge) doesn't support that behavior. Everything is thus accessed by indices to avoid any problems with mistakenly "cloning" graph objects.
