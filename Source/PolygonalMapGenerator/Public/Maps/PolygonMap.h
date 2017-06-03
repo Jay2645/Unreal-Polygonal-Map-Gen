@@ -362,6 +362,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Island Generation|MapData")
 	TArray<FMapData>& GetAllMapData();
 
+	// This returns a copy of the FMapCorner array.
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	TArray<FMapCorner> GetCopyOfMapCornerArray();
+
 	// Gets a list of all MapCorners which are not marked as ocean.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	TArray<int32> FindLandCorners() const;
@@ -431,25 +435,26 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	bool CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const;
 
+private:
+
 	/// Graph Data
 	// The points in our graph
 	// I don't like this implementation, and it may be changed in the future.
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph", meta = (AllowPrivateAccess = "true"))
 	TArray<FVector2D> Points;
 	// The Centers in our graph
 	// I don't like this implementation, and it may be changed in the future.
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph", meta = (AllowPrivateAccess = "true"))
 	TArray<FMapCenter> Centers;
 	// The Corners in our graph
 	// I don't like this implementation, and it may be changed in the future.
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph", meta = (AllowPrivateAccess = "true"))
 	TArray<FMapCorner> Corners;
 	// The Edges of our graph
 	// I don't like this implementation, and it may be changed in the future.
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Graph", meta = (AllowPrivateAccess = "true"))
 	TArray<FMapEdge> Edges;
 
-private:
 	// This variable generates our initial points
 	UPROPERTY()
 	UPointGenerator* PointSelector;

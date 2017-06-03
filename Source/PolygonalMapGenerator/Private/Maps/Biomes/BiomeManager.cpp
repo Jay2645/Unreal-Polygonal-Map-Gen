@@ -32,6 +32,11 @@ FGameplayTag UBiomeManager::DetermineBiome_Implementation(const FMapData& MapDat
 	//UE_LOG(LogWorldGen, Warning, TEXT("Beginning new point: %f, %f"), MapData.Point.X, MapData.Point.Y); 
 	for (int i = 0; i < Biomes.Num(); i++)
 	{
+		if (!Biomes[i].BiomeTag.IsValid())
+		{
+			UE_LOG(LogWorldGen, Error, TEXT("Biome number %d in the biome generator has an invalid tag!"), i);
+			continue;
+		}
 		// If we don't allow snow and this is a frozen biome, continue
 		if (!bAllowSnow && Biomes[i].BiomeTag.MatchesTag(FGameplayTag::RequestGameplayTag(TEXT("MapData.Biome.Frozen"))))
 		{

@@ -442,7 +442,7 @@ void UMoistureDistributor::CreateRivers(FRandomStream& RandomGenerator)
 	// Create rivers along edges. Pick a random corner point, then
 	// move downslope. Mark the edges and corners as rivers.
 	TArray<FMapCorner> cornerList;
-	cornerList.Append(MapGraph->Corners);
+	cornerList.Append(MapGraph->GetCopyOfMapCornerArray());
 	while (Rivers.Num() < RiverCount)
 	{
 		if (cornerList.Num() == 0)
@@ -782,11 +782,21 @@ void UMoistureDistributor::AssignCornerMoisture()
 		MapGraph->UpdateCorner(corner);
 	}
 
+	if (ExtraMoisture != 0.0f)
+	{
+		for (int i = 0; i < MapGraph->GetCornerNum(); i++)
+		{
+			FMapCorner corner = MapGraph->GetCorner(i);
+			corner.CornerData.Moisture = FMath::Clamp(corner.CornerData.Moisture + ExtraMoisture, 0.0f, 1.0f);
+			MapGraph->UpdateCorner(corner);
+		}
+	}
+
 	// Saltwater
 	for (int i = 0; i < MapGraph->GetCornerNum(); i++)
 	{
 		FMapCorner corner = MapGraph->GetCorner(i);
-		if (UMapDataHelper::IsCoast(corner.CornerData) || UMapDataHelper::IsOcean(corner.CornerData))
+		if (UMapDataHelper::IsCoast(corner.CornerData) || (UMapDataHelper::IsWater(corner.CornerData) && !UMapDataHelper::IsRiver(corner.CornerData)))
 		{
 			corner.CornerData.Moisture = 1.0f;
 			MapGraph->UpdateCorner(corner);

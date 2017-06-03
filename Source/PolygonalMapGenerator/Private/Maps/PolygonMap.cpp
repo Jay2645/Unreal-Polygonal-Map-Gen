@@ -298,6 +298,7 @@ void UPolygonMap::UpdateCorner(const FMapCorner& corner)
 	{
 		return;
 	}
+	checkf(!(Corners[corner.Index].CornerData.Biome.IsValid() && !corner.CornerData.Biome.IsValid()), TEXT("Attempted to set corner %d from biome %s to an invalid biome!"), corner.Index, *Corners[corner.Index].CornerData.Biome.ToString())
 	Corners[corner.Index] = corner;
 }
 void UPolygonMap::UpdateEdge(const FMapEdge& edge)
@@ -374,6 +375,11 @@ TArray<FMapData>& UPolygonMap::GetAllMapData()
 	return CachedMapData;
 }
 
+TArray<FMapCorner> UPolygonMap::GetCopyOfMapCornerArray()
+{
+	return Corners;
+}
+
 void UPolygonMap::CompileMapData()
 {
 	CachedMapData.Empty();
@@ -434,19 +440,25 @@ FMapCorner UPolygonMap::FindMapCornerForCoordinate(const FVector2D& Point) const
 {
 	if (Point.X > MaxPointLocation || Point.Y > MaxPointLocation || Point.X < MinPointLocation || Point.Y < MinPointLocation)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Point out of bounds: (%f, %f)."), Point.X, Point.Y);
+		UE_LOG(LogWorldGen, Warning, TEXT("Point out of bounds: (%f, %f)."), Point.X, Point.Y);
 		// Point out of bounds
 		return FMapCorner();
 	}
 	for (int i = 0; i < Corners.Num(); i++)
 	{
 		FMapCorner corner = Corners[i];
+		if (!corner.CornerData.Biome.IsValid())
+		{
+			UE_LOG(LogWorldGen, Error, TEXT("Corner %d has an invalid biome!"), i);
+			break;
+		}
 		if (CornerContainsPoint(Point, corner))
 		{
+			UE_LOG(LogWorldGen, Warning, TEXT("Corner %d biome: %s"), i, *corner.CornerData.Biome.ToString());
 			return corner;
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("No polygon found for point: (%f, %f)."), Point.X, Point.Y);
+	UE_LOG(LogWorldGen, Warning, TEXT("No polygon found for point: (%f, %f)."), Point.X, Point.Y);
 	return FMapCorner();
 }
 

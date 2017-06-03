@@ -401,6 +401,12 @@ void AIslandMapGenerator::DetermineBiomes()
 	{
 		FMapCorner corner = GetCorner(i);
 		FGameplayTag biome = BiomeManager->DetermineBiome(corner.CornerData);
+		if (!biome.IsValid())
+		{
+			UE_LOG(LogWorldGen, Error, TEXT("Invalid tag! Point: (%f, %f); Elevation: %f; Moisture: %f"), corner.CornerData.Point.X, corner.CornerData.Point.Y, corner.CornerData.Elevation, corner.CornerData.Moisture);
+			continue;
+		}
+		UE_LOG(LogTemp, Log, TEXT("Biome for corner %d: %s"), i, *biome.ToString());
 		corner.CornerData.Biome = biome;
 		UpdateCorner(corner);
 	}
@@ -409,6 +415,11 @@ void AIslandMapGenerator::DetermineBiomes()
 	{
 		FMapCenter center = GetCenter(i);
 		FGameplayTag biome = BiomeManager->DetermineBiome(center.CenterData);
+		if (!biome.IsValid())
+		{
+			UE_LOG(LogWorldGen, Error, TEXT("Invalid tag! Point: (%f, %f); Elevation: %f; Moisture: %f"), center.CenterData.Point.X, center.CenterData.Point.Y, center.CenterData.Elevation, center.CenterData.Moisture);
+			continue;
+		}
 		center.CenterData.Biome = biome;
 		UpdateCenter(center);
 	}

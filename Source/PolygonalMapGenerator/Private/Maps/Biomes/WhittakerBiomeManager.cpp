@@ -176,6 +176,11 @@ UWhittakerBiomeManager::UWhittakerBiomeManager()
 
 EWhittakerBiome UWhittakerBiomeManager::ConvertToWhittakerBiomeEnum(const FGameplayTag& BiomeName)
 {
+	if (!BiomeName.IsValid())
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("Invalid biome! Defaulting to ocean."));
+		return EWhittakerBiome::Ocean;
+	}
 	if (BiomeEnumMap.Contains(BiomeName))
 	{
 		return BiomeEnumMap[BiomeName];

@@ -17,6 +17,11 @@ class POLYGONALMAPGENERATOR_API UMoistureDistributor : public UActorComponent
 {
 	GENERATED_BODY()
 public:
+	// This adds a "base" level of moisture to every point in the map.
+	// If you want to simulate a wetter climate, this is what you would set.
+	// If you want to simulate a drier climate, you would set this to a negative number.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Biome", meta = (ClampMin = "-1.0", ClampMax = "1.0"))
+	float ExtraMoisture = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lakes", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float LakeThreshold = 0.9f;
 	// The maximum number of rivers in this map.

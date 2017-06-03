@@ -9,7 +9,7 @@ TMap<FString, URiver*> URiver::RiverLookup = TMap<FString, URiver*>();
 
 URiver::~URiver()
 {
-	Clear();
+	//Clear();
 }
 
 bool URiver::IsTributary() const
@@ -186,7 +186,7 @@ void URiver::Clear()
 {
 	for (int i = 0; i < RiverCorners.Num(); i++)
 	{
-		FMapCorner corner = RiverCorners[i];
+		FMapCorner corner = MapGraph->GetCorner(RiverCorners[i].Index);
 		corner.RiverIndex = -1;
 		corner.River = NULL;
 		corner.RiverSize -= 1;
