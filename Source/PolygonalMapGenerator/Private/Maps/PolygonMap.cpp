@@ -25,7 +25,7 @@ void UPolygonMap::CreatePoints(UPointGenerator* pointSelector, const int32& numb
 void UPolygonMap::BuildGraph(const int32& mapSize, const FWorldSpaceMapData& data)
 {
 	MapSize = mapSize;
-	MapData = data;
+	WorldData = data;
 	Voronoi voronoi(Points);
 	for (int i = 0; i < voronoi.sites.Num(); i++)
 	{
@@ -380,6 +380,16 @@ TArray<FMapCorner> UPolygonMap::GetCopyOfMapCornerArray()
 	return Corners;
 }
 
+TArray<FMapEdge> UPolygonMap::GetCopyOfMapEdgeArray()
+{
+	return Edges;
+}
+
+TArray<FMapCenter> UPolygonMap::GetCopyOfMapCenterArray()
+{
+	return Centers;
+}
+
 void UPolygonMap::CompileMapData()
 {
 	CachedMapData.Empty();
@@ -393,73 +403,92 @@ void UPolygonMap::CompileMapData()
 	}
 }
 
-FVector2D UPolygonMap::ConvertWorldPointToGraphSpace(const FVector WorldPoint, const FWorldSpaceMapData& WorldData, int32 MapSize)
+FVector2D UPolygonMap::ConvertWorldPointToGraphSpace(const FVector WorldPoint)
 {
-	float xyScale = WorldData.XYScaleFactor / MapSize;
 
 	FVector2D graphLocation = FVector2D::ZeroVector;
-	graphLocation.X = WorldPoint.X / MapSize / xyScale;
-	graphLocation.Y = WorldPoint.Y / MapSize / xyScale;
+	graphLocation.X = WorldPoint.X / WorldData.XYScaleFactor;
+	graphLocation.Y = WorldPoint.Y / WorldData.XYScaleFactor;
 
 	return graphLocation;
 }
 
-FVector UPolygonMap::ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize)
+FVector UPolygonMap::ConvertGraphPointToWorldSpace(const FMapData& MapPointData)
 {
-	float elevationOffset = WorldData.ElevationOffset;
-	float xyScale = WorldData.XYScaleFactor / MapSize;
-	float elevationScale = WorldData.ElevationScale;
-
 	FVector worldLocation = FVector::ZeroVector;
-	worldLocation.X = MapData.Point.X * MapSize * xyScale;
-	worldLocation.Y = MapData.Point.Y * MapSize * xyScale;
-	worldLocation.Z = (MapData.Elevation * elevationScale) + elevationOffset;
+	worldLocation.X = MapPointData.Point.X *  WorldData.XYScaleFactor;
+	worldLocation.Y = MapPointData.Point.Y *  WorldData.XYScaleFactor;
+	worldLocation.Z = (MapPointData.Elevation * WorldData.ElevationScale) + WorldData.ElevationOffset;
 
 	return worldLocation;
 }
 
-FMapCenter UPolygonMap::FindMapCenterForCoordinate(const FVector2D& Point) const
+FMapCenter UPolygonMap::FindMapCenterForCoordinate(const FVector2D& Point)
 {
 	if (Point.X > MaxPointLocation || Point.Y > MaxPointLocation || Point.X < MinPointLocation || Point.Y < MinPointLocation)
 	{
 		// Point out of bounds
 		return FMapCenter();
 	}
+
+	FVector2D intMapCoordinates = Point;
+	intMapCoordinates.X = FMath::RoundToInt(Point.X);
+	intMapCoordinates.Y = FMath::RoundToInt(Point.Y);
+	if (CenterLookup.Contains(intMapCoordinates))
+	{
+		return GetCenter(CenterLookup[intMapCoordinates]);
+	}
+
+	FMapCenter center = FMapCenter();
 	for (int i = 0; i < Centers.Num(); i++)
 	{
-		FMapCenter center = Centers[i];
-		if (CenterContainsPoint(Point, center))
+		if (CenterContainsPoint(Point, Centers[i]))
 		{
-			return center;
+			center = Centers[i];
+			break;
 		}
 	}
-	return FMapCenter();
+
+	CenterLookup.Add(intMapCoordinates, center.Index);
+	return center;
 }
 
-FMapCorner UPolygonMap::FindMapCornerForCoordinate(const FVector2D& Point) const
+FMapCorner UPolygonMap::FindMapCornerForCoordinate(const FVector2D& Point)
 {
 	if (Point.X > MaxPointLocation || Point.Y > MaxPointLocation || Point.X < MinPointLocation || Point.Y < MinPointLocation)
 	{
-		UE_LOG(LogWorldGen, Warning, TEXT("Point out of bounds: (%f, %f)."), Point.X, Point.Y);
-		// Point out of bounds
+		// Point out of bounds; don't even bother putting it in the cache
 		return FMapCorner();
 	}
+
+	FVector2D intMapCoordinates = Point;
+	intMapCoordinates.X = FMath::RoundToInt(Point.X);
+	intMapCoordinates.Y = FMath::RoundToInt(Point.Y);
+	if (CornerLookup.Contains(intMapCoordinates))
+	{
+		return GetCorner(CornerLookup[intMapCoordinates]);
+	}
+
+	FMapCorner corner = FMapCorner();
 	for (int i = 0; i < Corners.Num(); i++)
 	{
-		FMapCorner corner = Corners[i];
-		if (!corner.CornerData.Biome.IsValid())
+		if (CornerContainsPoint(Point, Corners[i]))
 		{
-			UE_LOG(LogWorldGen, Error, TEXT("Corner %d has an invalid biome!"), i);
+			corner = Corners[i];
+			if (corner.Touches.Num() == 0)
+			{
+				corner = FMapCorner();
+			}
+			else if (corner.Touches.Num() != 3)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Polygon at coordinates (%f, %f) was not a triangle (%d vertices)."), intMapCoordinates.X, intMapCoordinates.Y, corner.Touches.Num());
+				corner = FMapCorner();
+			}
 			break;
 		}
-		if (CornerContainsPoint(Point, corner))
-		{
-			UE_LOG(LogWorldGen, Warning, TEXT("Corner %d biome: %s"), i, *corner.CornerData.Biome.ToString());
-			return corner;
-		}
 	}
-	UE_LOG(LogWorldGen, Warning, TEXT("No polygon found for point: (%f, %f)."), Point.X, Point.Y);
-	return FMapCorner();
+	CornerLookup.Add(intMapCoordinates, corner.Index);
+	return corner;
 }
 
 bool UPolygonMap::CenterContainsPoint(const FVector2D& Point, const FMapCenter& Center) const

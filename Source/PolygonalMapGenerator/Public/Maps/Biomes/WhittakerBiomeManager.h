@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Maps/Biomes/BiomeManager.h"
+#include "Maps/PolygonMap.h"
 #include "WhittakerBiomeManager.generated.h"
 
 /**
@@ -85,6 +86,16 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Biome")
 	EWhittakerBiome ConvertToWhittakerBiomeEnum(const FGameplayTag& BiomeName);
 
+	UFUNCTION(BlueprintPure, Category = "Biome")
+	EWhittakerBiome LookupWhittakerBiome(const FMapData& MapData);
+
+	UFUNCTION(BlueprintPure, Category = "Biome")
+	EWhittakerBiome WhittakerBiomeFromWorldPoint(UPolygonMap* MapGraph, const FVector& WorldPoint);
+
+	UFUNCTION(BlueprintPure, Category = "Biome")
+	EWhittakerBiome WhittakerBiomeFromGraphPoint(UPolygonMap* MapGraph, const FVector2D& GraphPoint);
+
 protected:
 	TMap<FGameplayTag, EWhittakerBiome> BiomeEnumMap;
+	TMap<FVector2D, EWhittakerBiome> LocationLookup;
 };

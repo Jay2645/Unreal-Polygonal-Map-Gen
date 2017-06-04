@@ -191,3 +191,25 @@ EWhittakerBiome UWhittakerBiomeManager::ConvertToWhittakerBiomeEnum(const FGamep
 		return EWhittakerBiome::Ocean;
 	}
 }
+
+EWhittakerBiome UWhittakerBiomeManager::LookupWhittakerBiome(const FMapData& MapData)
+{
+	return ConvertToWhittakerBiomeEnum(MapData.Biome);
+}
+
+EWhittakerBiome UWhittakerBiomeManager::WhittakerBiomeFromGraphPoint(UPolygonMap* MapGraph, const FVector2D& GraphPoint)
+{
+	FMapCenter center = MapGraph->FindMapCenterForCoordinate(GraphPoint);
+	if (center.Index < 0)
+	{
+		// Invalid center, probably out of bounds
+		return EWhittakerBiome::Ocean;
+	}
+	return ConvertToWhittakerBiomeEnum(center.CenterData.Biome);
+}
+
+EWhittakerBiome UWhittakerBiomeManager::WhittakerBiomeFromWorldPoint(UPolygonMap* MapGraph, const FVector& WorldPoint)
+{
+	FVector2D graphPoint = MapGraph->ConvertWorldPointToGraphSpace(WorldPoint);
+	return WhittakerBiomeFromGraphPoint(MapGraph, graphPoint);
+}

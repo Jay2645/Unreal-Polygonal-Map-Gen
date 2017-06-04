@@ -88,7 +88,7 @@ void UMapDebugVisualizer::DrawDebugPixelRivers(AActor* Actor, const FWorldSpaceM
 	}
 }
 
-void UMapDebugVisualizer::DrawDebugVoronoiGrid(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapCorner>& Corners, const TArray<FMapEdge>& Edges, int32 MapSize)
+void UMapDebugVisualizer::DrawDebugVoronoiGrid(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* PolygonMap)
 {
 	UWorld* world = Actor->GetWorld();
 	if (world == NULL)
@@ -96,6 +96,8 @@ void UMapDebugVisualizer::DrawDebugVoronoiGrid(AActor* Actor, const FWorldSpaceM
 		UE_LOG(LogWorldGen, Error, TEXT("World was null!"));
 		return;
 	}
+
+	TArray<FMapCorner> Corners = PolygonMap->GetCopyOfMapCornerArray();
 
 	for (int i = 0; i < Corners.Num(); i++)
 	{
@@ -124,10 +126,11 @@ void UMapDebugVisualizer::DrawDebugVoronoiGrid(AActor* Actor, const FWorldSpaceM
 			color = FColor(87, 133, 209);
 		}
 
-		FVector worldLocation = UPolygonMap::ConvertGraphPointToWorldSpace(mapData, MapData, MapSize);
+		FVector worldLocation = PolygonMap->ConvertGraphPointToWorldSpace(mapData);
 		DrawDebugSphere(world, worldLocation, MapData.PointSize, 4, color, true);
 	}
 
+	TArray<FMapEdge> Edges = PolygonMap->GetCopyOfMapEdgeArray();
 	for (int i = 0; i < Edges.Num(); i++)
 	{
 		int32 worldIndex0;
@@ -139,7 +142,7 @@ void UMapDebugVisualizer::DrawDebugVoronoiGrid(AActor* Actor, const FWorldSpaceM
 			continue;
 		}
 		FMapData v0Data = Corners[worldIndex0].CornerData;
-		FVector worldVertex0 = UPolygonMap::ConvertGraphPointToWorldSpace(v0Data, MapData, MapSize);
+		FVector worldVertex0 = PolygonMap->ConvertGraphPointToWorldSpace(v0Data);
 
 		worldIndex1 = Edges[i].VoronoiEdge1;
 		if (worldIndex1 < 0)
@@ -147,7 +150,7 @@ void UMapDebugVisualizer::DrawDebugVoronoiGrid(AActor* Actor, const FWorldSpaceM
 			continue;
 		}
 		FMapData v1Data = Corners[worldIndex1].CornerData;
-		FVector worldVertex1 = UPolygonMap::ConvertGraphPointToWorldSpace(v1Data, MapData, MapSize);
+		FVector worldVertex1 = PolygonMap->ConvertGraphPointToWorldSpace(v1Data);
 
 		FColor color = FColor(255, 255, 255);
 		if (UMapDataHelper::IsBorder(v0Data) || UMapDataHelper::IsBorder(v1Data))
@@ -175,7 +178,7 @@ void UMapDebugVisualizer::DrawDebugVoronoiGrid(AActor* Actor, const FWorldSpaceM
 	}
 }
 
-void UMapDebugVisualizer::DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapCenter>& Centers, const TArray<FMapEdge>& Edges, int32 MapSize)
+void UMapDebugVisualizer::DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* PolygonMap)
 {
 	UWorld* world = Actor->GetWorld();
 	if (world == NULL)
@@ -184,6 +187,7 @@ void UMapDebugVisualizer::DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpace
 		return;
 	}
 
+	TArray<FMapCenter> Centers = PolygonMap->GetCopyOfMapCenterArray();
 	// Draw centers
 	for (int i = 0; i < Centers.Num(); i++)
 	{
@@ -207,11 +211,12 @@ void UMapDebugVisualizer::DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpace
 			color = FColor(0, 255, 255);
 		}
 
-		FVector worldLocation = UPolygonMap::ConvertGraphPointToWorldSpace(mapData, MapData, MapSize);
+		FVector worldLocation = PolygonMap->ConvertGraphPointToWorldSpace(mapData);
 		DrawDebugSphere(world, worldLocation, MapData.PointSize, 4, color, true);
 	}
 
 
+	TArray<FMapEdge> Edges = PolygonMap->GetCopyOfMapEdgeArray();
 	for (int i = 0; i < Edges.Num(); i++)
 	{
 		int32 worldIndex0;
@@ -224,7 +229,7 @@ void UMapDebugVisualizer::DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpace
 			continue;
 		}
 		FMapData d0Data = Centers[worldIndex0].CenterData;
-		FVector worldVertex0 = UPolygonMap::ConvertGraphPointToWorldSpace(d0Data, MapData, MapSize);
+		FVector worldVertex0 = PolygonMap->ConvertGraphPointToWorldSpace(d0Data);
 
 		worldIndex1 = Edges[i].DelaunayEdge1;
 		if (worldIndex1 < 0)
@@ -233,7 +238,7 @@ void UMapDebugVisualizer::DrawDebugDelaunayGrid(AActor* Actor, const FWorldSpace
 			continue;
 		}
 		FMapData d1Data = Centers[worldIndex1].CenterData;
-		FVector worldVertex1 = UPolygonMap::ConvertGraphPointToWorldSpace(d1Data, MapData, MapSize);
+		FVector worldVertex1 = PolygonMap->ConvertGraphPointToWorldSpace(d1Data);
 
 		FColor color = FColor(255, 255, 255);
 		/*if (Centers[worldIndex0].bIsBorder && Centers[worldIndex1].bIsBorder)
@@ -286,7 +291,7 @@ void UMapDebugVisualizer::DrawTriangle(AActor* Actor, FVector PointA, FVector Po
 	DrawDebugLine(world, PointC, PointA, FColor::White);
 }
 
-void UMapDebugVisualizer::DrawRivers(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* MapGraph, const TArray<URiver*>& Rivers, int32 MapSize)
+void UMapDebugVisualizer::DrawRivers(AActor* Actor, const FWorldSpaceMapData& MapData, UPolygonMap* MapGraph, const TArray<URiver*>& Rivers)
 {
 	UWorld* world = Actor->GetWorld();
 	if (world == NULL)
@@ -316,13 +321,13 @@ void UMapDebugVisualizer::DrawRivers(AActor* Actor, const FWorldSpaceMapData& Ma
 			nextEdge = MapGraph->FindEdgeFromCorners(v1, v2);
 			if (lastEdge.Index != -1 && nextEdge.Index != -1)
 			{
-				FVector worldLocation0 = UPolygonMap::ConvertGraphPointToWorldSpace(v0.CornerData, MapData, MapSize);
+				FVector worldLocation0 = MapGraph->ConvertGraphPointToWorldSpace(v0.CornerData);
 				worldLocation0.Z = 0.0f;
-				FVector worldLocation1 = UPolygonMap::ConvertGraphPointToWorldSpace(v1.CornerData, MapData, MapSize);
+				FVector worldLocation1 = MapGraph->ConvertGraphPointToWorldSpace(v1.CornerData);
 				worldLocation1.Z = 0.0f;
 				DrawDebugSphere(world, worldLocation0, MapData.PointSize, 4, color, true);
 				DrawDebugSphere(world, worldLocation1, MapData.PointSize, 4, color, true);
-				DrawBeizerCurve(Actor, MapData, lastEdge.Midpoint, v0.CornerData.Point, nextEdge.Midpoint, v1.CornerData.Point, color, MapSize);
+				DrawBeizerCurve(Actor, MapData, lastEdge.Midpoint, v0.CornerData.Point, nextEdge.Midpoint, v1.CornerData.Point, color, MapGraph->GetGraphSize());
 			}
 		}
 	}

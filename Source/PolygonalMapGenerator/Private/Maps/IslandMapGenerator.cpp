@@ -466,7 +466,7 @@ void AIslandMapGenerator::DrawVoronoiGraph()
 	{
 		return;
 	}
-	UMapDebugVisualizer::DrawDebugVoronoiGrid(this, IslandData.PolygonMapSettings, MapGraph->Corners, MapGraph->Edges, IslandData.Size);
+	UMapDebugVisualizer::DrawDebugVoronoiGrid(this, IslandData.PolygonMapSettings, MapGraph);
 }
 
 void AIslandMapGenerator::DrawDelaunayGraph()
@@ -475,7 +475,7 @@ void AIslandMapGenerator::DrawDelaunayGraph()
 	{
 		return;
 	}
-	UMapDebugVisualizer::DrawDebugDelaunayGrid(this, IslandData.PolygonMapSettings, MapGraph->Centers, MapGraph->Edges, IslandData.Size);
+	UMapDebugVisualizer::DrawDebugDelaunayGrid(this, IslandData.PolygonMapSettings, MapGraph);
 }
 
 void AIslandMapGenerator::DrawHeightmap(float PixelSize)

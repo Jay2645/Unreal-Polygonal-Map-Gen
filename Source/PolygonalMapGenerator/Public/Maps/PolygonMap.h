@@ -242,7 +242,7 @@ struct POLYGONALMAPGENERATOR_API FWorldSpaceMapData
 		PointSize = 16;
 		ElevationOffset = 0.0f;
 		XYScaleFactor = 100.0f;
-		ElevationScale = 3200.0f;
+		ElevationScale = 2560.0f;
 	}
 };
 
@@ -262,6 +262,10 @@ class POLYGONALMAPGENERATOR_API UPolygonMap : public UActorComponent
 	friend class AIslandMapGenerator;
 
 public:
+	// A conversion from local space to world space
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "World Space Conversion")
+	FWorldSpaceMapData WorldData;
+
 	// Creates the graph's initial points
 	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
 	void CreatePoints(UPointGenerator* PointSelector, const int32& numberOfPoints);
@@ -365,6 +369,10 @@ public:
 	// This returns a copy of the FMapCorner array.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
 	TArray<FMapCorner> GetCopyOfMapCornerArray();
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	TArray<FMapEdge> GetCopyOfMapEdgeArray();
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	TArray<FMapCenter> GetCopyOfMapCenterArray();
 
 	// Gets a list of all MapCorners which are not marked as ocean.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
@@ -410,10 +418,11 @@ public:
 
 	// Converts a MapData object into the point it represents in 3D world space.
 	// This can be used to mark where rivers are, to place props, etc.
-	UFUNCTION(BlueprintPure, Category = "Island Generation")
-	static FVector ConvertGraphPointToWorldSpace(const FMapData& MapData, const FWorldSpaceMapData& WorldData, int32 MapSize);
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	FVector ConvertGraphPointToWorldSpace(const FMapData& MapPointData);
 
-	static FVector2D ConvertWorldPointToGraphSpace(const FVector WorldPoint, const FWorldSpaceMapData& WorldData, int32 MapSize);
+	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	FVector2D ConvertWorldPointToGraphSpace(const FVector WorldPoint);
 
 	// This takes a 2D point and returns a copy of the polygon encompassing that point.
 	// If no polygon can be found, an empty MapCenter will be returned.
@@ -424,9 +433,9 @@ public:
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapCenter FindMapCenterForCoordinate(const FVector2D& Point) const;
+	FMapCenter FindMapCenterForCoordinate(const FVector2D& Point);
 	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
-	FMapCorner FindMapCornerForCoordinate(const FVector2D& Point) const;
+	FMapCorner FindMapCornerForCoordinate(const FVector2D& Point);
 
 	// Checks if a given MapCenter polygon contains a 2D point.
 	// If it does, this function returns true. Otherwise, it returns false.
@@ -436,7 +445,6 @@ public:
 	bool CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const;
 
 private:
-
 	/// Graph Data
 	// The points in our graph
 	// I don't like this implementation, and it may be changed in the future.
@@ -461,10 +469,6 @@ private:
 	// The size of an edge in the 2D map
 	UPROPERTY()
 	int32 MapSize;
-
-	// A conversion from local space to world space
-	UPROPERTY()
-	FWorldSpaceMapData MapData;
 
 	// ALL MapData from both MapCenters and MapCorners.
 	// Must be compiled first.
