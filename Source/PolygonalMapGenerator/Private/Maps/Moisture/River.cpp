@@ -70,6 +70,12 @@ FMapEdge URiver::GetDownstreamEdge(const int32 Index) const
 
 void URiver::InitializeRiver(UDataTable* NameDataTable, FRandomStream& RandomGenerator)
 {
+	if (NameDataTable == NULL)
+	{
+		UE_LOG(LogWorldGen, Error, TEXT("No River Name Table found! Did you remember to set it in your Island Generation Settings?"));
+		return;
+	}
+
 	TArray<FText> textArray;
 	FString contextString;
 	TArray<FName> rowNames;
