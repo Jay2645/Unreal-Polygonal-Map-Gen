@@ -13,12 +13,6 @@ AIslandMapGenerator::AIslandMapGenerator()
 	bCurrentStepIsDone = true;
 	bHasGeneratedHeightmap = false;
 
-	TestMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Test Mesh"));
-	this->RootComponent = TestMesh;
-
-	// and finally register the static mesh component
-	TestMesh->RegisterComponent();
-
 
 	MapGraph = CreateDefaultSubobject<UPolygonMap>(TEXT("Polygon Map"));
 }
@@ -448,10 +442,6 @@ void AIslandMapGenerator::CreateHeightmap(const int32 HeightmapSize, const FIsla
 void AIslandMapGenerator::OnHeightmapFinished()
 {
 	bHasGeneratedHeightmap = true;
-	if (TestMesh != NULL)
-	{
-		IslandMaterialInstanceDynamic = TestMesh->CreateAndSetMaterialInstanceDynamic(0);
-	}
 	if (OnHeightmapComplete.IsBound())
 	{
 		OnHeightmapComplete.Execute();

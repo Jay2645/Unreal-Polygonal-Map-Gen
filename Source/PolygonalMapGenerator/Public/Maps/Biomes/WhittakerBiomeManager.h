@@ -83,16 +83,16 @@ public:
 	// Converts a biome's FName into an enum representation.
 	// Will return EWhittakerBiome::Ocean if there are no matches in this biome.
 	// The enum returned can be used in a switch statement or converted into a uint8 (for example, for use as a material ID).
-	UFUNCTION(BlueprintPure, Category = "Biome")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Biome")
 	EWhittakerBiome ConvertToWhittakerBiomeEnum(const FGameplayTag& BiomeName);
 
-	UFUNCTION(BlueprintPure, Category = "Biome")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Biome")
 	EWhittakerBiome LookupWhittakerBiome(const FMapData& MapData);
 
-	UFUNCTION(BlueprintPure, Category = "Biome")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Biome")
 	EWhittakerBiome WhittakerBiomeFromWorldPoint(UPolygonMap* MapGraph, const FVector& WorldPoint);
 
-	UFUNCTION(BlueprintPure, Category = "Biome")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Biome")
 	EWhittakerBiome WhittakerBiomeFromGraphPoint(UPolygonMap* MapGraph, const FVector2D& GraphPoint);
 
 protected:

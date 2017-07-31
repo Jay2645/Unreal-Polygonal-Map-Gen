@@ -61,12 +61,12 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Rivers")
 	TArray<URiver*> Rivers;
 
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	void SetGraph(UPolygonMap* Graph, int32 Size);
 
 
 	// Determine polygon and corner type: ocean, coast, land.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	virtual void AssignOceanCoastAndLand();
 
 	// Calculate the watershed of every land point. The watershed is
@@ -74,23 +74,23 @@ public:
 	// watersheds are currently calculated on corners, but it'd be
 	// more useful to compute them on polygon centers so that every
 	// polygon can be marked as being in one watershed.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	void CalculateWatersheds();
 	// Create rivers along edges. Pick a random corner point, then
 	// move downslope. Mark the edges and corners as rivers.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	void CreateRivers(FRandomStream& RandomGenerator);
 	// Calculate moisture. Freshwater sources spread moisture: rivers
 	// and lakes (not oceans). Saltwater sources have moisture but do
 	// not spread it (we set it at the end, after propagation).
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	void AssignCornerMoisture();
 	// Redistribute moisture to cover the entire range evenly 
 	// from 0.0 to 1.0.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	void RedistributeMoisture(TArray<int32> LandCorners);
 	// Assign polygon moisture as the average of the corner moisture.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Map")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	void AssignPolygonMoisture();
 
 protected:

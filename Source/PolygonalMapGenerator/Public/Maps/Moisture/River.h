@@ -56,51 +56,51 @@ public:
 	FRiverFeedLocation FeedsInto;
 
 	// Whether the river is a tributary.
-	UFUNCTION(BlueprintPure, Category = "River")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|River")
 	bool IsTributary() const;
 	// Does this river terminate properly?
-	UFUNCTION(BlueprintPure, Category = "River")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|River")
 	bool Terminates() const;
 	// Returns a copy of the FMapCorner at the given index.
 	// Be sure to call UpdateCorner() on the UPolygonMap if the corner gets modified at all.
-	UFUNCTION(BlueprintPure, Category = "River|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|River|Graph")
 	FMapCorner GetCorner(const int32 Index) const;
 	// Returns the 2D location of the FMapCorner at the given index.
-	UFUNCTION(BlueprintPure, Category = "River|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|River|Graph")
 	FVector2D GetPointAtIndex(const int32 Index) const;
 	// Returns the point representing the "center" of the river.
-	UFUNCTION(BlueprintPure, Category = "River|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|River|Graph")
 	FVector2D GetCenter() const;
 	// Gets the edge downstream from the given index.
 	// Be sure to call UpdateEdge() on the UPolygonMap if the edge gets modified.
-	UFUNCTION(BlueprintPure, Category = "River|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|River|Graph")
 	FMapEdge GetDownstreamEdge(const int32 Index) const;
 	
 	// Sets the River's name and adds it to the global river lookup
-	UFUNCTION(BlueprintCallable, Category = "River")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|River")
 	void InitializeRiver(UDataTable* NameDataTable, FRandomStream& RandomGenerator);
 
 	// Adds a corner to the river.
 	// All points downstream get increased by the IncreaseRiverAmount.
-	UFUNCTION(BlueprintCallable, Category = "River")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|River")
 	FMapCorner AddCorner(FMapCorner Corner, const int32 IncreaseRiverAmount = 1);
 	// Joins the feeder river to this river.
 	// Also sets the FeedsInto data for the feeder river.
-	UFUNCTION(BlueprintCallable, Category = "River")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|River")
 	bool JoinRiver(URiver* FeederRiver, FMapCorner JoinLocation, bool bIncreaseRiverVolume = true);
 
 	// Makes this river into a tributary.
-	UFUNCTION(BlueprintCallable, Category = "River")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|River")
 	void MakeTributary();
 	// Clears the river entirely.
-	UFUNCTION(BlueprintCallable, Category = "River")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|River")
 	void Clear();
 	// Clears the cache used to look up rivers.
-	UFUNCTION(BlueprintCallable, Category = "River")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|River")
 	static void ClearRiverLookupCache();
 
 	// "Draw" this river on the given heightmap.
-	UFUNCTION(BlueprintCallable, Category = "River")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|River")
 	void MoveRiverToHeightmap(UPolygonalMapHeightmap* MapHeightmap);
 
 	FORCEINLINE	bool operator==(const URiver& Other) const

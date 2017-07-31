@@ -54,21 +54,21 @@ public:
 	// Each FMapData object will be created by being interpolated from the nearest points in the UPolygonMap supplied to this function.
 	// The number of nearest points to consider is governed by the value of the NumberOfPointsToAverage in the UPolygonalMapHeightmap class.
 	// Each "pixel" in the heightmap will be supplied with its own biome, which is determined by the UBiomeManager passed to this function.
-	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Heightmap")
 	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, const int32 Size, const FIslandGeneratorDelegate onComplete);
 
 	// Returns a COPY of this object's raw heightmap.
 	// This can be iterated over easily, but keep in mind that any changes you make won't be made to the actual heightmap object (i.e., this).
 	// Also keep in mind that the array is actually a 1D representation of a 2D array of HeightmapSize x HeightmapSize.
-	UFUNCTION(BlueprintPure, Category = "Map Generation|Heightmap")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Heightmap")
 	TArray<FMapData> GetMapData();
 	// Returns the FMapData that corresponds with the given (X, Y) position on the heightmap.
 	// If the position is out of bounds of the heightmap or the heightmap is not initialized, it will return a blank FMapData object.
-	UFUNCTION(BlueprintPure, Category = "Map Generation|Heightmap")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Heightmap")
 	FMapData GetMapPoint(int32 x, int32 y);
 
 	// Sets the map point at the given (X, Y) position on the heightmap.
 	// If the point is out of bounds, a warning is generated and nothing happens.
-	UFUNCTION(BlueprintCallable, Category = "Map Generation|Heightmap")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Heightmap")
 	void SetMapPoint(int32 X, int32 Y, FMapData MapData);
 };

@@ -267,7 +267,7 @@ public:
 	FWorldSpaceMapData WorldData;
 
 	// Creates the graph's initial points
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	void CreatePoints(UPointGenerator* PointSelector, const int32& numberOfPoints);
 
 	// Build graph data structure in 'edges', 'centers', 'corners',
@@ -279,14 +279,14 @@ public:
 	// edge edge.{delaunayEdge0,delaunayEdge1}.0 For boundary
 	// polygons, the Delaunay edge will have one null point, and the 
 	// Voronoi edge may be null.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	void BuildGraph(const int32& mapSize, const FWorldSpaceMapData& data);
 
 	// Creates an FMapCenter from the given point.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	FMapCenter MakeCenter(const FVector2D& point);
 	// Creates an FMapCorner from the given point.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	FMapCorner MakeCorner(const FVector2D& point);
 
 	// Although Lloyd relaxation improves the uniformity of polygon
@@ -297,7 +297,7 @@ public:
 	// moved to the average of the polygon centers around them. Short
 	// edges become longer. Long edges tend to become shorter. The
 	// polygons tend to be more uniform after this step.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	void ImproveCorners();
 
 	// Returns a MapCenter at the given index.
@@ -305,55 +305,55 @@ public:
 	// This empty MapCenter will have an index of -1.
 	// Make sure to use the function UpdateCenter() to update the graph
 	// after the MapCenter has been modified. 
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FMapCenter GetCenter(const int32& index) const;
 	// Returns a MapCorner at the given index.
 	// If the index is invalid, an empty MapCorner will be returned.
 	// This empty MapCorner will have an index of -1.
 	// Make sure to use the function UpdateCorner() to update the graph
 	// after the MapCorner has been modified. 
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FMapCorner GetCorner(const int32& index) const;
 	// Returns a MapEdge at the given index.
 	// If the index is invalid, an empty MapEdge will be returned.
 	// This empty MapEdge will have an index of -1.
 	// Make sure to use the function UpdateEdge() to update the graph
 	// after the MapEdge has been modified. 
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FMapEdge GetEdge(const int32& index) const;
 
 	// Update a MapCenter in the graph after it has been modified.
 	// Due to the way Unreal handles TArrays, we can only return
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	void UpdateCenter(const FMapCenter& center);
 	// Update a MapCorner in the graph after it has been modified.
 	// Due to the way Unreal handles TArrays, we can only return
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	void UpdateCorner(const FMapCorner& corner);
 	// Update a MapEdge in the graph after it has been modified.
 	// Due to the way Unreal handles TArrays, we can only return
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	void UpdateEdge(const FMapEdge& edge);
 
 	// Returns the number of MapCenters in our graph.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	int32 GetCenterNum() const;
 	// Returns the number of MapCorners in our graph.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	int32 GetCornerNum() const;
 	// Returns the number of MapEdges in our graph.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	int32 GetEdgeNum() const;
 
 	// Returns the size of one side of our graph.
 	// The full graph is a square with each side of this length.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	int32 GetGraphSize() const;
 
 
@@ -363,19 +363,19 @@ public:
 	// came from a MapCenter or a MapCorner, and that because of this, the
 	// MapData object's "Index" property now means nothing. 2 different
 	// MapData objects may share the same indicies.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|MapData")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|MapData")
 	TArray<FMapData>& GetAllMapData();
 
 	// This returns a copy of the FMapCorner array.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	TArray<FMapCorner> GetCopyOfMapCornerArray();
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	TArray<FMapEdge> GetCopyOfMapEdgeArray();
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	TArray<FMapCenter> GetCopyOfMapCenterArray();
 
 	// Gets a list of all MapCorners which are not marked as ocean.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	TArray<int32> FindLandCorners() const;
 
 	// Returns the MapEdge defined by two adjacent MapCenters.
@@ -386,7 +386,7 @@ public:
 	// Due to the way Unreal handles TArrays, we can only return
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FMapEdge FindEdgeFromCenters(const FMapCenter& v0, const FMapCenter& v1) const;
 
 	// Returns the MapEdge defined by two adjacent MapCorners.
@@ -397,7 +397,7 @@ public:
 	// Due to the way Unreal handles TArrays, we can only return
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FMapEdge FindEdgeFromCorners(const FMapCorner& v0, const FMapCorner& v1) const;
 
 	// Returns the MapCenter defined by two adjacent MapCorners.
@@ -408,20 +408,20 @@ public:
 	// Due to the way Unreal handles TArrays, we can only return
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FMapCenter FindCenterFromCorners(FMapCorner CornerA, FMapCorner CornerB) const;
 
 	// Compiles all map data into the CachedMapData array.
 	// This is used by the PixelMap to create pixels.
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph")
 	void CompileMapData();
 
 	// Converts a MapData object into the point it represents in 3D world space.
 	// This can be used to mark where rivers are, to place props, etc.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FVector ConvertGraphPointToWorldSpace(const FMapData& MapPointData);
 
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FVector2D ConvertWorldPointToGraphSpace(const FVector WorldPoint);
 
 	// This takes a 2D point and returns a copy of the polygon encompassing that point.
@@ -432,16 +432,16 @@ public:
 	// Due to the way Unreal handles TArrays, we can only return
 	// a copy of an element, not the element itself.
 	// I don't like this implementation, and it may be changed in the future.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FMapCenter FindMapCenterForCoordinate(const FVector2D& Point);
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	FMapCorner FindMapCornerForCoordinate(const FVector2D& Point);
 
 	// Checks if a given MapCenter polygon contains a 2D point.
 	// If it does, this function returns true. Otherwise, it returns false.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	bool CenterContainsPoint(const FVector2D& Point, const FMapCenter& Center) const;
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	bool CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const;
 
 private:

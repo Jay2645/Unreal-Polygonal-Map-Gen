@@ -20,28 +20,28 @@ public:
 	UPointGenerator() {};
 	~UPointGenerator() {};
 
-	UFUNCTION(BlueprintCallable, Category = "Island Generation|Graph|Points")
+	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Graph|Points")
 		void InitializeSelector(int32 mapSize, int32 seed, int32 border = 10);
 
 	// Generates the given number of points with the given seed.
 	// By default, all points will be at 0,0.
-	UFUNCTION(BlueprintNativeEvent, Category = "Island Generation|Graph|Points")
+	UFUNCTION(BlueprintNativeEvent, Category = "World Generation|Island Generation|Graph|Points")
 		TArray<FVector2D> GeneratePoints(int32 numberOfPoints);
 	// As the Hexagon and Square points don't have any inherent randomness, the randomness must come from elsewhere.
 	// This function is shorthand for detecting if this generator is a Hexagon or Square generator.
 	// If this is true, more randomness will be added in the actual map generation.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph|Points")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph|Points")
 		bool NeedsMoreRandomness();
 
 	// The lowest possible value our points can reach
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph|Points")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph|Points")
 	virtual int32 MinPoint();
 	// The highest possible value our points can reach
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph|Points")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph|Points")
 	virtual int32 MaxPoint();
 
 	// Will return true if the given point is on or beyond our border.
-	UFUNCTION(BlueprintPure, Category = "Island Generation|Graph|Points")
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph|Points")
 		bool PointIsOnBorder(FVector2D point);
 protected:
 	UPROPERTY(Category = "Island", BlueprintReadWrite, EditAnywhere)
