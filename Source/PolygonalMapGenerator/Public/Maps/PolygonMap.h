@@ -444,6 +444,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	bool CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const;
 
+	// Returns the Z position of a 2D map coordinate.
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
+	float CalculateZPosition(FVector2D MapLocation);
+
+	// Calculates the interpolated Z position of a 2D point between 3 MapCenters.
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
+	float CalculateZPositionBetweenCenters(FMapCenter CenterA, FMapCenter CenterB, FMapCenter CenterC, FVector2D MapLocation) const;
+
 private:
 	/// Graph Data
 	// The points in our graph
