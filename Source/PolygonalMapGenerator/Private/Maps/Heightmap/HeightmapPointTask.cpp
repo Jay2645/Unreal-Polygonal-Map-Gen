@@ -100,10 +100,9 @@ void FHeightmapPointGenerator::CheckComplete()
 	}
 }
 
-FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager)
+FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, UPolygonMap* MapGraph, UBiomeManager* BiomeManager)
 {
-	FMapData pixelData;
-	if (PointSelectionMode == Interpolated || PointSelectionMode == InterpolatedWithPolygonBiome)
+	/*if (PointSelectionMode == Interpolated || PointSelectionMode == InterpolatedWithPolygonBiome)
 	{
 		TArray<FMapData> closestPoints;
 		// Iterate over the entire mapData array to find how many points we need to average
@@ -270,7 +269,49 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, TArray<FMapD
 		// Should never get to this point
 		unimplemented();
 		return FMapData();
+	}*/
+
+	FMapData pixelData = FMapData();
+	pixelData.Point = PixelPosition;
+
+	FMapCorner triangleCenter;
+	float pointZPostion = MapGraph->CalculateZPosition(PixelPosition, triangleCenter);
+	if (triangleCenter.Index >= 0)
+	{
+		// The point is valid, populate from the triangle
+		pixelData.Elevation = pointZPostion;
+		if (PointSelectionMode == EPointSelectionMode::UsePolygon)
+		{
+			pixelData.Moisture = triangleCenter.CornerData.Moisture;
+			pixelData.Tags = triangleCenter.CornerData.Tags;
+			pixelData.Biome = triangleCenter.CornerData.Biome;
+		}
+		else
+		{
+			pixelData.Moisture = MapGraph->InterpolateMapDataMoisture(MapGraph->GetCenter(triangleCenter.Touches[0]).CenterData, MapGraph->GetCenter(triangleCenter.Touches[1]).CenterData, MapGraph->GetCenter(triangleCenter.Touches[2]).CenterData, PixelPosition);
+			// TODO: Interpolate tags
+			pixelData.Tags = triangleCenter.CornerData.Tags;
+			if (PointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome)
+			{
+				// Grab the biome directly from the CornerData
+				pixelData.Biome = triangleCenter.CornerData.Biome;
+			}
+			else
+			{
+				// Right now, this sometimes causes a crash
+				// TODO: Find out why it crashes (maybe due to multithreading?)
+				// In the meantime, use EPointSelectionMode::InterpolatedWithPolygonBiome instead
+				pixelData.Biome = BiomeManager->DetermineBiome(pixelData);
+			}
+		}
 	}
+	else
+	{
+		// If the point is invalid, the default constructor for the MapData struct is
+		// sufficient for making an ocean pixel. We just need to set the biome.
+		pixelData.Biome = FGameplayTag::RequestGameplayTag(TEXT("MapData.Biome.Water.Ocean"));
+	}
+	return pixelData;
 }
 
 void FHeightmapPointTask::DoTask(ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
@@ -278,7 +319,7 @@ void FHeightmapPointTask::DoTask(ENamedThreads::Type CurrentThread, const FGraph
 	FVector2D point = FVector2D(X, Y);
 
 	// Now make the actual map point
-	FMapData mapData = MakeMapPoint(point, FHeightmapPointGenerator::StartingMapDataArray, FHeightmapPointGenerator::BiomeManager);
+	FMapData mapData = MakeMapPoint(point, FHeightmapPointGenerator::MapGraph, FHeightmapPointGenerator::BiomeManager);
 	FHeightmapPointGenerator::HeightmapData.Add(mapData);
 	FHeightmapPointGenerator::CompletedThreads++;
 

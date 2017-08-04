@@ -67,7 +67,7 @@ public:
 	}
 
 	// Creates a map point at the given pixel position and adds it to the end of the HeightmapData array.
-	FMapData MakeMapPoint(FVector2D PixelPosition, TArray<FMapData> MapData, UBiomeManager* BiomeManager);
+	FMapData MakeMapPoint(FVector2D PixelPosition, UPolygonMap* MapGraph, UBiomeManager* BiomeManager);
 
 	// Do the task
 	void DoTask(ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent);

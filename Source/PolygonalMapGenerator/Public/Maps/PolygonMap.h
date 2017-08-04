@@ -445,13 +445,19 @@ public:
 	bool CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const;
 
 	// Returns the Z position of a 2D map coordinate.
+	// The MapCorner reference will be populated with data from the triangle that the point is in.
+	// If the MapCorner's index is below 0, the point lies outside of the generated map.
 	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
-	float CalculateZPosition(FVector2D MapLocation);
+	float CalculateZPosition(FVector2D MapLocation, FMapCorner& OutMapCorner);
 
 	// Calculates the interpolated Z position of a 2D point between 3 MapCenters.
 	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
 	float CalculateZPositionBetweenCenters(FMapCenter CenterA, FMapCenter CenterB, FMapCenter CenterC, FVector2D MapLocation) const;
 
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
+	float CalculateMoistureAtPoint(FVector2D MapLocation, FMapCorner& OutMapCorner);
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Graph")
+	float InterpolateMapDataMoisture(FMapData PointA, FMapData PointB, FMapData PointC, FVector2D MapLocation) const;
 private:
 	/// Graph Data
 	// The points in our graph

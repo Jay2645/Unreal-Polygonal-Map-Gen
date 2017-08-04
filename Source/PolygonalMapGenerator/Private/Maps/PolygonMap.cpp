@@ -581,16 +581,16 @@ bool UPolygonMap::CornerContainsPoint(const FVector2D& Point, const FMapCorner& 
 	return 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= c && c <= 1;
 }
 
-float UPolygonMap::CalculateZPosition(FVector2D MapLocation)
+float UPolygonMap::CalculateZPosition(FVector2D MapLocation, FMapCorner& OutMapCorner)
 {
-	FMapCorner corner = FindMapCornerForCoordinate(MapLocation);
-	if (corner.Index < 0)
+	OutMapCorner = FindMapCornerForCoordinate(MapLocation);
+	if (OutMapCorner.Index < 0)
 	{
 		// Not a valid corner
 		return 0.0f;
 	}
 
-	return CalculateZPositionBetweenCenters(GetCenter(corner.Touches[0]), GetCenter(corner.Touches[1]), GetCenter(corner.Touches[2]), MapLocation);
+	return CalculateZPositionBetweenCenters(GetCenter(OutMapCorner.Touches[0]), GetCenter(OutMapCorner.Touches[1]), GetCenter(OutMapCorner.Touches[2]), MapLocation);
 }
 
 
@@ -630,6 +630,57 @@ float UPolygonMap::CalculateZPositionBetweenCenters(FMapCenter CenterA, FMapCent
 
 	// Calculate Z coordinate
 	return ((lambda1 * z1 + lambda2 * z2 + lambda3 * z3) * WorldData.ElevationScale) + WorldData.ElevationOffset;
+}
+
+float UPolygonMap::CalculateMoistureAtPoint(FVector2D MapLocation, FMapCorner& OutMapCorner)
+{
+	OutMapCorner = FindMapCornerForCoordinate(MapLocation);
+	if (OutMapCorner.Index < 0)
+	{
+		// Not a valid corner
+		return 0.0f;
+	}
+
+	return InterpolateMapDataMoisture(GetCenter(OutMapCorner.Touches[0]).CenterData, GetCenter(OutMapCorner.Touches[1]).CenterData, GetCenter(OutMapCorner.Touches[2]).CenterData, MapLocation);
+}
+
+
+float UPolygonMap::InterpolateMapDataMoisture(FMapData PointA, FMapData PointB, FMapData PointC, FVector2D MapLocation) const
+{
+	FVector p1 = FVector(PointA.Point.X, PointA.Point.Y, PointA.Moisture);
+	FVector p2 = FVector(PointB.Point.X, PointB.Point.Y, PointB.Moisture);
+	FVector p3 = FVector(PointC.Point.X, PointC.Point.Y, PointC.Moisture);
+
+	float y1 = p1.Y;
+	float y2 = p2.Y;
+	float y3 = p3.Y;
+
+	float x1 = p1.X;
+	float x2 = p2.X;
+	float x3 = p3.X;
+
+	// Calculate determinant
+	float det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+	if (det == 0.0f)
+	{
+		// Shouldn't happen, but okay
+		return 0.0f;
+	}
+
+	float x = MapLocation.X;
+	float y = MapLocation.Y;
+
+	// https://stackoverflow.com/questions/36090269/finding-height-of-point-on-height-map-triangles
+	float lambda1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
+	float lambda2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
+	float lambda3 = 1 - lambda1 - lambda2;
+
+	float z1 = p1.Z;
+	float z2 = p2.Z;
+	float z3 = p3.Z;
+
+	// Calculate moisture
+	return lambda1 * z1 + lambda2 * z2 + lambda3 * z3;
 }
 
 // The main function that returns true if line segment 'p1q1'
