@@ -472,7 +472,7 @@ FMapCorner UPolygonMap::FindMapCornerForCoordinate(const FVector2D& Point)
 	FMapCorner corner = FMapCorner();
 	for (int i = 0; i < Corners.Num(); i++)
 	{
-		if (CornerContainsPoint(Point, Corners[i]))
+		if (CornerContainsPoint(Point, Corners[i]).bTriangleIsValid)
 		{
 			corner = Corners[i];
 			if (corner.Touches.Num() == 0)
@@ -543,144 +543,123 @@ bool UPolygonMap::CenterContainsPoint(const FVector2D& Point, const FMapCenter& 
 	return (intersections & 1) == 1; // True if point is odd (inside of polygon)
 }
 
-bool UPolygonMap::CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const
+FPointInterpolationData UPolygonMap::CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const
 {
+	FPointInterpolationData output = FPointInterpolationData();
 	if (Corner.Touches.Num() != 3)
 	{
-		return false;
+		return output;
 	}
-	FVector2D p1 = GetCenter(Corner.Touches[0]).CenterData.Point;
-	FVector2D p2 = GetCenter(Corner.Touches[1]).CenterData.Point;
-	FVector2D p3 = GetCenter(Corner.Touches[2]).CenterData.Point;
 
-	float y1 = p1.Y;
-	float y2 = p2.Y;
-	float y3 = p3.Y;
-
-	float x1 = p1.X;
-	float x2 = p2.X;
-	float x3 = p3.X;
+	FMapData center1 = GetCenter(Corner.Touches[0]).CenterData;
+	FMapData center2 = GetCenter(Corner.Touches[1]).CenterData;
+	FMapData center3 = GetCenter(Corner.Touches[2]).CenterData;
+	FVector2D p1 = center1.Point;
+	FVector2D p2 = center2.Point;
+	FVector2D p3 = center3.Point;
 
 	// Calculate determinant
-	float det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+	float det = (p2.Y - p3.Y) * (p1.X - p3.X) + (p3.X - p2.X) * (p1.Y - p3.Y);
 	if (det == 0.0f)
 	{
 		// Shouldn't happen, but okay
-		return false;
+		return output;
 	}
 
-	float x = Point.X;
-	float y = Point.Y;
-
 	// https://stackoverflow.com/questions/36090269/finding-height-of-point-on-height-map-triangles
-	float a = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
-	float b = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
-	float c = 1 - a - b;
-
 	// p lies in T if and only if 0 <= a <= 1 and 0 <= b <= 1 and 0 <= c <= 1
-	return 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= c && c <= 1;
-}
-
-float UPolygonMap::CalculateZPosition(FVector2D MapLocation, FMapCorner& OutMapCorner)
-{
-	OutMapCorner = FindMapCornerForCoordinate(MapLocation);
-	if (OutMapCorner.Index < 0)
+	float lambda1 = ((p2.Y - p3.Y) * (Point.X - p3.X) + (p3.X - p2.X) * (Point.Y - p3.Y)) / det;
+	if (0 > lambda1 || lambda1 > 1)
 	{
-		// Not a valid corner
-		return 0.0f;
+		return output;
 	}
-
-	return CalculateZPositionBetweenCenters(GetCenter(OutMapCorner.Touches[0]), GetCenter(OutMapCorner.Touches[1]), GetCenter(OutMapCorner.Touches[2]), MapLocation);
-}
-
-
-float UPolygonMap::CalculateZPositionBetweenCenters(FMapCenter CenterA, FMapCenter CenterB, FMapCenter CenterC, FVector2D MapLocation) const
-{
-	FVector p1 = FVector(CenterA.CenterData.Point.X, CenterA.CenterData.Point.Y, CenterA.CenterData.Elevation);
-	FVector p2 = FVector(CenterB.CenterData.Point.X, CenterB.CenterData.Point.Y, CenterB.CenterData.Elevation);
-	FVector p3 = FVector(CenterC.CenterData.Point.X, CenterC.CenterData.Point.Y, CenterC.CenterData.Elevation);
-
-	float y1 = p1.Y;
-	float y2 = p2.Y;
-	float y3 = p3.Y;
-
-	float x1 = p1.X;
-	float x2 = p2.X;
-	float x3 = p3.X;
-
-	// Calculate determinant
-	float det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
-	if (det == 0.0f)
+	float lambda2 = ((p3.Y - p1.Y) * (Point.X - p3.X) + (p1.X - p3.X) * (Point.Y - p3.Y)) / det;
+	if (0 > lambda2 || lambda2 > 1)
 	{
-		// Shouldn't happen, but okay
-		return 0.0f;
+		return output;
 	}
-
-	float x = MapLocation.X;
-	float y = MapLocation.Y;
-
-	// https://stackoverflow.com/questions/36090269/finding-height-of-point-on-height-map-triangles
-	float lambda1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
-	float lambda2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
 	float lambda3 = 1 - lambda1 - lambda2;
-
-	float z1 = p1.Z;
-	float z2 = p2.Z;
-	float z3 = p3.Z;
-
-	// Calculate Z coordinate
-	return ((lambda1 * z1 + lambda2 * z2 + lambda3 * z3) * WorldData.ElevationScale) + WorldData.ElevationOffset;
-}
-
-float UPolygonMap::CalculateMoistureAtPoint(FVector2D MapLocation, FMapCorner& OutMapCorner)
-{
-	OutMapCorner = FindMapCornerForCoordinate(MapLocation);
-	if (OutMapCorner.Index < 0)
+	if (0 > lambda3 || lambda3 > 1)
 	{
-		// Not a valid corner
-		return 0.0f;
+		return output;
 	}
 
-	return InterpolateMapDataMoisture(GetCenter(OutMapCorner.Touches[0]).CenterData, GetCenter(OutMapCorner.Touches[1]).CenterData, GetCenter(OutMapCorner.Touches[2]).CenterData, MapLocation);
+	output.bTriangleIsValid = true;
+	output.SourceTriangle = Corner;
+	output.InterpolatedElevation = ((lambda1 * center1.Elevation + lambda2 * center2.Elevation + lambda3 * center3.Elevation) * WorldData.ElevationScale) + WorldData.ElevationOffset;
+	output.InterpolatedMoisture = lambda1 * center1.Moisture + lambda2 * center2.Moisture + lambda3 * center3.Moisture;
+	
+	return output;
 }
 
-
-float UPolygonMap::InterpolateMapDataMoisture(FMapData PointA, FMapData PointB, FMapData PointC, FVector2D MapLocation) const
+FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2D& Point)
 {
-	FVector p1 = FVector(PointA.Point.X, PointA.Point.Y, PointA.Moisture);
-	FVector p2 = FVector(PointB.Point.X, PointB.Point.Y, PointB.Moisture);
-	FVector p3 = FVector(PointC.Point.X, PointC.Point.Y, PointC.Moisture);
-
-	float y1 = p1.Y;
-	float y2 = p2.Y;
-	float y3 = p3.Y;
-
-	float x1 = p1.X;
-	float x2 = p2.X;
-	float x3 = p3.X;
-
-	// Calculate determinant
-	float det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
-	if (det == 0.0f)
+	if (Point.X > MaxPointLocation || Point.Y > MaxPointLocation || Point.X < MinPointLocation || Point.Y < MinPointLocation)
 	{
-		// Shouldn't happen, but okay
-		return 0.0f;
+		// Point out of bounds; don't even bother
+		return FPointInterpolationData();
 	}
 
-	float x = MapLocation.X;
-	float y = MapLocation.Y;
+	FVector2D intMapCoordinates = Point;
+	intMapCoordinates.X = FMath::RoundToInt(Point.X);
+	intMapCoordinates.Y = FMath::RoundToInt(Point.Y);
+	if (CornerLookup.Contains(intMapCoordinates))
+	{
+		UE_LOG(LogWorldGen, Log, TEXT("Cache hit! (%f, %f)"), Point.X, Point.Y);
+		return CornerContainsPoint(Point, GetCorner(CornerLookup[intMapCoordinates]));
+	}
 
-	// https://stackoverflow.com/questions/36090269/finding-height-of-point-on-height-map-triangles
-	float lambda1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
-	float lambda2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
-	float lambda3 = 1 - lambda1 - lambda2;
+	FPointInterpolationData data = FPointInterpolationData();
+	if (LastFoundCorner.Index >= 0)
+	{
+		// Optimization: Check to see if we share a triangle with the last point we found.
+		// If we're running on a single thread, this is very helpful.
+		// It doesn't work so well if we're multithreaded.
+		data = CornerContainsPoint(Point, LastFoundCorner);
+		if (data.bTriangleIsValid)
+		{
+			CornerLookup.Add(intMapCoordinates, LastFoundCorner.Index);
+		}
+		else
+		{
+			// Check the neighboring triangles
+			for (int i = 0; i < LastFoundCorner.Adjacent.Num(); i++)
+			{
+				FMapCorner adjacent = GetCorner(LastFoundCorner.Adjacent[i]);
+				data = CornerContainsPoint(Point, adjacent);
+				if (data.bTriangleIsValid)
+				{
+					LastFoundCorner = adjacent;
+					CornerLookup.Add(intMapCoordinates, LastFoundCorner.Index);
+					break;
+				}
+			}
+		}
+	}
 
-	float z1 = p1.Z;
-	float z2 = p2.Z;
-	float z3 = p3.Z;
+	if (!data.bTriangleIsValid)
+	{
+		// Wasn't in the previous triangle we tried; search the whole array
+		// This is VERY SLOW. It's the biggest bottleneck in the whole process.
+		// Try to avoid getting here as much as physically possible.
+		for (int i = 0; i < Corners.Num(); i++)
+		{
+			data = CornerContainsPoint(Point, Corners[i]);
+			if (data.bTriangleIsValid)
+			{
+				LastFoundCorner = Corners[i];
+				CornerLookup.Add(intMapCoordinates, i);
+				break;
+			}
+		}
+	}
 
-	// Calculate moisture
-	return lambda1 * z1 + lambda2 * z2 + lambda3 * z3;
+	if (!data.bTriangleIsValid)
+	{
+		// Couldn't find this corner
+		CornerLookup.Add(intMapCoordinates, -1);
+	}
+	return data;
 }
 
 // The main function that returns true if line segment 'p1q1'

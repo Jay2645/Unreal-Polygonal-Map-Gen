@@ -42,7 +42,7 @@ void UMapDebugVisualizer::DrawDebugPixelGrid(AActor* Actor, const FWorldSpaceMap
 
 			float pixelHeight = FMath::FloorToInt(mapData.Elevation * ((MapData.ElevationScale / 100.0f) * PixelHeightMultiplier));
 
-			FVector v0 = offset + FVector(x * PixelSize, y * PixelSize, pixelHeight * PixelSize);
+			FVector v0 = offset + FVector(x * PixelSize, y * PixelSize, pixelHeight);
 			FVector v1 = FVector(v0.X, v0.Y + PixelSize, v0.Z);
 			FVector v2 = FVector(v0.X + PixelSize, v0.Y, v0.Z);
 			FVector v3 = FVector(v2.X, v1.Y, v0.Z);

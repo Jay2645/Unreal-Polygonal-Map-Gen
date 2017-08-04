@@ -37,6 +37,8 @@ private:
 
 	UFUNCTION()
 	void CheckMapPointsDone();
+	UFUNCTION()
+	void DoHeightmapPostProcess();
 public:
 	// The number of "pixels" in the heightmap.
 	// Larger values create a higher-resolution heightmap, but also mean increased processing time.
@@ -55,7 +57,7 @@ public:
 	// The number of nearest points to consider is governed by the value of the NumberOfPointsToAverage in the UPolygonalMapHeightmap class.
 	// Each "pixel" in the heightmap will be supplied with its own biome, which is determined by the UBiomeManager passed to this function.
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Heightmap")
-	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, const int32 Size, const FIslandGeneratorDelegate onComplete);
+	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, const int32 Size, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate onComplete);
 
 	// Returns a COPY of this object's raw heightmap.
 	// This can be iterated over easily, but keep in mind that any changes you make won't be made to the actual heightmap object (i.e., this).

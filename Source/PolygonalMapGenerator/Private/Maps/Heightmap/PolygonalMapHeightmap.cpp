@@ -7,7 +7,7 @@
 #include "Maps/Heightmap/HeightmapPointTask.h"
 #include "PolygonalMapHeightmap.h"
 
-void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, const int32 Size, const FIslandGeneratorDelegate OnComplete)
+void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, const int32 Size, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate OnComplete)
 {
 	if (PolygonMap == NULL)
 	{
@@ -15,19 +15,40 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 	}
 	MoistureDistributor = MoistureDist;
 	HeightmapSize = Size;
+	HeightmapData.Empty();
 	OnGenerationComplete = OnComplete;
 
 	// Interpolate between the actual points
 	CreateHeightmapTimer = FPlatformTime::Seconds();
 
-	FIslandGeneratorDelegate generatePoints;
-	generatePoints.BindDynamic(this, &UPolygonalMapHeightmap::CheckMapPointsDone);
-	FHeightmapPointGenerator::GenerateHeightmapPoints(HeightmapSize, NumberOfPointsToAverage, this, PolygonMap, BiomeManager, generatePoints);
+	if (HeightmapGenerationOptions == EHeightmapGenerationType::ForceMultithreaded)
+	{
+		FIslandGeneratorDelegate generatePoints;
+		generatePoints.BindDynamic(this, &UPolygonalMapHeightmap::CheckMapPointsDone);
+		FHeightmapPointGenerator::GenerateHeightmapPoints(HeightmapSize, NumberOfPointsToAverage, this, PolygonMap, BiomeManager, generatePoints);
+	}
+	else
+	{
+		FHeightmapPointGenerator::MapScale = (float)PolygonMap->GetGraphSize() / (float)HeightmapSize;
+		for (int32 x = 0; x < HeightmapSize; x++)
+		{
+			for (int32 y = 0; y < HeightmapSize; y++)
+			{
+				HeightmapData.Add(FHeightmapPointTask::MakeMapPoint(FVector2D(x, y), PolygonMap, BiomeManager, EPointSelectionMode::InterpolatedWithPolygonBiome));
+			}
+		}
+		DoHeightmapPostProcess();
+	}
 }
 
 void UPolygonalMapHeightmap::CheckMapPointsDone()
 {
 	HeightmapData = FHeightmapPointGenerator::HeightmapData;
+	DoHeightmapPostProcess();
+}
+
+void UPolygonalMapHeightmap::DoHeightmapPostProcess()
+{
 	UE_LOG(LogWorldGen, Log, TEXT("%d map points created in %f seconds."), HeightmapSize * HeightmapSize, FPlatformTime::Seconds() - CreateHeightmapTimer);
 
 	// Add the rivers
