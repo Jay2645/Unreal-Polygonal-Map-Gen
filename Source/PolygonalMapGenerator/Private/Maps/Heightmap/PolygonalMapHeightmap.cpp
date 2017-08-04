@@ -55,7 +55,7 @@ FMapData UPolygonalMapHeightmap::GetMapPoint(int32 x, int32 y)
 	int32 index = x + (y * HeightmapSize);
 	if (index < 0 || HeightmapData.Num() <= index)
 	{
-		UE_LOG(LogWorldGen, Warning, TEXT("Tried to fetch a pixel at %d, %d, but no pixel was found."), x, y);
+		UE_LOG(LogWorldGen, Warning, TEXT("Tried to get a pixel at %d, %d, but no pixel was found."), x, y);
 		return FMapData();
 	}
 	else
@@ -69,7 +69,7 @@ void UPolygonalMapHeightmap::SetMapPoint(int32 X, int32 Y, FMapData MapData)
 	int32 index = X + (Y * HeightmapSize);
 	if (index < 0 || HeightmapData.Num() <= index)
 	{
-		UE_LOG(LogWorldGen, Warning, TEXT("Tried to fetch a pixel at %d, %d, but no pixel was found."), X, Y);
+		UE_LOG(LogWorldGen, Warning, TEXT("Tried to set a pixel at %d, %d, but no pixel was found."), X, Y);
 		return;
 	}
 	else

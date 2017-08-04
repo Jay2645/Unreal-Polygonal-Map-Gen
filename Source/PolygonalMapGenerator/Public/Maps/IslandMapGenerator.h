@@ -213,7 +213,7 @@ public:
 	// Be sure to call CreateHeightmap() and wait for the delegate to complete before calling
 	// this function, otherwise there may not  be any data in the heightmap array.
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Debug")
-	void DrawHeightmap(float PixelSize = 100.0f);
+	void DrawHeightmap(float PixelSize = 100.0f, float PixelHeightMultiplier = 0.01f);
 
 	// Different settings that make up our island.
 	// Changing these settings will produce different-looking islands.

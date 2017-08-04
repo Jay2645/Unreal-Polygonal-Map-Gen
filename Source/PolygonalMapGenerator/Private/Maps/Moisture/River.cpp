@@ -267,7 +267,7 @@ FVector2D URiver::CalculateBezierPoint(float t, FVector2D p0, FVector2D p1, FVec
 
 void URiver::DrawLineOnHeightmap(UPolygonalMapHeightmap* MapHeightmap, const FVector2D& point1, const FVector2D& point2)
 {
-	float deltaX = point2.X - point1.X;
+	/*float deltaX = point2.X - point1.X;
 	if (deltaX == 0)
 	{
 		// Line is vertical
@@ -318,5 +318,5 @@ void URiver::DrawLineOnHeightmap(UPolygonalMapHeightmap* MapHeightmap, const FVe
 			y++;
 			error -= 1.0f;
 		}
-	}
+	}*/
 }

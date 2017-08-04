@@ -468,11 +468,11 @@ void AIslandMapGenerator::DrawDelaunayGraph()
 	UMapDebugVisualizer::DrawDebugDelaunayGrid(this, IslandData.PolygonMapSettings, MapGraph);
 }
 
-void AIslandMapGenerator::DrawHeightmap(float PixelSize)
+void AIslandMapGenerator::DrawHeightmap(float PixelSize, float PixelHeightMultiplier)
 {
 	if (MapHeightmap == NULL || !bHasGeneratedHeightmap)
 	{
 		return;
 	}
-	UMapDebugVisualizer::DrawDebugPixelGrid(this, IslandData.PolygonMapSettings, MapHeightmap->GetMapData(), IslandData.Size, PixelSize);
+	UMapDebugVisualizer::DrawDebugPixelGrid(this, IslandData.PolygonMapSettings, MapHeightmap->GetMapData(), MapHeightmap->HeightmapSize, PixelSize, PixelHeightMultiplier);
 }

@@ -16,7 +16,7 @@ bool UMapTextureRenderer::SaveTextureFromHeightmap(UPolygonalMapHeightmap* MapHe
 		// Didn't generate heightmap yet
 		return false;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Attempting to generate map heightmap!"));
+	UE_LOG(LogWorldGen, Warning, TEXT("Attempting to generate map heightmap texture!"));
 
 	uint32 dtWidth = MapHeightmap->HeightmapSize;
 	uint32 dtHeight = MapHeightmap->HeightmapSize;

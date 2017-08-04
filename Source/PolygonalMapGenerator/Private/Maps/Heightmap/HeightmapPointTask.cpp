@@ -9,6 +9,7 @@
 UPolygonalMapHeightmap* FHeightmapPointGenerator::MapHeightmap = NULL;
 UPolygonMap* FHeightmapPointGenerator::MapGraph = NULL;
 UBiomeManager* FHeightmapPointGenerator::BiomeManager = NULL;
+float FHeightmapPointGenerator::MapScale = 1.0f;
 
 // Results of the threads
 TArray<FMapData> FHeightmapPointGenerator::HeightmapData = TArray<FMapData>();
@@ -29,20 +30,22 @@ bool FHeightmapPointGenerator::TasksAreComplete()
 
 void FHeightmapPointGenerator::GenerateHeightmapPoints(const int32 HeightmapSize, int32 NumberOfPointsToAverage, UPolygonalMapHeightmap* HeightmapGenerator, UPolygonMap* Graph, UBiomeManager* BiomeMgr, const FIslandGeneratorDelegate OnComplete)
 {
+	check(HeightmapSize > 0);
 	MapHeightmap = HeightmapGenerator;
 	MapGraph = Graph;
 	BiomeManager = BiomeMgr;
 	OnAllPointsComplete = OnComplete;
+	MapScale = (float)MapGraph->GetGraphSize() / (float)HeightmapSize;
 
 	TotalNumberOfThreads = 0;
 	CompletedThreads = 0;
 	HeightmapData.Empty();
 
-	StartingMapDataArray = FHeightmapPointGenerator::MapGraph->GetAllMapData();
+	//StartingMapDataArray = FHeightmapPointGenerator::MapGraph->GetAllMapData();
 
 	EPointSelectionMode pointSelectionMode = EPointSelectionMode::InterpolatedWithPolygonBiome;
 
-	if (pointSelectionMode == EPointSelectionMode::Interpolated || pointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome)
+	/*if (pointSelectionMode == EPointSelectionMode::Interpolated || pointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome)
 	{
 		int32 graphSize = FHeightmapPointGenerator::MapGraph->GetGraphSize();
 		// First, insert a border around the map
@@ -70,9 +73,9 @@ void FHeightmapPointGenerator::GenerateHeightmapPoints(const int32 HeightmapSize
 			borderPoint.Point = FVector2D(graphSize - 1, y);
 			StartingMapDataArray.Add(borderPoint);
 		}
-	}
+	}*/
 
-	// Add a task for each prime number
+	// Add a task for each heightmap pixel
 	for (int32 x = 0; x < HeightmapSize; x++)
 	{
 		for(int32 y = 0; y < HeightmapSize; y++)
@@ -272,10 +275,10 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, UPolygonMap*
 	}*/
 
 	FMapData pixelData = FMapData();
-	pixelData.Point = PixelPosition;
+	pixelData.Point = PixelPosition * FHeightmapPointGenerator::MapScale;
 
 	FMapCorner triangleCenter;
-	float pointZPostion = MapGraph->CalculateZPosition(PixelPosition, triangleCenter);
+	float pointZPostion = MapGraph->CalculateZPosition(pixelData.Point, triangleCenter);
 	if (triangleCenter.Index >= 0)
 	{
 		// The point is valid, populate from the triangle
@@ -324,7 +327,7 @@ void FHeightmapPointTask::DoTask(ENamedThreads::Type CurrentThread, const FGraph
 	FHeightmapPointGenerator::CompletedThreads++;
 
 	float percentComplete = (float)FHeightmapPointGenerator::CompletedThreads / (float)FHeightmapPointGenerator::TotalNumberOfThreads;
-	UE_LOG(LogWorldGen, Log, TEXT("Heightmap completion percent: %f percent."), percentComplete);
+	UE_LOG(LogWorldGen, Log, TEXT("Created pixel at (%d, %d), completing thread %d of %d. Heightmap completion percent: %f percent."), X, Y, FHeightmapPointGenerator::CompletedThreads, FHeightmapPointGenerator::TotalNumberOfThreads, percentComplete);
 	if (FHeightmapPointGenerator::CompletedThreads == FHeightmapPointGenerator::TotalNumberOfThreads)
 	{
 		// If we're all done, check in with the on completion delegate

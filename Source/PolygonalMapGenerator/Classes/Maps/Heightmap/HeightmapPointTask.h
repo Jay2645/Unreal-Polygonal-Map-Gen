@@ -80,6 +80,9 @@ public:
 	static UPolygonalMapHeightmap* MapHeightmap;
 	static UPolygonMap* MapGraph;
 	static UBiomeManager* BiomeManager;
+	// The scale between heightmap units and graph units
+	// 1 heightmap unit is this many graph units
+	static float MapScale;
 
 	// Results of the threads
 	static TArray<FMapData> HeightmapData;

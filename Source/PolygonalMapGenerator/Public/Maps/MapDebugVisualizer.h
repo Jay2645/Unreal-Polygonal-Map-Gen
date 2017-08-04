@@ -20,7 +20,7 @@ public:
 	// Keep in mind that larger values of HeightmapSize will have a SEVERE performance impact.
 	// Try to only use this with a limited number of pixels in the heightmap.
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Debug")
-	static void DrawDebugPixelGrid(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapData>& HeightmapData, int32 HeightmapSize, float PixelSize);
+	static void DrawDebugPixelGrid(AActor* Actor, const FWorldSpaceMapData& MapData, const TArray<FMapData>& HeightmapData, int32 HeightmapSize, float PixelSize, float PixelHeightMultiplier);
 	
 	// Same as DrawDebugPixelGrid(), but only draws the parts of the debug grid which contain a river.
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Debug")
