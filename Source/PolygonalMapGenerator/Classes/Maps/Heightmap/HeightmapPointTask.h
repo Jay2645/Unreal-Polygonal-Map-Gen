@@ -90,6 +90,8 @@ public:
 
 	// This is the array of thread completions, used to determine if all threads are done
 	static FGraphEventArray CompletionEvents;
+	static bool bShouldLogOnCompletion;
+	static float CompletionPercent;
 
 	// How many threads have completed so far.
 	static int32 CompletedThreads;

@@ -270,8 +270,8 @@ struct POLYGONALMAPGENERATOR_API FPointInterpolationData
 UENUM(BlueprintType)
 enum class EHeightmapGenerationType : uint8
 {
-	ForceMultithreaded,
-	ForceSingleThread
+	Foreground,
+	Background
 };
 
 /**

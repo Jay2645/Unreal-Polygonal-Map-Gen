@@ -20,6 +20,9 @@ FGraphEventArray FHeightmapPointGenerator::CompletionEvents = FGraphEventArray()
 int32 FHeightmapPointGenerator::CompletedThreads = 0;
 int32 FHeightmapPointGenerator::TotalNumberOfThreads = 0;
 
+bool FHeightmapPointGenerator::bShouldLogOnCompletion = true;
+float FHeightmapPointGenerator::CompletionPercent = 0.0f;
+
 FIslandGeneratorDelegate FHeightmapPointGenerator::OnAllPointsComplete;
 
 bool FHeightmapPointGenerator::TasksAreComplete()
@@ -43,37 +46,13 @@ void FHeightmapPointGenerator::GenerateHeightmapPoints(const int32 HeightmapSize
 
 	//StartingMapDataArray = FHeightmapPointGenerator::MapGraph->GetAllMapData();
 
-	EPointSelectionMode pointSelectionMode = EPointSelectionMode::InterpolatedWithPolygonBiome;
-
-	/*if (pointSelectionMode == EPointSelectionMode::Interpolated || pointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome)
+	bShouldLogOnCompletion = HeightmapSize <= 150;
+	if (!bShouldLogOnCompletion)
 	{
-		int32 graphSize = FHeightmapPointGenerator::MapGraph->GetGraphSize();
-		// First, insert a border around the map
-		for (int x = 0; x < graphSize; x++)
-		{
-			FMapData borderPoint = FMapData();
-			borderPoint.Elevation = 0.0f;
-			borderPoint.Moisture = 0.0f;
-			borderPoint = UMapDataHelper::SetOcean(borderPoint);
-			borderPoint = UMapDataHelper::SetBorder(borderPoint);
-			borderPoint.Point = FVector2D(x, 0);
-			StartingMapDataArray.Add(borderPoint);
-			borderPoint.Point = FVector2D(x, graphSize - 1);
-			StartingMapDataArray.Add(borderPoint);
-		}
-		for (int y = 0; y < graphSize; y++)
-		{
-			FMapData borderPoint = FMapData();
-			borderPoint.Elevation = 0.0f;
-			borderPoint.Moisture = 0.0f;
-			borderPoint = UMapDataHelper::SetOcean(borderPoint);
-			borderPoint = UMapDataHelper::SetBorder(borderPoint);
-			borderPoint.Point = FVector2D(0, y);
-			StartingMapDataArray.Add(borderPoint);
-			borderPoint.Point = FVector2D(graphSize - 1, y);
-			StartingMapDataArray.Add(borderPoint);
-		}
-	}*/
+		UE_LOG(LogWorldGen, Warning, TEXT("You have a large heightmap size (%d)! Your heightmap may take a while (> 15 seconds) to complete. Logging individual completion events will be disabled. You can check the current completion percentage in FHeightmapPointGenerator::CompletionPercent or by calling GetCompletionPercent() on your PolygonalMapHeightmap object (accessible by calling GetHeightmap() on the IslandMapGenerator)"), HeightmapSize);
+	}
+
+	EPointSelectionMode pointSelectionMode = EPointSelectionMode::InterpolatedWithPolygonBiome;
 
 	// Add a task for each heightmap pixel
 	for (int32 x = 0; x < HeightmapSize; x++)
@@ -156,8 +135,11 @@ void FHeightmapPointTask::DoTask(ENamedThreads::Type CurrentThread, const FGraph
 	FHeightmapPointGenerator::HeightmapData.Add(mapData);
 	FHeightmapPointGenerator::CompletedThreads++;
 
-	float percentComplete = (float)FHeightmapPointGenerator::CompletedThreads / (float)FHeightmapPointGenerator::TotalNumberOfThreads;
-	//UE_LOG(LogWorldGen, Log, TEXT("Created pixel at (%d, %d), completing thread %d of %d. Heightmap completion percent: %f percent."), X, Y, FHeightmapPointGenerator::CompletedThreads, FHeightmapPointGenerator::TotalNumberOfThreads, percentComplete);
+	float percentComplete = (float)FHeightmapPointGenerator::CompletedThreads / (float)FHeightmapPointGenerator::TotalNumberOfThreads; 
+	if (FHeightmapPointGenerator::bShouldLogOnCompletion)
+	{
+		UE_LOG(LogWorldGen, Log, TEXT("Created pixel at (%d, %d), completing thread %d of %d. Heightmap completion percent: %f percent."), X, Y, FHeightmapPointGenerator::CompletedThreads, FHeightmapPointGenerator::TotalNumberOfThreads, percentComplete);
+	}
 	if (FHeightmapPointGenerator::CompletedThreads == FHeightmapPointGenerator::TotalNumberOfThreads)
 	{
 		// If we're all done, check in with the on completion delegate

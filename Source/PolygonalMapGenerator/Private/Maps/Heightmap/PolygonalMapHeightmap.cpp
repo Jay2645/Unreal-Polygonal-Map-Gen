@@ -21,23 +21,31 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 	// Interpolate between the actual points
 	CreateHeightmapTimer = FPlatformTime::Seconds();
 
-	if (HeightmapGenerationOptions == EHeightmapGenerationType::ForceMultithreaded)
+	if (HeightmapGenerationOptions == EHeightmapGenerationType::Background)
 	{
 		FIslandGeneratorDelegate generatePoints;
 		generatePoints.BindDynamic(this, &UPolygonalMapHeightmap::CheckMapPointsDone);
 		FHeightmapPointGenerator::GenerateHeightmapPoints(HeightmapSize, NumberOfPointsToAverage, this, PolygonMap, BiomeManager, generatePoints);
 	}
-	else
+	else if (HeightmapGenerationOptions == EHeightmapGenerationType::Foreground)
 	{
 		FHeightmapPointGenerator::MapScale = (float)PolygonMap->GetGraphSize() / (float)HeightmapSize;
+		float squaredHeightmap = (float)HeightmapSize * (float)HeightmapSize;
+		float current = 0.0f;
 		for (int32 x = 0; x < HeightmapSize; x++)
 		{
 			for (int32 y = 0; y < HeightmapSize; y++)
 			{
 				HeightmapData.Add(FHeightmapPointTask::MakeMapPoint(FVector2D(x, y), PolygonMap, BiomeManager, EPointSelectionMode::InterpolatedWithPolygonBiome));
+				current++;
+				FHeightmapPointGenerator::CompletionPercent = current / squaredHeightmap;
 			}
 		}
 		DoHeightmapPostProcess();
+	}
+	else
+	{
+		unimplemented();
 	}
 }
 
@@ -65,6 +73,12 @@ void UPolygonalMapHeightmap::DoHeightmapPostProcess()
 		OnGenerationComplete.Unbind();
 	}
 }
+
+float UPolygonalMapHeightmap::GetCompletionPercent() const
+{
+	return FHeightmapPointGenerator::CompletionPercent;
+}
+
 
 TArray<FMapData> UPolygonalMapHeightmap::GetMapData()
 {

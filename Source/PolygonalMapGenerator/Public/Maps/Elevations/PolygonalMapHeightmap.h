@@ -59,6 +59,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Heightmap")
 	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, const int32 Size, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate onComplete);
 
+	// How much of the heightmap we have complete so far.
+	// This is most useful if you are calculating the heightmap in the background, so it can be used as a loading bar or such.
+	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Heightmap")
+	float GetCompletionPercent() const;
+
 	// Returns a COPY of this object's raw heightmap.
 	// This can be iterated over easily, but keep in mind that any changes you make won't be made to the actual heightmap object (i.e., this).
 	// Also keep in mind that the array is actually a 1D representation of a 2D array of HeightmapSize x HeightmapSize.

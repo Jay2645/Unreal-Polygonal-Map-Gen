@@ -551,18 +551,50 @@ FPointInterpolationData UPolygonMap::CornerContainsPoint(const FVector2D& Point,
 		return output;
 	}
 
-	FMapData center1 = GetCenter(Corner.Touches[0]).CenterData;
-	FMapData center2 = GetCenter(Corner.Touches[1]).CenterData;
-	FMapData center3 = GetCenter(Corner.Touches[2]).CenterData;
+	FMapData center1 = Centers[Corner.Touches[0]].CenterData;
+	FMapData center2 = Centers[Corner.Touches[1]].CenterData;
+	FMapData center3 = Centers[Corner.Touches[2]].CenterData;
 	FVector2D p1 = center1.Point;
 	FVector2D p2 = center2.Point;
 	FVector2D p3 = center3.Point;
+
+	// Check bounding box
+	//float maxX = FMath::Max3(p1.X, p2.X, p3.X);
+	//if (Point.X > maxX)
+	if (Point.X > p1.X && Point.X > p2.X && Point.X > p3.X)
+	{
+		// To the right of maximum triangle bounds
+		return output;
+	}
+	//float maxY = FMath::Max3(p1.Y, p2.Y, p3.Y);
+	//if (Point.Y > maxY)
+	if (Point.Y > p1.Y && Point.Y > p2.Y && Point.Y > p3.Y)
+	{
+		// Above maximum triangle bounds
+		return output;
+	}
+	//float minX = FMath::Min3(p1.X, p2.X, p3.X);
+	//if (Point.X < minX)
+	if (Point.X < p1.X && Point.X < p2.X && Point.X < p3.X)
+	{
+		// To the left of maximum triangle bounds
+		return output;
+	}
+	//float minY = FMath::Min3(p1.Y, p2.Y, p3.Y);
+	//if (Point.Y < minY)
+	if (Point.Y < p1.Y && Point.Y < p2.Y && Point.Y < p3.Y)
+	{
+		// Underneath maximum triangle bounds
+		return output;
+	}
+
+	// Point is inside of bounding box
 
 	// Calculate determinant
 	float det = (p2.Y - p3.Y) * (p1.X - p3.X) + (p3.X - p2.X) * (p1.Y - p3.Y);
 	if (det == 0.0f)
 	{
-		// Shouldn't happen, but okay
+		// Shouldn't happen, but just in case
 		return output;
 	}
 
@@ -610,6 +642,7 @@ FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2
 	}
 
 	FPointInterpolationData data = FPointInterpolationData();
+	TArray<int> tried = TArray<int>();
 	if (LastFoundCorner.Index >= 0)
 	{
 		// Optimization: Check to see if we share a triangle with the last point we found.
@@ -622,16 +655,21 @@ FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2
 		}
 		else
 		{
+			tried.Add(LastFoundCorner.Index);
 			// Check the neighboring triangles
 			for (int i = 0; i < LastFoundCorner.Adjacent.Num(); i++)
 			{
-				FMapCorner adjacent = GetCorner(LastFoundCorner.Adjacent[i]);
+				FMapCorner adjacent = Corners[LastFoundCorner.Adjacent[i]];
 				data = CornerContainsPoint(Point, adjacent);
 				if (data.bTriangleIsValid)
 				{
 					LastFoundCorner = adjacent;
 					CornerLookup.Add(intMapCoordinates, LastFoundCorner.Index);
 					break;
+				}
+				else
+				{
+					tried.Add(LastFoundCorner.Adjacent[i]);
 				}
 			}
 		}
@@ -644,6 +682,10 @@ FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2
 		// Try to avoid getting here as much as physically possible.
 		for (int i = 0; i < Corners.Num(); i++)
 		{
+			if (tried.Contains(i))
+			{
+				continue;
+			}
 			data = CornerContainsPoint(Point, Corners[i]);
 			if (data.bTriangleIsValid)
 			{
