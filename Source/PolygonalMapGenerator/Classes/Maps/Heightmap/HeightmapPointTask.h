@@ -31,18 +31,15 @@ class FHeightmapPointTask
 {
 
 public:
-	FHeightmapPointTask(int32 XCoord, int32 YCoord, int32 NumberOfPoints, EPointSelectionMode SelectionMode)
+	FHeightmapPointTask(int32 XCoord, int32 YCoord, EPointSelectionMode SelectionMode)
 	{
 		X = XCoord;
 		Y = YCoord;
-		NumberOfPointsToAverage = NumberOfPoints;
 		PointSelectionMode = SelectionMode;
 	}
 
 	int32 X;
 	int32 Y;
-	// How many points to take into account when generating an interpolated heightmap
-	int32 NumberOfPointsToAverage;
 	// What mode to be in for generating the heightmap.
 	EPointSelectionMode PointSelectionMode;
 
@@ -83,6 +80,7 @@ public:
 	// The scale between heightmap units and graph units
 	// 1 heightmap unit is this many graph units
 	static float MapScale;
+	static bool bInterpolateUsingTriangleCenters;
 
 	// Results of the threads
 	static TArray<FMapData> HeightmapData;
@@ -104,7 +102,7 @@ public:
 	static bool TasksAreComplete();
 
 	// Initiation point to start the heightmap generation process.
-	static void GenerateHeightmapPoints(const int32 HeightmapSize, int32 NumberOfPointsToAverage, UPolygonalMapHeightmap* HeightmapGenerator, UPolygonMap* Graph, UBiomeManager* BiomeMgr, const FIslandGeneratorDelegate OnComplete);
+	static void GenerateHeightmapPoints(UPolygonalMapHeightmap* HeightmapGenerator, UPolygonMap* Graph, UBiomeManager* BiomeMgr, const FHeightmapCreationData HeightmapProperties, const FIslandGeneratorDelegate OnComplete);
 
 	// Check to see if all threads are complete.
 	// If so, call the OnAllPointsComplete delegate.

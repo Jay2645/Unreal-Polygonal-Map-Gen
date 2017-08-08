@@ -472,7 +472,7 @@ FMapCorner UPolygonMap::FindMapCornerForCoordinate(const FVector2D& Point)
 	FMapCorner corner = FMapCorner();
 	for (int i = 0; i < Corners.Num(); i++)
 	{
-		if (CornerContainsPoint(Point, Corners[i]).bTriangleIsValid)
+		if (CornerContainsPoint(Point, Corners[i], false).bTriangleIsValid)
 		{
 			corner = Corners[i];
 			if (corner.Touches.Num() == 0)
@@ -543,7 +543,7 @@ bool UPolygonMap::CenterContainsPoint(const FVector2D& Point, const FMapCenter& 
 	return (intersections & 1) == 1; // True if point is odd (inside of polygon)
 }
 
-FPointInterpolationData UPolygonMap::CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner) const
+FPointInterpolationData UPolygonMap::CornerContainsPoint(const FVector2D& Point, const FMapCorner& Corner, bool bInterpolateUsingTriangleCenter) const
 {
 	FPointInterpolationData output = FPointInterpolationData();
 	if (Corner.Touches.Num() != 3)
@@ -618,13 +618,70 @@ FPointInterpolationData UPolygonMap::CornerContainsPoint(const FVector2D& Point,
 
 	output.bTriangleIsValid = true;
 	output.SourceTriangle = Corner;
+
+	if (bInterpolateUsingTriangleCenter)
+	{
+		// At this point, we know we are inside the triangle.
+		// However, our triangle is actually 3 triangles put together, with the SourceTriangle being the point at the center.
+		// We know we are in triangle p1-p2-p3.
+		// However, we want to find out if we are in triangle p1-Center-p2 (Triangle A), triangle p1-Center-p3 (Triangle B), or triangle p2-Center-p3 (Triangle C).
+		// To determine this, we do the barycentric test one more time
+		FVector2D triangleCenter = Corner.CornerData.Point;
+
+		// Triangle A (p1-Center-p2)
+		float triangleADet = (triangleCenter.Y - p2.Y) * (p1.X - p2.X) + (p2.X - triangleCenter.X) * (p1.Y - p2.Y);
+		if (triangleADet != 0.0f)
+		{
+			float triangleALambda1 = ((triangleCenter.Y - p2.Y) * (Point.X - p2.X) + (p2.X - triangleCenter.X) * (Point.Y - p2.Y)) / triangleADet;
+			float triangleALambda2 = ((p2.Y - p1.Y) * (Point.X - p2.X) + (p1.X - p2.X) * (Point.Y - p2.Y)) / triangleADet;
+			float triangleALambda3 = 1 - triangleALambda1 - triangleALambda2;
+			if (0 <= triangleALambda1 && triangleALambda1 <= 1 && 0 <= triangleALambda2 && triangleALambda2 <= 1 && 0 <= triangleALambda3 && triangleALambda3 <= 1)
+			{
+				output.InterpolatedElevation = triangleALambda1 * center1.Elevation + triangleALambda2 * Corner.CornerData.Elevation + triangleALambda3 * center2.Elevation;
+				output.InterpolatedMoisture = triangleALambda1 * center1.Moisture + triangleALambda2 * Corner.CornerData.Moisture + triangleALambda3 * center2.Moisture;
+				return output;
+			}
+		}
+
+		// Triangle A didn't work out, try Triangle B (p1-Center-p3)
+		float triangleBDet = (triangleCenter.Y - p3.Y) * (p1.X - p3.X) + (p3.X - triangleCenter.X) * (p1.Y - p3.Y);
+		if (triangleBDet != 0.0f)
+		{
+			float triangleBLambda1 = ((triangleCenter.Y - p3.Y) * (Point.X - p3.X) + (p3.X - triangleCenter.X) * (Point.Y - p3.Y)) / triangleBDet;
+			float triangleBLambda2 = ((p3.Y - p1.Y) * (Point.X - p3.X) + (p1.X - p3.X) * (Point.Y - p3.Y)) / triangleBDet;
+			float triangleBLambda3 = 1 - triangleBLambda1 - triangleBLambda2;
+			if (0 <= triangleBLambda1 && triangleBLambda1 <= 1 && 0 <= triangleBLambda2 && triangleBLambda2 <= 1 && 0 <= triangleBLambda3 && triangleBLambda3 <= 1)
+			{
+				output.InterpolatedElevation = triangleBLambda1 * center1.Elevation + triangleBLambda2 * Corner.CornerData.Elevation + triangleBLambda3 * center2.Elevation;
+				output.InterpolatedMoisture = triangleBLambda1 * center1.Moisture + triangleBLambda2 * Corner.CornerData.Moisture + triangleBLambda3 * center2.Moisture;
+				return output;
+			}
+		}
+
+		// Triangle B didn't work out, try Triangle C (p2-Center-p3)
+		float triangleCDet = (triangleCenter.Y - p3.Y) * (p2.X - p3.X) + (p3.X - triangleCenter.X) * (p2.Y - p3.Y);
+		if (triangleCDet != 0.0f)
+		{
+			float triangleCLambda1 = ((triangleCenter.Y - p3.Y) * (Point.X - p3.X) + (p3.X - triangleCenter.X) * (Point.Y - p3.Y)) / triangleCDet;
+			float triangleCLambda2 = ((p3.Y - p2.Y) * (Point.X - p3.X) + (p2.X - p3.X) * (Point.Y - p3.Y)) / triangleCDet;
+			float triangleCLambda3 = 1 - triangleCLambda1 - triangleCLambda2;
+			if (0 <= triangleCLambda1 && triangleCLambda1 <= 1 && 0 <= triangleCLambda2 && triangleCLambda2 <= 1 && 0 <= triangleCLambda3 && triangleCLambda3 <= 1)
+			{
+				output.InterpolatedElevation = triangleCLambda1 * center1.Elevation + triangleCLambda2 * Corner.CornerData.Elevation + triangleCLambda3 * center2.Elevation;
+				output.InterpolatedMoisture = triangleCLambda1 * center1.Moisture + triangleCLambda2 * Corner.CornerData.Moisture + triangleCLambda3 * center2.Moisture;
+				return output;
+			}
+		}
+		unimplemented();
+	}
+	
+	// We don't care about interpolating relative to the center, we just care that we're in the triangle
 	output.InterpolatedElevation = lambda1 * center1.Elevation + lambda2 * center2.Elevation + lambda3 * center3.Elevation;
 	output.InterpolatedMoisture = lambda1 * center1.Moisture + lambda2 * center2.Moisture + lambda3 * center3.Moisture;
-	
 	return output;
 }
 
-FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2D& Point)
+FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2D& Point, bool bInterpolateUsingTriangleCenters)
 {
 	if (Point.X > MaxPointLocation || Point.Y > MaxPointLocation || Point.X < MinPointLocation || Point.Y < MinPointLocation)
 	{
@@ -637,8 +694,7 @@ FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2
 	intMapCoordinates.Y = FMath::RoundToInt(Point.Y);
 	if (CornerLookup.Contains(intMapCoordinates))
 	{
-		UE_LOG(LogWorldGen, Log, TEXT("Cache hit! (%f, %f)"), Point.X, Point.Y);
-		return CornerContainsPoint(Point, GetCorner(CornerLookup[intMapCoordinates]));
+		return CornerContainsPoint(Point, GetCorner(CornerLookup[intMapCoordinates]), bInterpolateUsingTriangleCenters);
 	}
 
 	FPointInterpolationData data = FPointInterpolationData();
@@ -648,7 +704,7 @@ FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2
 		// Optimization: Check to see if we share a triangle with the last point we found.
 		// If we're running on a single thread, this is very helpful.
 		// It doesn't work so well if we're multithreaded.
-		data = CornerContainsPoint(Point, LastFoundCorner);
+		data = CornerContainsPoint(Point, LastFoundCorner, bInterpolateUsingTriangleCenters);
 		if (data.bTriangleIsValid)
 		{
 			CornerLookup.Add(intMapCoordinates, LastFoundCorner.Index);
@@ -660,7 +716,7 @@ FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2
 			for (int i = 0; i < LastFoundCorner.Adjacent.Num(); i++)
 			{
 				FMapCorner adjacent = Corners[LastFoundCorner.Adjacent[i]];
-				data = CornerContainsPoint(Point, adjacent);
+				data = CornerContainsPoint(Point, adjacent, bInterpolateUsingTriangleCenters);
 				if (data.bTriangleIsValid)
 				{
 					LastFoundCorner = adjacent;
@@ -686,7 +742,7 @@ FPointInterpolationData UPolygonMap::FindInterpolatedDataForPoint(const FVector2
 			{
 				continue;
 			}
-			data = CornerContainsPoint(Point, Corners[i]);
+			data = CornerContainsPoint(Point, Corners[i], bInterpolateUsingTriangleCenters);
 			if (data.bTriangleIsValid)
 			{
 				LastFoundCorner = Corners[i];

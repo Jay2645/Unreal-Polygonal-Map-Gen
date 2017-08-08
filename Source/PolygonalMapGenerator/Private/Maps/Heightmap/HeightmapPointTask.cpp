@@ -10,6 +10,7 @@ UPolygonalMapHeightmap* FHeightmapPointGenerator::MapHeightmap = NULL;
 UPolygonMap* FHeightmapPointGenerator::MapGraph = NULL;
 UBiomeManager* FHeightmapPointGenerator::BiomeManager = NULL;
 float FHeightmapPointGenerator::MapScale = 1.0f;
+bool FHeightmapPointGenerator::bInterpolateUsingTriangleCenters = true;
 
 // Results of the threads
 TArray<FMapData> FHeightmapPointGenerator::HeightmapData = TArray<FMapData>();
@@ -31,14 +32,17 @@ bool FHeightmapPointGenerator::TasksAreComplete()
 	return CompletedThreads == TotalNumberOfThreads;
 }
 
-void FHeightmapPointGenerator::GenerateHeightmapPoints(const int32 HeightmapSize, int32 NumberOfPointsToAverage, UPolygonalMapHeightmap* HeightmapGenerator, UPolygonMap* Graph, UBiomeManager* BiomeMgr, const FIslandGeneratorDelegate OnComplete)
+void FHeightmapPointGenerator::GenerateHeightmapPoints(UPolygonalMapHeightmap* HeightmapGenerator, UPolygonMap* Graph, UBiomeManager* BiomeMgr, const FHeightmapCreationData HeightmapProperties, const FIslandGeneratorDelegate OnComplete)
 {
+	int32 HeightmapSize = HeightmapProperties.Size;
+
 	check(HeightmapSize > 0);
 	MapHeightmap = HeightmapGenerator;
 	MapGraph = Graph;
 	BiomeManager = BiomeMgr;
 	OnAllPointsComplete = OnComplete;
 	MapScale = (float)MapGraph->GetGraphSize() / (float)HeightmapSize;
+	bInterpolateUsingTriangleCenters = HeightmapProperties.bUseTriangleCentersForInterpolation;
 
 	TotalNumberOfThreads = 0;
 	CompletedThreads = 0;
@@ -59,7 +63,7 @@ void FHeightmapPointGenerator::GenerateHeightmapPoints(const int32 HeightmapSize
 	{
 		for(int32 y = 0; y < HeightmapSize; y++)
 		{
-			CompletionEvents.Add(TGraphTask<FHeightmapPointTask>::CreateTask(NULL, ENamedThreads::GameThread).ConstructAndDispatchWhenReady(x, y, NumberOfPointsToAverage, pointSelectionMode));
+			CompletionEvents.Add(TGraphTask<FHeightmapPointTask>::CreateTask(NULL, ENamedThreads::GameThread).ConstructAndDispatchWhenReady(x, y, pointSelectionMode));
 			TotalNumberOfThreads++;
 		}
 	}
@@ -87,7 +91,7 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, UPolygonMap*
 	FMapData pixelData = FMapData();
 	pixelData.Point = PixelPosition * FHeightmapPointGenerator::MapScale;
 
-	FPointInterpolationData pointData = MapGraph->FindInterpolatedDataForPoint(pixelData.Point);
+	FPointInterpolationData pointData = MapGraph->FindInterpolatedDataForPoint(pixelData.Point, FHeightmapPointGenerator::bInterpolateUsingTriangleCenters);
 	if (pointData.bTriangleIsValid)
 	{
 		// The point is valid, populate from the triangle

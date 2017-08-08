@@ -420,7 +420,7 @@ void AIslandMapGenerator::DetermineBiomes()
 
 	UE_LOG(LogWorldGen, Log, TEXT("Biomes determined in %f seconds."), FPlatformTime::Seconds() - CurrentGenerationTime);
 }
-void AIslandMapGenerator::CreateHeightmap(const int32 HeightmapSize, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate OnHeightmapGenerationFinished)
+void AIslandMapGenerator::CreateHeightmap(const FHeightmapCreationData HeightmapGenerationOptions, const FIslandGeneratorDelegate OnHeightmapGenerationFinished)
 {
 	if (MapGraph == NULL)
 	{
@@ -436,7 +436,7 @@ void AIslandMapGenerator::CreateHeightmap(const int32 HeightmapSize, const EHeig
 
 	FIslandGeneratorDelegate finalizationFinished;
 	finalizationFinished.BindDynamic(this, &AIslandMapGenerator::OnHeightmapFinished);
-	MapHeightmap->CreateHeightmap(MapGraph, BiomeManager, MoistureDistributor, HeightmapSize, HeightmapGenerationOptions, finalizationFinished);
+	MapHeightmap->CreateHeightmap(MapGraph, BiomeManager, MoistureDistributor, HeightmapGenerationOptions, finalizationFinished);
 }
 
 void AIslandMapGenerator::OnHeightmapFinished()

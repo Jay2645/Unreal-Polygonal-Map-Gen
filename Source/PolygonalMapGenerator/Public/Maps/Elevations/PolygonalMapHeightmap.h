@@ -31,6 +31,8 @@ private:
 	UMoistureDistributor* MoistureDistributor;
 	UPROPERTY()
 	UBiomeManager* BiomeManager;
+	UPROPERTY()
+	FHeightmapCreationData HeightmapProperties;
 
 	UPROPERTY()
 	float CreateHeightmapTimer;
@@ -59,7 +61,7 @@ public:
 	// The number of nearest points to consider is governed by the value of the NumberOfPointsToAverage in the UPolygonalMapHeightmap class.
 	// Each "pixel" in the heightmap will be supplied with its own biome, which is determined by the UBiomeManager passed to this function.
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Heightmap")
-	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeMngr, UMoistureDistributor* MoistureDist, const int32 Size, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate onComplete);
+	void CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeMngr, UMoistureDistributor* MoistureDist, const FHeightmapCreationData HeightmapCreationOptions, const FIslandGeneratorDelegate onComplete);
 
 	// How much of the heightmap we have complete so far.
 	// This is most useful if you are calculating the heightmap in the background, so it can be used as a loading bar or such.

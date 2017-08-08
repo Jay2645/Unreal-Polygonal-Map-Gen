@@ -7,7 +7,7 @@
 #include "Maps/Heightmap/HeightmapPointTask.h"
 #include "PolygonalMapHeightmap.h"
 
-void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeMngr, UMoistureDistributor* MoistureDist, const int32 Size, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate OnComplete)
+void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeMngr, UMoistureDistributor* MoistureDist, const FHeightmapCreationData HeightmapCreationOptions, const FIslandGeneratorDelegate OnComplete)
 {
 	if (PolygonMap == NULL)
 	{
@@ -15,20 +15,23 @@ void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeMana
 	}
 	BiomeManager = BiomeMngr;
 	MoistureDistributor = MoistureDist;
-	HeightmapSize = Size;
+
+	HeightmapProperties = HeightmapCreationOptions;
+	HeightmapSize = HeightmapProperties.Size;
+
 	HeightmapData.Empty();
+	
 	OnGenerationComplete = OnComplete;
 
 	// Interpolate between the actual points
 	CreateHeightmapTimer = FPlatformTime::Seconds();
-
-	if (HeightmapGenerationOptions == EHeightmapGenerationType::Background)
+	if (HeightmapCreationOptions.HeightmapGenerationPriority == EHeightmapGenerationType::Background)
 	{
 		FIslandGeneratorDelegate generatePoints;
 		generatePoints.BindDynamic(this, &UPolygonalMapHeightmap::CheckMapPointsDone);
-		FHeightmapPointGenerator::GenerateHeightmapPoints(HeightmapSize, NumberOfPointsToAverage, this, PolygonMap, BiomeManager, generatePoints);
+		FHeightmapPointGenerator::GenerateHeightmapPoints(this, PolygonMap, BiomeManager, HeightmapProperties, generatePoints);
 	}
-	else if (HeightmapGenerationOptions == EHeightmapGenerationType::Foreground)
+	else if (HeightmapCreationOptions.HeightmapGenerationPriority == EHeightmapGenerationType::Foreground)
 	{
 		FHeightmapPointGenerator::MapScale = (float)PolygonMap->GetGraphSize() / (float)HeightmapSize;
 		float squaredHeightmap = (float)HeightmapSize * (float)HeightmapSize;
@@ -60,22 +63,46 @@ void UPolygonalMapHeightmap::DoHeightmapPostProcess()
 {
 	UE_LOG(LogWorldGen, Log, TEXT("%d map points created in %f seconds."), HeightmapSize * HeightmapSize, FPlatformTime::Seconds() - CreateHeightmapTimer);
 
-	/*// Normalize between 0 and 1
-	// I had assumed these values were already normalized, but apparently not
-	float maxHeightmapSize = -1.0f;
-	CreateHeightmapTimer = FPlatformTime::Seconds();
-	for (int i = 0; i < HeightmapData.Num(); i++)
+	// Blur polygon edges
+	int blurSteps = HeightmapProperties.PostProcessBlurSteps;
+	if (blurSteps > 0)
 	{
-		if (HeightmapData[i].Elevation > maxHeightmapSize)
+		CreateHeightmapTimer = FPlatformTime::Seconds();
+		TArray<FMapData> blurredData;
+		blurredData.SetNumZeroed(HeightmapData.Num());
+		for (int x = 0; x < HeightmapSize; x++)
 		{
-			maxHeightmapSize = HeightmapData[i].Elevation;
+			for (int y = 0; y < HeightmapSize; y++)
+			{
+				float averageElevation = 0.0f;
+				float averageMoisture = 0.0f;
+				int iterations = 0;
+				for (int xOffset = x - blurSteps; xOffset <= x + blurSteps; xOffset++)
+				{
+					if (xOffset < 0 || xOffset >= HeightmapSize)
+					{
+						continue;
+					}
+					for (int yOffset = y - blurSteps; yOffset <= y + blurSteps; yOffset++)
+					{
+						if (yOffset < 0 || yOffset >= HeightmapSize)
+						{
+							continue;
+						}
+						int32 offsetIndex = xOffset + (yOffset * HeightmapSize);
+						averageElevation += HeightmapData[offsetIndex].Elevation;
+						averageMoisture += HeightmapData[offsetIndex].Moisture;
+						iterations++;
+					}
+				}
+				int32 index = x + (y * HeightmapSize);
+				blurredData[index].Elevation = averageElevation / (float)iterations;
+				blurredData[index].Moisture = averageMoisture / (float)iterations;
+			}
 		}
+		HeightmapData = blurredData;
+		UE_LOG(LogWorldGen, Log, TEXT("Points blurred in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);
 	}
-	for (int i = 0; i < HeightmapData.Num(); i++)
-	{
-		HeightmapData[i].Elevation /= maxHeightmapSize;
-	}
-	UE_LOG(LogWorldGen, Log, TEXT("Points normalized in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);*/
 
 	// Create the biomes
 	CreateHeightmapTimer = FPlatformTime::Seconds();

@@ -196,7 +196,7 @@ public:
 	// When the function is done, it will call the OnComplete delegate.
 	// The heightmap can be accessed through the GetHeightmap() function.
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
-	void CreateHeightmap(const int32 HeightmapSize, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate OnComplete);
+	void CreateHeightmap(const FHeightmapCreationData HeightmapGenerationOptions, const FIslandGeneratorDelegate OnComplete);
 
 	// This draws a debug voronoi representation of the island, using the values specified in
 	// the IslandData's PolygonMapSettings struct.
