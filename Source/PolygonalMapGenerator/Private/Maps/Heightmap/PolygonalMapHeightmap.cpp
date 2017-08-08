@@ -7,12 +7,13 @@
 #include "Maps/Heightmap/HeightmapPointTask.h"
 #include "PolygonalMapHeightmap.h"
 
-void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeManager, UMoistureDistributor* MoistureDist, const int32 Size, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate OnComplete)
+void UPolygonalMapHeightmap::CreateHeightmap(UPolygonMap* PolygonMap, UBiomeManager* BiomeMngr, UMoistureDistributor* MoistureDist, const int32 Size, const EHeightmapGenerationType HeightmapGenerationOptions, const FIslandGeneratorDelegate OnComplete)
 {
 	if (PolygonMap == NULL)
 	{
 		return;
 	}
+	BiomeManager = BiomeMngr;
 	MoistureDistributor = MoistureDist;
 	HeightmapSize = Size;
 	HeightmapData.Empty();
@@ -59,13 +60,38 @@ void UPolygonalMapHeightmap::DoHeightmapPostProcess()
 {
 	UE_LOG(LogWorldGen, Log, TEXT("%d map points created in %f seconds."), HeightmapSize * HeightmapSize, FPlatformTime::Seconds() - CreateHeightmapTimer);
 
-	// Add the rivers
+	/*// Normalize between 0 and 1
+	// I had assumed these values were already normalized, but apparently not
+	float maxHeightmapSize = -1.0f;
 	CreateHeightmapTimer = FPlatformTime::Seconds();
+	for (int i = 0; i < HeightmapData.Num(); i++)
+	{
+		if (HeightmapData[i].Elevation > maxHeightmapSize)
+		{
+			maxHeightmapSize = HeightmapData[i].Elevation;
+		}
+	}
+	for (int i = 0; i < HeightmapData.Num(); i++)
+	{
+		HeightmapData[i].Elevation /= maxHeightmapSize;
+	}
+	UE_LOG(LogWorldGen, Log, TEXT("Points normalized in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);*/
+
+	// Create the biomes
+	CreateHeightmapTimer = FPlatformTime::Seconds();
+	for (int i = 0; i < HeightmapData.Num(); i++)
+	{
+		HeightmapData[i].Biome = BiomeManager->DetermineBiome(HeightmapData[i]);
+	}
+	UE_LOG(LogWorldGen, Log, TEXT("Biomes determined in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);
+
+	// Add the rivers
+	/*CreateHeightmapTimer = FPlatformTime::Seconds();
 	for (int i = 0; i < MoistureDistributor->Rivers.Num(); i++)
 	{
 		MoistureDistributor->Rivers[i]->MoveRiverToHeightmap(this);
 	}
-	UE_LOG(LogWorldGen, Log, TEXT("Rivers placed in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);
+	UE_LOG(LogWorldGen, Log, TEXT("Rivers placed in %f seconds."), FPlatformTime::Seconds() - CreateHeightmapTimer);*/
 
 	if (OnGenerationComplete.IsBound())
 	{

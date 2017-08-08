@@ -96,14 +96,14 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, UPolygonMap*
 		{
 			pixelData.Moisture = pointData.SourceTriangle.CornerData.Moisture;
 			pixelData.Tags = pointData.SourceTriangle.CornerData.Tags;
-			pixelData.Biome = pointData.SourceTriangle.CornerData.Biome;
+			//pixelData.Biome = pointData.SourceTriangle.CornerData.Biome;
 		}
 		else
 		{
 			pixelData.Moisture = pointData.InterpolatedMoisture;
 			// TODO: Interpolate tags
 			pixelData.Tags = pointData.SourceTriangle.CornerData.Tags;
-			if (PointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome)
+			/*if (PointSelectionMode == EPointSelectionMode::InterpolatedWithPolygonBiome && pointData.SourceTriangle.CornerData.Biome.IsValid())
 			{
 				// Grab the biome directly from the CornerData
 				pixelData.Biome = pointData.SourceTriangle.CornerData.Biome;
@@ -114,14 +114,14 @@ FMapData FHeightmapPointTask::MakeMapPoint(FVector2D PixelPosition, UPolygonMap*
 				// TODO: Find out why it crashes (maybe due to multithreading?)
 				// In the meantime, use EPointSelectionMode::InterpolatedWithPolygonBiome instead
 				pixelData.Biome = BiomeManager->DetermineBiome(pixelData);
-			}
+			}*/
 		}
 	}
 	else
 	{
 		// If the point is invalid, the default constructor for the MapData struct is
 		// sufficient for making an ocean pixel. We just need to set the biome.
-		pixelData.Biome = FGameplayTag::RequestGameplayTag(TEXT("MapData.Biome.Water.Ocean"));
+		//pixelData.Biome = FGameplayTag::RequestGameplayTag(TEXT("MapData.Biome.Water.Ocean"));
 	}
 	return pixelData;
 }

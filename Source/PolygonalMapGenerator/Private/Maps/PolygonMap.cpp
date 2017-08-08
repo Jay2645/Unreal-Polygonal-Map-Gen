@@ -618,7 +618,7 @@ FPointInterpolationData UPolygonMap::CornerContainsPoint(const FVector2D& Point,
 
 	output.bTriangleIsValid = true;
 	output.SourceTriangle = Corner;
-	output.InterpolatedElevation = ((lambda1 * center1.Elevation + lambda2 * center2.Elevation + lambda3 * center3.Elevation) * WorldData.ElevationScale) + WorldData.ElevationOffset;
+	output.InterpolatedElevation = lambda1 * center1.Elevation + lambda2 * center2.Elevation + lambda3 * center3.Elevation;
 	output.InterpolatedMoisture = lambda1 * center1.Moisture + lambda2 * center2.Moisture + lambda3 * center3.Moisture;
 	
 	return output;
