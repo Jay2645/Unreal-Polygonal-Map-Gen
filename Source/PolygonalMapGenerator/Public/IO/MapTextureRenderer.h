@@ -16,17 +16,21 @@ class POLYGONALMAPGENERATOR_API UMapTextureRenderer : public UBlueprintFunctionL
 {
 	GENERATED_BODY()
 
+	// Creates a heightmap texture on disk.
+	// The data is pulled from the supplied Map Heightmap, and the file is saved as a .png in your GameSavedDir.
+	// On Windows, this will be //InstallDir/WindowsNoEditor/GameName/Saved.
+	// In the Editor, this will be //ProjectDirectory/Saved.
+	// Specify the filename you want to save the heightmap as, without any extension.
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	static bool SaveTextureFromHeightmap(UPolygonalMapHeightmap* MapHeightmap, FString Filename);
-	
-	/*UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
-	static void CreateTextureFromHeightmap(UPolygonalMapHeightmap* MapHeightmap, UTextureRenderTarget2D* IslandRenderTarget, UMaterialInstanceDynamic* IslandMaterialInstanceDynamic);
 
+	// Creates a heightmap texture on disk.
+	// The data is pulled from the supplied array of floats, and the file is saved as a .png in your GameSavedDir.
+	// The floats are assumed to be in the range 0-1, where 0 is black and 1 is white. The heightmap will use the RGB channels,
+	// with alpha set to 255.
+	// On Windows, the image will be saved under //InstallDir/WindowsNoEditor/GameName/Saved.
+	// In the Editor, the image will be saved under //ProjectDirectory/Saved.
+	// Specify the filename you want to save the heightmap as, without any extension.
 	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
-	static void CreateTexture(UTexture2D* TargetTexture, TArray<FColor> Colors);
-
-	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
-	static bool SaveTextureToDisk(UTexture2D* Texture, FString Filename);
-
-	static void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);*/
+	static bool SaveTextureFromFloatArray(TArray<float> HeightArray, int32 HeightmapSideLength, FString Filename);
 };
