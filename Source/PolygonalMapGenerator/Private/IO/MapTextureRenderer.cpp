@@ -8,7 +8,7 @@
 #include "Misc/Paths.h"
 #include "MapTextureRenderer.h"
 
-bool UMapTextureRenderer::SaveTextureFromHeightmap(UPolygonalMapHeightmap* MapHeightmap, FString Filename)
+/*bool UMapTextureRenderer::SaveTextureFromHeightmap(UPolygonalMapHeightmap* MapHeightmap, FString Filename)
 {
 	if (MapHeightmap->GetMapData().Num() == 0)
 	{
@@ -44,7 +44,7 @@ bool UMapTextureRenderer::SaveTextureFromHeightmap(UPolygonalMapHeightmap* MapHe
 	FString filePath = FPaths::Combine<FString>(FPaths::GameSavedDir(), Filename);
 
 	return HighResScreenshotConfig.SaveImage(filePath, colors, destSize, &resultPath);
-}
+}*/
 
 /*void UMapTextureRenderer::CreateTextureFromHeightmap(UPolygonalMapHeightmap* MapHeightmap, UTextureRenderTarget2D* IslandRenderTarget, UMaterialInstanceDynamic* IslandMaterialInstanceDynamic)
 {

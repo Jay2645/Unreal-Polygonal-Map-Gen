@@ -38,7 +38,7 @@ public:
 	FText MarkovText;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMarkovCharacter
 {
 	GENERATED_BODY()

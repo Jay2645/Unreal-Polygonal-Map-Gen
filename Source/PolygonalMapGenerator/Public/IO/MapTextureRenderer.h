@@ -16,8 +16,8 @@ class POLYGONALMAPGENERATOR_API UMapTextureRenderer : public UBlueprintFunctionL
 {
 	GENERATED_BODY()
 
-	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
-	static bool SaveTextureFromHeightmap(UPolygonalMapHeightmap* MapHeightmap, FString Filename);
+	//UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
+	//static bool SaveTextureFromHeightmap(UPolygonalMapHeightmap* MapHeightmap, FString Filename);
 	
 	/*UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	static void CreateTextureFromHeightmap(UPolygonalMapHeightmap* MapHeightmap, UTextureRenderTarget2D* IslandRenderTarget, UMaterialInstanceDynamic* IslandMaterialInstanceDynamic);

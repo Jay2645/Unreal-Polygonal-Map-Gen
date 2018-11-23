@@ -4,12 +4,11 @@ using UnrealBuildTool;
 
 public class PolygonalMapGenerator : ModuleRules
 {
-	public PolygonalMapGenerator(TargetInfo Target)
-	{
-		
+	public PolygonalMapGenerator(ReadOnlyTargetRules ROTargetRules) : base(ROTargetRules)
+    {
+		PrivatePCHHeaderFile = "Private/PolygonalMapGeneratorPrivatePCH.h";
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"PolygonalMapGenerator/Public"
 				// ... add public include paths required here ...
 			}
 			);
@@ -17,7 +16,6 @@ public class PolygonalMapGenerator : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"PolygonalMapGenerator/Private",
 				// ... add other private include paths required here ...
 			}
 			);

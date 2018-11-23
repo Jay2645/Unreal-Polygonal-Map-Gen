@@ -31,13 +31,11 @@ public:
 	USimplexNoiseElevationDistributor();
 
 	// Determine the elevations and water at Voronoi corners.
-	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	virtual void AssignCornerElevations(UIslandShape* islandShape, bool bneedsMoreRandomness, FRandomStream& randomGenerator) override;
 	
 	//UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 		//virtual void AssignOceanCoastAndLand(float lakeThreshold) override;
 
-	UFUNCTION(BlueprintCallable, Category = "World Generation|Island Generation|Map")
 	virtual void RedistributeElevations(TArray<int32> landCorners) override;
 
 	UFUNCTION(BlueprintPure, Category = "World Generation|Island Generation|Map")
