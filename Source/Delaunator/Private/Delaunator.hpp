@@ -1,4 +1,4 @@
-// Taken from https://github.com/delfrrr/delaunator-cpp
+// Taken from https://github.com/delfrrr/delaunator-cpp and used under the MIT License
 
 #pragma once
 
