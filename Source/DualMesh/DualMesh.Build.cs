@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class PolygonalMapGenerator : ModuleRules
+public class DualMesh : ModuleRules
 {
-	public PolygonalMapGenerator(ReadOnlyTargetRules ROTargetRules) : base(ROTargetRules)
+	public DualMesh(ReadOnlyTargetRules ROTargetRules) : base(ROTargetRules)
     {
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -35,7 +35,7 @@ public class PolygonalMapGenerator : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"DualMesh",
+				"Delaunator",
 				"CoreUObject",
 				"Engine",
 				"Slate",

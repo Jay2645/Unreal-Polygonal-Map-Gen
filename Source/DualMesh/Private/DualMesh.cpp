@@ -1,17 +1,17 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "PolygonalMapGenerator.h"
+#include "DualMesh.h"
 
-#define LOCTEXT_NAMESPACE "FPolygonalMapGeneratorModule"
+#define LOCTEXT_NAMESPACE "FDualMeshModule"
 
-DEFINE_LOG_CATEGORY(LogMapGen);
+DEFINE_LOG_CATEGORY(LogDualMesh);
 
-void FPolygonalMapGeneratorModule::StartupModule()
+void FDualMeshModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 }
 
-void FPolygonalMapGeneratorModule::ShutdownModule()
+void FDualMeshModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
@@ -19,4 +19,4 @@ void FPolygonalMapGeneratorModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FPolygonalMapGeneratorModule, PolygonalMapGenerator)
+IMPLEMENT_MODULE(FDualMeshModule, DualMesh)

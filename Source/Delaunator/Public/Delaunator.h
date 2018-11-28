@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogMapGen, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogDelaunator, Log, All);
 
-class FPolygonalMapGeneratorModule : public IModuleInterface
+class FDelaunatorModule : public IModuleInterface
 {
 public:
 
