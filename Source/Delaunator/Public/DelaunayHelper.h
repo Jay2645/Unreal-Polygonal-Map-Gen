@@ -39,6 +39,9 @@ public:
 		B = PointB;
 		C = PointC;
 	}
+
+public:
+	float GetArea() const;
 };
 
 /**
@@ -97,6 +100,11 @@ public:
 public:
 	// Generates the actual triangulation
 	void CreatePoints(const TArray<FVector2D>& GivenPoints);
+	// Gets the area of the Delaunay hull.
+	float GetHullArea() const;
+	// Returns the Kahan and Babuska of an array of floats.
+	// Adapted from the Delaunator HPP file.
+	float Sum(const TArray<float>& Area) const;
 };
 
 /**
@@ -112,4 +120,8 @@ public:
 	// Generates a Delaunay triangulation from the given list of points.
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Points|Delaunay")
 	static FDelaunayMesh CreateDelaunayTriangulation(const TArray<FVector2D>& Points);
+
+	// Gets the Vector2D associated with a value from the DelaunayTriangles array.
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Points|Delaunay")
+	static FVector2D GetTrianglePoint(const FDelaunayMesh& Triangulation, int32 TriangleID);
 };

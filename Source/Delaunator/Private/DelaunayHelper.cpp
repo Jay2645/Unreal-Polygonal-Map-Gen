@@ -39,7 +39,15 @@ void FDelaunayMesh::CreatePoints(const TArray<FVector2D>& GivenPoints)
 		// However, Unreal doesn't accept size_t in Blueprint arrays, nor does it
 		// accept uint64 values. The highest we can go while still supporting Blueprint
 		// is int32. This cast is technically unsafe, but it's unlikely we'll have issues.
-		HalfEdges.Add((int32)delaunay.halfedges[i]);
+		auto halfEdge = delaunay.halfedges[i];
+		if (halfEdge == delaunator::INVALID_INDEX)
+		{
+			HalfEdges.Add(-1);
+		}
+		else
+		{
+			HalfEdges.Add((int32)halfEdge);
+		}
 	}
 
 	// Triangles
@@ -80,7 +88,58 @@ void FDelaunayMesh::CreatePoints(const TArray<FVector2D>& GivenPoints)
 	}
 }
 
+float FDelaunayMesh::GetHullArea() const
+{
+	TArray<float> hullArea;
+	int32 current = HullStart;
+	do
+	{
+		float area = (DelaunayCoords[2 * current] - DelaunayCoords[2 * HullPrevious[current]]) * (DelaunayCoords[2 * current + 1] + DelaunayCoords[2 * HullPrevious[current] + 1]);
+		hullArea.Add(area);
+		current = HullNext[current];
+	}
+	while (current != HullStart);
+	return Sum(hullArea);
+}
+
+float FDelaunayMesh::Sum(const TArray<float>& Area) const
+{
+	if (Area.Num() == 0)
+	{
+		return 0.0f;
+	}
+
+	float sum = Area[0];
+	float err = 0.0f;
+
+	for (int i = 1; i < Area.Num(); i++)
+	{
+		const float k = Area[i];
+		const float m = sum + k;
+		err += FMath::Abs(sum) >= FMath::Abs(k) ? sum - m + k : k - m + sum;
+		sum = m;
+	}
+	return sum + err;
+}
+
 FDelaunayMesh UDelaunayHelper::CreateDelaunayTriangulation(const TArray<FVector2D>& Points)
 {
 	return FDelaunayMesh(Points);
+}
+
+FVector2D UDelaunayHelper::GetTrianglePoint(const FDelaunayMesh& Triangulation, int32 TriangleID)
+{
+	if (!Triangulation.DelaunayTriangles.IsValidIndex(TriangleID))
+	{
+		UE_LOG(LogDelaunator, Error, TEXT("Invalid triangle ID: %d"), TriangleID);
+		return FVector2D(-1, -1);
+	}
+
+	return FVector2D(Triangulation.DelaunayCoords[2 * Triangulation.DelaunayTriangles[TriangleID]],
+		Triangulation.DelaunayCoords[2 * Triangulation.DelaunayTriangles[TriangleID] + 1]);
+}
+
+float FDelaunayTriangle::GetArea() const
+{
+	return FMath::Abs(A.X * (B.Y - C.Y) + B.X * (C.Y - A.Y) + C.X * (A.Y - B.Y));
 }
