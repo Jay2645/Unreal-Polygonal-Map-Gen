@@ -33,6 +33,6 @@ If you don't have a `"Modules"` section, then that usually means that your proje
 
 # Credits
 
-The original ActionScript code was released under the MIT Open Source license; this C++ port of the code is also released under the MIT Open Source license.
+* The original ActionScript code was released under the MIT Open Source license; this C++ port of the code is also released under the MIT Open Source license.
 
-Delaunay Triangulation is created [using Delaunator](https://github.com/delfrrr/delaunator-cpp) and made accessible through a number of Unreal helper functions. Something that's fairly annoying: Delaunay Triangulation is [built into the engine](https://github.com/EpicGames/UnrealEngine/blob/08ee319f80ef47dbf0988e14b546b65214838ec4/Engine/Source/Editor/Persona/Private/AnimationBlendSpaceHelpers.h), but is only accessible from the Unreal Editor. The data structures aren't exposed to other modules or Blueprint, so you can't use it. The Unreal Engine code has a different license, so a third-party library has to be used.
+* Delaunay Triangulation is created [using Delaunator](https://github.com/delfrrr/delaunator-cpp) and made accessible through a number of Unreal helper functions. Something that's fairly annoying: Delaunay Triangulation is [built into the engine](https://github.com/EpicGames/UnrealEngine/blob/08ee319f80ef47dbf0988e14b546b65214838ec4/Engine/Source/Editor/Persona/Private/AnimationBlendSpaceHelpers.h), but is only accessible from the Unreal Editor. The data structures aren't exposed to other modules or Blueprint, so you can't use it without linker errors when shipping your game. The Unreal Engine code has a different license, so a third-party library has to be used.
