@@ -1,4 +1,6 @@
-// Copyright 2018 Schemepunk Studios
+// Unreal Engine 4 Delaunay implementation.
+// Source based on https://github.com/delfrrr/delaunator-cpp
+// Used under the MIT License.
 
 #pragma once
 
@@ -84,8 +86,8 @@ public:
 	TArray<int32> HalfEdges;
 
 	// An easily accessible way to look at the generated triangles.
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TArray<FDelaunayTriangle> Triangles;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	//TArray<FDelaunayTriangle> Triangles;
 
 	// Starting coordinate for the hull.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay)
@@ -100,12 +102,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay)
 	TArray<int32> HullNext;
 
-	// The raw float values returned by the Delaunator.
-	UPROPERTY()
-	TArray<float> DelaunayCoords;
-
 	// The indices of the generated delaunay triangles.
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<int32> DelaunayTriangles;
 
 public:
@@ -124,10 +122,10 @@ public:
 	// Generates the actual triangulation
 	void CreatePoints(const TArray<FVector2D>& GivenPoints);
 	// Gets the area of the Delaunay hull.
-	float GetHullArea() const;
+	float GetHullArea(float& OutErrorAmount) const;
 	// Returns the Kahan and Babuska of an array of floats.
 	// Adapted from the Delaunator HPP file.
-	float Sum(const TArray<float>& Area) const;
+	float Sum(const TArray<float>& Area, float& OutErrorAmount) const;
 };
 
 /**
@@ -152,7 +150,20 @@ public:
 	static float GetTriangleArea(const FDelaunayTriangle& Triangle);
 	// Gets the Vector2D associated with a value from the DelaunayTriangles array.
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Triangles")
-	static FVector2D GetTrianglePoint(const FDelaunayMesh& Triangulation, int32 TriangleID);
+	static FVector2D GetTrianglePoint(const FDelaunayMesh& Triangulation, int32 TriangleIndex);
+
+	// Construct a FDelaunayTriangle struct from the given index.
+	// Note that the Triangle Index is the location inside the Triangulation's Triangle array --
+	// NOT the actual location itself, just the index.
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Triangles")
+	static FDelaunayTriangle ConvertTriangleIDToTriangle(const FDelaunayMesh& Triangulation, int32 TriangleIndex);
+
+	// Given a Triangle ID, returns an array of triangle edges
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Triangles")
+	static TArray<int32> EdgesOfTriangle(int32 TriangleIndex);
+	// Given a Triangle ID, returns an array of point IDs
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Triangles")
+	static TArray<int32> PointsOfTriangle(const FDelaunayMesh& Triangulation, int32 TriangleIndex);
 
 	// Gets a FVector2D given a half-edge.
 	// If the half-edge is invalid, returns (-1, -1).
@@ -172,4 +183,16 @@ public:
 	// If the half-edge is invalid, returns -1.
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Half-Edge")
 	static int32 GetTriangleIndexFromHalfEdge(const FDelaunayMesh& Triangulation, int32 HalfEdge);
+
+
+	// Given a Half-edge index, gets the next half-edge
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Half-Edge")
+	static int32 NextHalfEdge(int32 HalfEdge);
+	// Given a Half-edge index, gets the previous half-edge
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Half-Edge")
+	static int32 PreviousHalfEdge(int32 HalfEdge);
+
+	// Given a half-edge leading to a point, gets all other half-edges connected to that point
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Half-Edge")
+	static TArray<int32> EdgesAroundPoint(const FDelaunayMesh& Triangulation, int32 PointIndex);
 };

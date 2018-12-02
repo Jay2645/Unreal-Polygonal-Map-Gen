@@ -1,11 +1,19 @@
-// Copyright 2018 Schemepunk Studios
+// Unreal Engine 4 Delaunay implementation.
+// Source based on https://github.com/delfrrr/delaunator-cpp
+// Used under the MIT License.
 
 #include "DelaunayHelper.h"
 #include <delaunator.hpp>
 
 float FDelaunayTriangle::GetArea() const
 {
-	return FMath::Abs(A.X * (B.Y - C.Y) + B.X * (C.Y - A.Y) + C.X * (A.Y - B.Y));
+	const float ax = A.X;
+	const float ay = A.Y;
+	const float bx = B.X;
+	const float by = B.Y;
+	const float cx = C.X;
+	const float cy = C.Y;
+	return FMath::Abs((by - ay) * (cx - bx) - (bx - ax) * (cy - by));
 }
 
 FVector2D FDelaunayTriangle::GetCircumcenter() const
@@ -37,7 +45,6 @@ void FDelaunayMesh::CreatePoints(const TArray<FVector2D>& GivenPoints)
 
 	// Coordinates
 	Coordinates.Empty(delaunay.coords.size() / 2);
-	DelaunayCoords.Empty(delaunay.coords.size());
 	for (int i = 0; i < delaunay.coords.size(); i += 2)
 	{
 		// The Delaunator stores everything in a vector of doubles
@@ -45,8 +52,6 @@ void FDelaunayMesh::CreatePoints(const TArray<FVector2D>& GivenPoints)
 		// However, we know that all even indices represent the X value, while odd indices
 		// represent the Y value
 		FVector2D coord = FVector2D((float)delaunay.coords[i], (float)delaunay.coords[i + 1]);
-		DelaunayCoords.Add(coord.X);
-		DelaunayCoords.Add(coord.Y);
 		Coordinates.Add(coord);
 	}
 
@@ -75,23 +80,14 @@ void FDelaunayMesh::CreatePoints(const TArray<FVector2D>& GivenPoints)
 	{
 		DelaunayTriangles.Add((int32)delaunay.triangles[i]);
 	}
-	Triangles.Empty(DelaunayTriangles.Num());
+
+	/*Triangles.Empty(DelaunayTriangles.Num());
 	for (int i = 0; i < DelaunayTriangles.Num(); i += 3)
 	{
-		FVector2D a, b, c;
-		int32 aIndex, bIndex, cIndex;
+		Triangles.Add(UDelaunayHelper::ConvertTriangleIDToTriangle(i));
+	}*/
 
-		aIndex = DelaunayTriangles[i];
-		bIndex = DelaunayTriangles[i + 1];
-		cIndex = DelaunayTriangles[i + 2];
-
-		a = Coordinates[aIndex];
-		b = Coordinates[bIndex];
-		c = Coordinates[cIndex];
-		Triangles.Add(FDelaunayTriangle(a, b, c, aIndex, bIndex, cIndex));
-	}
-
-	UE_LOG(LogDelaunator, Log, TEXT("Created Delaunay Triangulation with %d points (%d raw points), %d triangles (%d raw triangles), and %d half-edges."), Coordinates.Num(), DelaunayCoords.Num(), Triangles.Num(), DelaunayTriangles.Num(), HalfEdges.Num());
+	UE_LOG(LogDelaunator, Log, TEXT("Created Delaunay Triangulation with %d points, %d triangles, and %d half-edges."), Coordinates.Num(), DelaunayTriangles.Num(), HalfEdges.Num());
 
 	// Hull
 	// Index of the first point in the hull
@@ -119,7 +115,7 @@ void FDelaunayMesh::CreatePoints(const TArray<FVector2D>& GivenPoints)
 	}
 }
 
-float FDelaunayMesh::GetHullArea() const
+float FDelaunayMesh::GetHullArea(float& OutErrorAmount) const
 {
 	TArray<float> hullArea;
 	int32 current = HullStart;
@@ -127,7 +123,7 @@ float FDelaunayMesh::GetHullArea() const
 	{
 		if (!Coordinates.IsValidIndex(current))
 		{
-			UE_LOG(LogDelaunator, Error, TEXT("Invalid Coordinate index. Index: %d, Array size: %d, Reported Delaunay Array size: %d"), current, Coordinates.Num(), DelaunayCoords.Num());
+			UE_LOG(LogDelaunator, Error, TEXT("Invalid Coordinate index. Index: %d, Array size: %d"), current, Coordinates.Num());
 			return 0.0f;
 		}
 		if (!HullPrevious.IsValidIndex(current))
@@ -137,7 +133,7 @@ float FDelaunayMesh::GetHullArea() const
 		}
 		if (!Coordinates.IsValidIndex(HullPrevious[current]))
 		{
-			UE_LOG(LogDelaunator, Error, TEXT("Invalid Coordinate index. Index: %d, Array size: %d, Reported Delaunay Array size: %d"), HullPrevious[current], Coordinates.Num(), DelaunayCoords.Num());
+			UE_LOG(LogDelaunator, Error, TEXT("Invalid Coordinate index. Index: %d, Array size: %d"), HullPrevious[current], Coordinates.Num());
 			return 0.0f;
 		}
 		float area = (Coordinates[current].X - Coordinates[HullPrevious[current]].X) * (Coordinates[current].Y + Coordinates[HullPrevious[current]].Y);
@@ -155,10 +151,10 @@ float FDelaunayMesh::GetHullArea() const
 		}
 		current = HullNext[current];
 	} while (current != HullStart);
-	return Sum(hullArea);
+	return Sum(hullArea, OutErrorAmount);
 }
 
-float FDelaunayMesh::Sum(const TArray<float>& Area) const
+float FDelaunayMesh::Sum(const TArray<float>& Area, float& OutErrorAmount) const
 {
 	if (Area.Num() == 0)
 	{
@@ -175,6 +171,8 @@ float FDelaunayMesh::Sum(const TArray<float>& Area) const
 		err += FMath::Abs(sum) >= FMath::Abs(k) ? sum - m + k : k - m + sum;
 		sum = m;
 	}
+	UE_LOG(LogDelaunator, Log, TEXT("Sum: %f, Err: %f"), sum, err);
+	OutErrorAmount = FMath::Abs(err);
 	return sum + err;
 }
 
@@ -193,15 +191,49 @@ float UDelaunayHelper::GetTriangleArea(const FDelaunayTriangle& Triangle)
 	return Triangle.GetArea();
 }
 
-FVector2D UDelaunayHelper::GetTrianglePoint(const FDelaunayMesh& Triangulation, int32 TriangleID)
+FVector2D UDelaunayHelper::GetTrianglePoint(const FDelaunayMesh& Triangulation, int32 TriangleIndex)
 {
-	if (!Triangulation.Triangles.IsValidIndex(TriangleID))
+	if (!Triangulation.DelaunayTriangles.IsValidIndex(TriangleIndex))
 	{
-		UE_LOG(LogDelaunator, Error, TEXT("Invalid triangle ID: %d"), TriangleID);
+		UE_LOG(LogDelaunator, Error, TEXT("Invalid triangle ID: %d"), TriangleIndex);
 		return FVector2D(-1, -1);
 	}
 
-	return Triangulation.Triangles[TriangleID].A;
+	return Triangulation.Coordinates[UDelaunayHelper::PointsOfTriangle(Triangulation, TriangleIndex)[0]];
+}
+
+FDelaunayTriangle UDelaunayHelper::ConvertTriangleIDToTriangle(const FDelaunayMesh& Triangulation, int32 TriangleIndex)
+{
+	int32 offset = TriangleIndex % 3;
+
+	FVector2D a, b, c;
+	int32 aIndex, bIndex, cIndex;
+
+	aIndex = Triangulation.DelaunayTriangles[TriangleIndex - offset];
+	bIndex = Triangulation.DelaunayTriangles[TriangleIndex - offset + 1];
+	cIndex = Triangulation.DelaunayTriangles[TriangleIndex - offset + 2];
+
+	a = Triangulation.Coordinates[aIndex];
+	b = Triangulation.Coordinates[bIndex];
+	c = Triangulation.Coordinates[cIndex];
+
+	return FDelaunayTriangle(a, b, c, aIndex, bIndex, cIndex);
+}
+
+TArray<int32> UDelaunayHelper::EdgesOfTriangle(int32 TriangleIndex)
+{
+	return TArray<int32> {3 * TriangleIndex, 3 * TriangleIndex + 1, 3 * TriangleIndex + 2 };
+}
+
+TArray<int32> UDelaunayHelper::PointsOfTriangle(const FDelaunayMesh& Triangulation, int32 TriangleIndex)
+{
+	TArray<int32> edges = UDelaunayHelper::EdgesOfTriangle(TriangleIndex);
+	TArray<int32> points;
+	for (int i = 0; i < edges.Num(); i++)
+	{
+		points.Add(Triangulation.DelaunayTriangles[edges[i]]);
+	}
+	return points;
 }
 
 FVector2D UDelaunayHelper::GetPointFromHalfEdge(const FDelaunayMesh& Triangulation, int32 HalfEdge)
@@ -217,34 +249,24 @@ FVector2D UDelaunayHelper::GetPointFromHalfEdge(const FDelaunayMesh& Triangulati
 int32 UDelaunayHelper::GetPointIndexFromHalfEdge(const FDelaunayMesh& Triangulation, int32 HalfEdge)
 {
 	int32 triangleIndex = GetTriangleIndexFromHalfEdge(Triangulation, HalfEdge);
-	if (!Triangulation.Triangles.IsValidIndex(triangleIndex))
+	if (!Triangulation.DelaunayTriangles.IsValidIndex(triangleIndex))
 	{
 		return -1;
 	}
 
 	int32 pointNum = HalfEdge % 3;
-	switch (pointNum)
-	{
-	case 0:
-		return Triangulation.Triangles[triangleIndex].AIndex;
-	case 1:
-		return Triangulation.Triangles[triangleIndex].BIndex;
-	case 2:
-		return Triangulation.Triangles[triangleIndex].CIndex;
-	default:
-		checkNoEntry();
-		return -1;
-	}
+	TArray<int32> trianglePoints = UDelaunayHelper::PointsOfTriangle(Triangulation, triangleIndex);
+	return trianglePoints[pointNum];
 }
 
 FDelaunayTriangle UDelaunayHelper::GetTriangleFromHalfEdge(const FDelaunayMesh& Triangulation, int32 HalfEdge)
 {
 	int32 triangleIndex = GetTriangleIndexFromHalfEdge(Triangulation, HalfEdge);
-	if (!Triangulation.Triangles.IsValidIndex(triangleIndex))
+	if (!Triangulation.DelaunayTriangles.IsValidIndex(triangleIndex))
 	{
 		return FDelaunayTriangle();
 	}
-	return Triangulation.Triangles[triangleIndex];
+	return UDelaunayHelper::ConvertTriangleIDToTriangle(Triangulation, triangleIndex);
 }
 
 int32 UDelaunayHelper::GetTriangleIndexFromHalfEdge(const FDelaunayMesh& Triangulation, int32 HalfEdge)
@@ -255,9 +277,37 @@ int32 UDelaunayHelper::GetTriangleIndexFromHalfEdge(const FDelaunayMesh& Triangu
 	}
 	int32 pointNum = HalfEdge % 3;
 	int32 triangleID = (HalfEdge - pointNum) / 3;
-	if (!Triangulation.Triangles.IsValidIndex(triangleID))
+	if (!Triangulation.DelaunayTriangles.IsValidIndex(triangleID))
 	{
 		return -1;
 	}
 	return triangleID;
+}
+
+int32 UDelaunayHelper::NextHalfEdge(int32 HalfEdge)
+{
+	return (HalfEdge % 3 == 2) ? HalfEdge - 2 : HalfEdge + 1;
+}
+
+int32 UDelaunayHelper::PreviousHalfEdge(int32 HalfEdge)
+{
+	return (HalfEdge % 3 == 0) ? HalfEdge + 2 : HalfEdge - 1;
+}
+
+TArray<int32> UDelaunayHelper::EdgesAroundPoint(const FDelaunayMesh& Triangulation, int32 Start)
+{
+	TArray<int32> result;
+	int32 incoming = Start;
+	if (incoming == -1)
+	{
+		// Can't process
+		return result;
+	}
+	do 
+	{
+		result.Add(incoming);
+		const int32 outgoing = UDelaunayHelper::NextHalfEdge(incoming);
+		incoming = Triangulation.HalfEdges[outgoing];
+	} while (incoming != -1 && incoming != Start);
+	return result;
 }
