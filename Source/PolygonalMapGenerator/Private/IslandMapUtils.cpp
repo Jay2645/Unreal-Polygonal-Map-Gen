@@ -16,5 +16,3 @@
 * limitations under the License.
 */
 
-#include "PolygonalMapGeneratorTests.h"
-

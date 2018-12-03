@@ -19,6 +19,70 @@
 */
 
 #include "TriangleDualMesh.h"
+#include "DelaunayHelper.h"
+
+FDualMesh::FDualMesh(const TArray<FVector2D>& GivenPoints, const FVector2D& MaxMapSize)
+	: FDelaunayMesh(GivenPoints)
+{
+	MaxSize = MaxMapSize;
+	NumSolidSides = DelaunayTriangles.Num();
+	AddGhostStructure();
+}
+
+void FDualMesh::AddGhostStructure()
+{
+	const int32 ghostRegion = Coordinates.Num();
+	int32 numUnpairedSides = 0;
+	int32 firstUnpairedEdge = -1;
+	TArray<int32> regionsUnpairedSides;
+	regionsUnpairedSides.SetNumZeroed(NumSolidSides);
+	for (int i = 0; i < NumSolidSides; i++)
+	{
+		if (HalfEdges[i] == -1)
+		{
+			numUnpairedSides++;
+			regionsUnpairedSides[DelaunayTriangles[i]] = i;
+			firstUnpairedEdge = i;
+		}
+	}
+
+	TArray<FVector2D> newVertices;
+	newVertices.Append(Coordinates);
+	newVertices.Add(FVector2D(MaxSize.X / 2.0f, MaxSize.Y / 2.0f));
+
+	TArray<int32> sideNewStartRegions;
+	sideNewStartRegions.Append(DelaunayTriangles);
+	sideNewStartRegions.SetNumZeroed(NumSolidSides + 3 * numUnpairedSides);
+
+	TArray<int32> sideNewOppositeSides;
+	sideNewOppositeSides.Append(HalfEdges);
+	sideNewOppositeSides.SetNumZeroed(NumSolidSides + 3 * numUnpairedSides);
+
+	int s = firstUnpairedEdge;
+	for (int i = 0; i < numUnpairedSides; i++)
+	{
+		// Construct a ghost side for s
+		int32 ghostSide = NumSolidSides + 3 * i;
+		sideNewOppositeSides[s] = ghostSide;
+		sideNewOppositeSides[ghostSide] = s;
+		sideNewStartRegions[ghostSide] = sideNewStartRegions[UTriangleDualMesh::s_next_s(s)];
+
+		// Construct the rest of the ghost triangle
+		sideNewStartRegions[ghostSide + 1] = sideNewStartRegions[s];
+		sideNewStartRegions[ghostSide + 2] = ghostRegion;
+
+		int k = NumSolidSides + (3 * i + 4) % (3 * numUnpairedSides);
+		sideNewOppositeSides[ghostSide + 2] = k;
+		sideNewOppositeSides[k] = ghostSide + 2;
+
+		s = regionsUnpairedSides[sideNewStartRegions[UTriangleDualMesh::s_next_s(s)]];
+	}
+
+	// Put the new arrays back into this structure
+	Coordinates = newVertices;
+	DelaunayTriangles = sideNewStartRegions;
+	HalfEdges = sideNewOppositeSides;
+}
 
 int32 UTriangleDualMesh::s_to_t(int32 s)
 {

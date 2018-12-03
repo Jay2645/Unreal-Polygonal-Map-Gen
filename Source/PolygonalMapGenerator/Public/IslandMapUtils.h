@@ -16,5 +16,20 @@
 * limitations under the License.
 */
 
-#include "PolygonalMapGeneratorTests.h"
+#pragma once
 
+#include "CoreMinimal.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "IslandMapUtils.generated.h"
+
+
+/**
+ * 
+ */
+UCLASS()
+class POLYGONALMAPGENERATOR_API UDualMeshHelpers : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+	
+public:
+};

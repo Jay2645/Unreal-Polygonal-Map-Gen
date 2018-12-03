@@ -16,5 +16,18 @@
 * limitations under the License.
 */
 
-#include "PolygonalMapGeneratorTests.h"
+#pragma once
 
+#include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "Elevation.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class POLYGONALMAPGENERATOR_API UElevation : public UObject
+{
+	GENERATED_BODY()
+	
+};

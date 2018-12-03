@@ -20,7 +20,6 @@
 
 #include "DualMeshBuilder.h"
 #include "DelaunayHelper.h"
-#include "DualMeshHelpers.h"
 #include "RandomSampling/PoissonDiscUtilities.h"
 
 

@@ -1,5 +1,5 @@
 /*
-* Based on https://github.com/redblobgames/dual-mesh
+* From http://www.redblobgames.com/maps/mapgen2/
 * Original work copyright 2017 Red Blob Games <redblobgames@gmail.com>
 * Unreal Engine 4 implementation copyright 2018 Jay Stevens <jaystevens42@gmail.com>
 *
@@ -14,47 +14,20 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*
-* Unreal Engine 4 Dual Mesh implementation.
 */
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Kismet/BlueprintFunctionLibrary.h"
-#include "DelaunayHelper.h"
-#include "DualMeshHelpers.generated.h"
-
-USTRUCT(BlueprintType)
-struct DUALMESH_API FDualMesh : public FDelaunayMesh
-{
-	GENERATED_BODY()
-public:
-	FVector2D MaxSize;
-
-	int32 NumSolidSides;
-
-public:
-	FDualMesh()
-		: FDelaunayMesh()
-	{
-		HullStart = -1;
-		NumSolidSides = -1;
-		MaxSize = FVector2D::ZeroVector;
-	}
-
-	FDualMesh(const TArray<FVector2D>& GivenPoints, const FVector2D& MaxMapSize);
-private:
-	void AddGhostStructure();
-};
+#include "UObject/NoExportTypes.h"
+#include "Biome.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class DUALMESH_API UDualMeshHelpers : public UBlueprintFunctionLibrary
+class POLYGONALMAPGENERATOR_API UBiome : public UObject
 {
 	GENERATED_BODY()
 	
-public:
 };

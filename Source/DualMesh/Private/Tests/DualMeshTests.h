@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "CoreMinimal.h"
-#include "DualMeshHelpers.h"
 #include "DelaunayHelper.h"
 #include "RandomSampling/PoissonDiscUtilities.h"
 #include "TriangleDualMesh.h"

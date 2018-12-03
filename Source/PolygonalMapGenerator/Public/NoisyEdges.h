@@ -16,5 +16,18 @@
 * limitations under the License.
 */
 
-#include "PolygonalMapGeneratorTests.h"
+#pragma once
 
+#include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "NoisyEdges.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class POLYGONALMAPGENERATOR_API UNoisyEdges : public UObject
+{
+	GENERATED_BODY()
+	
+};

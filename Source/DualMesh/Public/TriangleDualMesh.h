@@ -23,8 +23,30 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "DelaunayHelper.h"
-#include "DualMeshHelpers.h"
 #include "TriangleDualMesh.generated.h"
+
+USTRUCT(BlueprintType)
+struct DUALMESH_API FDualMesh : public FDelaunayMesh
+{
+	GENERATED_BODY()
+public:
+	FVector2D MaxSize;
+
+	int32 NumSolidSides;
+
+public:
+	FDualMesh()
+		: FDelaunayMesh()
+	{
+		HullStart = -1;
+		NumSolidSides = -1;
+		MaxSize = FVector2D::ZeroVector;
+	}
+
+	FDualMesh(const TArray<FVector2D>& GivenPoints, const FVector2D& MaxMapSize);
+private:
+	void AddGhostStructure();
+};
 
 /**
 * Represent a triangle-polygon dual mesh with:

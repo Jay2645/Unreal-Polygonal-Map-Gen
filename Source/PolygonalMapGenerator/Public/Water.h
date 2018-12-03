@@ -16,5 +16,18 @@
 * limitations under the License.
 */
 
-#include "PolygonalMapGeneratorTests.h"
+#pragma once
 
+#include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "Water.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class POLYGONALMAPGENERATOR_API UWater : public UObject
+{
+	GENERATED_BODY()
+	
+};
