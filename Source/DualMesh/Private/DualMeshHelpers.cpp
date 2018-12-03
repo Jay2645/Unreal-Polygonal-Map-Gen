@@ -20,13 +20,9 @@
 
 #include "DualMeshHelpers.h"
 #include "DelaunayHelper.h"
+#include "TriangleDualMesh.h"
 
-int32 UDualMeshHelpers::s_next_s(int32 s)
-{
-	return UDelaunayHelper::NextHalfEdge(s);
-}
-
-FDualMesh::FDualMesh(const TArray<FVector2D>& GivenPoints, float MaxMapSize)
+FDualMesh::FDualMesh(const TArray<FVector2D>& GivenPoints, const FVector2D& MaxMapSize)
 	: FDelaunayMesh(GivenPoints)
 {
 	MaxSize = MaxMapSize;
@@ -53,7 +49,7 @@ void FDualMesh::AddGhostStructure()
 
 	TArray<FVector2D> newVertices;
 	newVertices.Append(Coordinates);
-	newVertices.Add(FVector2D(MaxSize / 2.0f, MaxSize / 2.0f));
+	newVertices.Add(FVector2D(MaxSize.X / 2.0f, MaxSize.Y / 2.0f));
 	
 	TArray<int32> sideNewStartRegions;
 	sideNewStartRegions.Append(DelaunayTriangles);
@@ -70,7 +66,7 @@ void FDualMesh::AddGhostStructure()
 		int32 ghostSide = NumSolidSides + 3 * i;
 		sideNewOppositeSides[s] = ghostSide;
 		sideNewOppositeSides[ghostSide] = s;
-		sideNewStartRegions[ghostSide] = sideNewStartRegions[UDualMeshHelpers::s_next_s(s)];
+		sideNewStartRegions[ghostSide] = sideNewStartRegions[UTriangleDualMesh::s_next_s(s)];
 
 		// Construct the rest of the ghost triangle
 		sideNewStartRegions[ghostSide + 1] = sideNewStartRegions[s];
@@ -80,7 +76,7 @@ void FDualMesh::AddGhostStructure()
 		sideNewOppositeSides[ghostSide + 2] = k;
 		sideNewOppositeSides[k] = ghostSide + 2;
 
-		s = regionsUnpairedSides[sideNewStartRegions[UDualMeshHelpers::s_next_s(s)]];
+		s = regionsUnpairedSides[sideNewStartRegions[UTriangleDualMesh::s_next_s(s)]];
 	}
 
 	// Put the new arrays back into this structure

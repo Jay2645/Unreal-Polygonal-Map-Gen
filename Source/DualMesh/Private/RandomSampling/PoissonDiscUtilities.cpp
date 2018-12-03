@@ -18,8 +18,8 @@
 
 #include "PoissonDiscUtilities.h"
 
-TArray<FVector2D> UPoissonDiscUtilities::Distribute2D(int32 Seed, FVector2D Size, float MinimumDistance, int32 MaxStepSamples, bool WrapX, bool WrapY) {
-	TArray<FVector2D> Samples;
+void UPoissonDiscUtilities::Distribute2D(TArray<FVector2D>& Samples, int32 Seed, FVector2D Size, float MinimumDistance, int32 MaxStepSamples, bool WrapX, bool WrapY)
+{
 	uint64 iCells, iCellsX, iCellsY, iCell, iCellX, iCellY;
 	double dCellSize;
 	FVector2D* v2DSample; FVector2D** v2DSamples;
@@ -150,11 +150,10 @@ TArray<FVector2D> UPoissonDiscUtilities::Distribute2D(int32 Seed, FVector2D Size
 
 	// Destroy temporary arrays and lists.
 	delete v2DSamples; delete v2DList;
-	return Samples;
 }
 
-TArray<FVector> UPoissonDiscUtilities::Distribute3D(int32 Seed /* = 0 */, FVector Size /* = FVector2D(1.0f , 1.0f) */, float MinimumDistance /* = 1.0f */, int32 MaxStepSamples /* = 30 */, bool WrapX /* = false */, bool WrapY /* = false */, bool WrapZ /* = false */) {
-	TArray<FVector> Samples;
+void UPoissonDiscUtilities::Distribute3D(TArray<FVector>& Samples, int32 Seed /* = 0 */, FVector Size /* = FVector2D(1.0f , 1.0f) */, float MinimumDistance /* = 1.0f */, int32 MaxStepSamples /* = 30 */, bool WrapX /* = false */, bool WrapY /* = false */, bool WrapZ /* = false */)
+{
 	uint64 iCells, iCellsX, iCellsY, iCellsZ, iCell, iCellX, iCellY, iCellZ;
 	double dCellSize;
 	FVector* v3DSample; FVector** v3DSamples;
@@ -298,16 +297,18 @@ TArray<FVector> UPoissonDiscUtilities::Distribute3D(int32 Seed /* = 0 */, FVecto
 
 		// If we weren't successful in generating any new points, remove this point from the working list.
 		if (!bIsSuccessful)
+		{
 			v3DList->RemoveNode(v3DSampleOrigin);
+		}
 	}
 
 	// Fill up the output array with generated samples.
-	for (uint64 n = 0; n < iCells; ++n) {
+	for (uint64 n = 0; n < iCells; ++n)
+	{
 		if (v3DSamples[n] != NULL)
 			Samples.Add(*v3DSamples[n]);
 	}
 
 	// Destroy temporary arrays and lists.
 	delete v3DSamples; delete v3DList;
-	return Samples;
 }

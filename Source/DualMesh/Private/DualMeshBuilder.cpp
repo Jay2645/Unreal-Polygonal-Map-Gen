@@ -21,40 +21,59 @@
 #include "DualMeshBuilder.h"
 #include "DelaunayHelper.h"
 #include "DualMeshHelpers.h"
+#include "RandomSampling/PoissonDiscUtilities.h"
 
 
-TArray<FVector2D> UDualMeshBuilder::AddBoundaryPoints(int32 Spacing, float Size)
+TArray<FVector2D> UDualMeshBuilder::AddBoundaryPoints(int32 Spacing, const FVector2D& Size)
 {
-	TArray<FVector2D> points;
+	TSet<FVector2D> points;
 
 	// If we have no spacing, return an empty array of points
 	if (Spacing <= 0)
 	{
-		return points;
+		return points.Array();
 	}
 
 	/*
 	* Add vertices evenly along the boundary of the mesh;
 	* use a slight curve so that the Delaunay triangulation
-	* doesn't make long thing triangles along the boundary.
+	* doesn't make long thin triangles along the boundary.
 	* These points also prevent the Poisson disc generator
 	* from making uneven points near the boundary.
 	*/
-	int32 n = FMath::CeilToInt(Size / Spacing);
-	for (int i = 0; i < n; i++)
+	int32 x = FMath::CeilToInt(Size.X / Spacing);
+	for (int xi = 0; xi < x; xi++)
 	{
-		float t = ((float)i + 0.5f) / ((float)n + 1.0f);
-		float w = Size * t;
+		float t = ((float)xi + 0.5f) / ((float)x + 1.0f);
+		float w = Size.X * t;
 		float offset = FMath::Pow(t - 0.5f, 2.0f);
 		points.Add(FVector2D(offset, w));
-		points.Add(FVector2D(Size - offset, w));
+		points.Add(FVector2D(Size.X - offset, w));
 		points.Add(FVector2D(w, offset));
-		points.Add(FVector2D(w, Size - offset));
+		points.Add(FVector2D(w, Size.X - offset));
 	}
-	return points;
+	// Now do the same for Y
+	int32 y = FMath::CeilToInt(Size.Y / Spacing);
+	for (int yi = 0; yi < y; yi++)
+	{
+		float t = ((float)yi + 0.5f) / ((float)y + 1.0f);
+		float w = Size.Y * t;
+		float offset = FMath::Pow(t - 0.5f, 2.0f);
+		points.Add(FVector2D(offset, w));
+		points.Add(FVector2D(Size.Y - offset, w));
+		points.Add(FVector2D(w, offset));
+		points.Add(FVector2D(w, Size.Y - offset));
+	}
+	return points.Array();
 }
 
-void UDualMeshBuilder::Initialize(float MaxSize, int32 BoundarySpacing /*= 0*/)
+UDualMeshBuilder::UDualMeshBuilder()
+{
+	NumBoundaryRegions = -1;
+	MaxMeshSize = FVector2D::ZeroVector;
+}
+
+void UDualMeshBuilder::Initialize(const FVector2D& MaxSize, int32 BoundarySpacing /*= 0*/)
 {
 	MaxMeshSize = MaxSize;
 	Points = AddBoundaryPoints(BoundarySpacing, MaxMeshSize);
@@ -86,11 +105,17 @@ void UDualMeshBuilder::ClearNonBoundaryPoints()
 	Points.SetNum(NumBoundaryRegions);
 }
 
+void UDualMeshBuilder::AddPoisson(FRandomStream& Rng, float Spacing, int32 MaxStepSamples)
+{
+	UPoissonDiscUtilities::Distribute2D(Points, Rng.GetCurrentSeed(), MaxMeshSize, Spacing, MaxStepSamples);
+	Rng.GetFraction(); // Generates the next seed
+}
+
 UTriangleDualMesh* UDualMeshBuilder::Create()
 {
-	if (MaxMeshSize == 0.0f)
+	if (NumBoundaryRegions == -1)
 	{
-		UE_LOG(LogDualMesh, Error, TEXT("Dual mesh's max size attribute was not set. Initialize before trying to create a DualMesh."));
+		UE_LOG(LogDualMesh, Error, TEXT("Dual mesh's attributes were not set. Initialize before trying to create a DualMesh."));
 		return NULL;
 	}
 
@@ -98,7 +123,7 @@ UTriangleDualMesh* UDualMeshBuilder::Create()
 	check(mesh);
 	
 	FDualMesh dualMesh = FDualMesh(Points, MaxMeshSize);
-	mesh->InitializeMesh(dualMesh);
+	mesh->InitializeMesh(dualMesh, NumBoundaryRegions);
 	
 	return mesh;
 }

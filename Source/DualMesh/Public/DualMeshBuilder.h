@@ -40,17 +40,21 @@ class DUALMESH_API UDualMeshBuilder : public UObject
 protected:
 	TArray<FVector2D> Points;
 	int32 NumBoundaryRegions;
-	float MaxMeshSize;
+	FVector2D MaxMeshSize;
 
 protected:
-	TArray<FVector2D> AddBoundaryPoints(int32 Spacing, float Size);
+	TArray<FVector2D> AddBoundaryPoints(int32 Spacing, const FVector2D& Size);
 
 public:
-	void Initialize(float MaxSize, int32 BoundarySpacing = 0);
+	UDualMeshBuilder();
+
+public:
+	void Initialize(const FVector2D& MaxSize, int32 BoundarySpacing = 0);
 	void AddPoint(const FVector2D& Point);
 	void AddPoints(const TArray<FVector2D>& NewPoints);
 	TArray<FVector2D> GetBoundaryPoints() const;
 	void ClearNonBoundaryPoints();
+	void AddPoisson(FRandomStream& Rng, float Spacing = 1.0f, int32 MaxStepSamples = 30);
 
 	UTriangleDualMesh* Create();
 };

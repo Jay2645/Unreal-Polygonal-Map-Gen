@@ -64,10 +64,13 @@ class DUALMESH_API UTriangleDualMesh : public UObject
 	friend class UDualMeshBuilder;
 
 protected:
-	TArray<int32> RegionInSides;
-	TArray<int32> HalfEdges;
-	TArray<int32> Triangles;
-	TArray<FVector2D> Vertices;
+	TArray<int32> _halfedges;
+	TArray<int32> _triangles;
+	TArray<FVector2D> _r_vertex;
+	TArray<FVector2D> _t_vertex;
+	TArray<int32> _r_in_s;
+
+	FDualMesh Mesh;
 
 public:
 	int32 NumSides;
@@ -79,39 +82,47 @@ public:
 	int32 NumBoundaryRegions;
 
 public:
-	void InitializeMesh(const FDualMesh& Input);
+	// Static helpers
 
-/*
-	r_x(r: number): number;
-	r_y(r: number): number;
-	t_x(t: number): number;
-	t_y(t: number): number;
-	r_pos(out: number[], r: number): number[];
-	t_pos(out: number[], t: number): number[];
+	// Alias for UDelaunayHelper::GetNextSide, for people coming from the original DualMesh API
+	static int32 s_to_t(int32 s);
+	static int32 s_next_s(int32 s);
+	static int32 s_prev_s(int32 s);
 
-	s_begin_r(s: number): number;
-	s_end_r(s: number): number;
+protected:
+	float r_x(int32 r) const;
+	float r_y(int32 r) const;
+	float t_x(int32 t) const;
+	float t_y(int32 t) const;
 
-	s_inner_t(s: number): number;
-	s_outer_t(s: number): number;
+	FVector2D r_pos(int32 r) const;
+	FVector2D t_pos(int32 t) const;
 
-	s_next_s(s: number): number;
-	s_prev_s(s: number): number;
+	int32 s_begin_r(int32 s) const;
+	int32 s_end_r(int32 s) const;
 
-	s_opposite_s(s: number): number;
+	int32 s_inner_t(int32 s) const;
+	int32 s_outer_t(int32 s) const;
 
-	t_circulate_s(out_s: number[], t: number): number[];
-	t_circulate_r(out_s: number[], t: number): number[];
-	t_circulate_t(out_s: number[], t: number): number[];
-	r_circulate_s(out_s: number[], t: number): number[];
-	r_circulate_r(out_s: number[], t: number): number[];
-	r_circulate_t(out_s: number[], t: number): number[];
+	int32 s_opposite_s(int32 s) const;
 
-	ghost_r(): number;
-	s_ghost(s: number): boolean;
-	r_ghost(r: number): boolean;
-	t_ghost(t: number): boolean;
-	s_boundary(s: number): boolean;
-	r_boundary(s: number): boolean;
-*/
+	TArray<int32> t_circulate_s(int32 t) const;
+	TArray<int32> t_circulate_r(int32 t) const;
+	TArray<int32> t_circulate_t(int32 t) const;
+
+	TArray<int32> r_circulate_s(int32 r) const;
+	TArray<int32> r_circulate_r(int32 r) const;
+	TArray<int32> r_circulate_t(int32 r) const;
+
+	int32 ghost_r() const;
+	bool s_ghost(int32 s) const;
+	bool r_ghost(int32 r) const;
+	bool t_ghost(int32 t) const;
+
+	bool s_boundary(int32 s) const;
+	bool r_boundary(int32 r) const;
+
+
+public:
+	void InitializeMesh(const FDualMesh& Input, int32 BoundaryRegions);
 };

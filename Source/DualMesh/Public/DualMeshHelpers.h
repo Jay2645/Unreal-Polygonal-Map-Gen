@@ -30,7 +30,7 @@ struct DUALMESH_API FDualMesh : public FDelaunayMesh
 {
 	GENERATED_BODY()
 public:
-	float MaxSize;
+	FVector2D MaxSize;
 
 	int32 NumSolidSides;
 
@@ -40,10 +40,10 @@ public:
 	{
 		HullStart = -1;
 		NumSolidSides = -1;
-		MaxSize = -1.0f;
+		MaxSize = FVector2D::ZeroVector;
 	}
 
-	FDualMesh(const TArray<FVector2D>& GivenPoints, float MaxMapSize);
+	FDualMesh(const TArray<FVector2D>& GivenPoints, const FVector2D& MaxMapSize);
 private:
 	void AddGhostStructure();
 };
@@ -57,6 +57,4 @@ class DUALMESH_API UDualMeshHelpers : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
-	// Alias for UDelaunayHelper::GetNextSide, for people coming from the original DualMesh API
-	static int32 s_next_s(int32 s);
 };
