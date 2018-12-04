@@ -19,15 +19,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "Engine/DataAsset.h"
+#include "TriangleDualMesh.h"
 #include "Elevation.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class POLYGONALMAPGENERATOR_API UElevation : public UObject
+class POLYGONALMAPGENERATOR_API UElevation : public UDataAsset
 {
 	GENERATED_BODY()
 	
+public:
+	void assign_t_elevation(TArray<int32>& t_elevation, TArray<int32>& t_coastdistance, TArray<int32>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<int32>& r_ocean, const TArray<int32>& r_water, FRandomStream& DrainageRng) const;
+	void redistribute_t_elevation(TArray<int32>& t_elevation, UTriangleDualMesh* Mesh) const;
+	void assign_r_elevation(TArray<int32>& r_elevation, UTriangleDualMesh* Mesh, const TArray<int32>& t_elevation, const TArray<int32>& r_ocean) const;
 };

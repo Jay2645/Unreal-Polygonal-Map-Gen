@@ -19,14 +19,35 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "Engine/DataAsset.h"
 #include "NoisyEdges.generated.h"
+
+USTRUCT(BlueprintType)
+struct POLYGONALMAPGENERATOR_API FNoisyEdgeOptions
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Length;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Amplitude;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Seed;
+
+public:
+	FNoisyEdgeOptions()
+	{
+		Length = 1.0f;
+		Amplitude = 8;
+		Seed = 0;
+	}
+};
 
 /**
  * 
  */
 UCLASS()
-class POLYGONALMAPGENERATOR_API UNoisyEdges : public UObject
+class POLYGONALMAPGENERATOR_API UNoisyEdges : public UDataAsset
 {
 	GENERATED_BODY()
 	

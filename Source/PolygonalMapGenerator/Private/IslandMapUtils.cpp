@@ -16,3 +16,7 @@
 * limitations under the License.
 */
 
+void UIslandMapUtils::RandomShuffle(TArray<int32>& OutShuffledArray, FRandomStream& Rng)
+{
+	unimplemented();
+}

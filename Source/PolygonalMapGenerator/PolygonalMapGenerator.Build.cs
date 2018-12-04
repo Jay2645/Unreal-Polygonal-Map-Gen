@@ -35,6 +35,7 @@ public class PolygonalMapGenerator : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"Delaunator",
 				"DualMesh",
 				"CoreUObject",
 				"Engine",

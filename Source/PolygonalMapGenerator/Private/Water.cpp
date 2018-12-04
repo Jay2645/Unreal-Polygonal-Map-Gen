@@ -18,3 +18,12 @@
 
 #include "Water.h"
 
+void UWater::assign_r_ocean(TArray<int32>& r_ocean, UTriangleDualMesh* Mesh, const TArray<int32>& r_water) const
+{
+	unimplemented();
+}
+
+void UWater::assign_r_water(TArray<int32>& r_water, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const
+{
+	unimplemented();
+}

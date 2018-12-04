@@ -19,15 +19,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "Engine/DataAsset.h"
 #include "Moisture.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class POLYGONALMAPGENERATOR_API UMoisture : public UObject
+class POLYGONALMAPGENERATOR_API UMoisture : public UDataAsset
 {
 	GENERATED_BODY()
 	
+public:
+	TSet<int32> find_moisture_seeds_r(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<int32>& r_ocean, const TArray<int32>& r_water) const;
+	void assign_r_moisture(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<int32>& r_water, const TSet<int32>& r_moisture_seeds) const;
+	void redistribute_r_moisture(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<int32>& r_water, float MinMoisture, float MaxMoisture) const;
 };

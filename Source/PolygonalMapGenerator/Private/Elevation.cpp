@@ -17,3 +17,17 @@
 */
 #include "Elevation.h"
 
+void UElevation::assign_t_elevation(TArray<int32>& t_elevation, TArray<int32>& t_coastdistance, TArray<int32>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<int32>& r_ocean, const TArray<int32>& r_water, FRandomStream& DrainageRng) const
+{
+	unimplemented();
+}
+
+void UElevation::redistribute_t_elevation(TArray<int32>& t_elevation, UTriangleDualMesh* Mesh) const
+{
+	unimplemented();
+}
+
+void UElevation::assign_r_elevation(TArray<int32>& r_elevation, UTriangleDualMesh* Mesh, const TArray<int32>& t_elevation, const TArray<int32>& r_ocean) const
+{
+	unimplemented();
+}

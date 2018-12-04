@@ -19,15 +19,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "Engine/DataAsset.h"
+#include "TriangleDualMesh.h"
 #include "Biome.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class POLYGONALMAPGENERATOR_API UBiome : public UObject
+class POLYGONALMAPGENERATOR_API UBiome : public UDataAsset
 {
 	GENERATED_BODY()
 	
+public:
+	void assign_r_coast(TArray<int32>& r_coast, UTriangleDualMesh* Mesh, const TArray<int32>& r_ocean) const;
+	void assign_r_temperature(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<int32>& r_ocean, const TArray<int32>& r_water, const TArray<int32>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const;
+	void assign_r_biome(TArray<FName>& r_biome, UTriangleDualMesh* Mesh, const TArray<int32>& r_ocean, const TArray<int32>& r_water, const TArray<int32>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const;
 };

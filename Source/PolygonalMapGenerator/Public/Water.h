@@ -19,15 +19,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "Engine/DataAsset.h"
+#include "TriangleDualMesh.h"
 #include "Water.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class POLYGONALMAPGENERATOR_API UWater : public UObject
+class POLYGONALMAPGENERATOR_API UWater : public UDataAsset
 {
 	GENERATED_BODY()
 	
+public:
+	void assign_r_ocean(TArray<int32>& r_ocean, UTriangleDualMesh* Mesh, const TArray<int32>& r_water) const;
+	void assign_r_water(TArray<int32>& r_water, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
 };

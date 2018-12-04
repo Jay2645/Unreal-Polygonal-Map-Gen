@@ -20,13 +20,115 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "TriangleDualMesh.h"
+#include "IslandMapUtils.h"
+#include "NoisyEdges.h"
+#include "Biome.h"
+#include "Elevation.h"
+#include "Moisture.h"
+#include "Rivers.h"
+#include "Water.h"
+#include "RandomSampling/SimplexNoise.h"
 #include "IslandMap.generated.h"
 
 UCLASS()
 class POLYGONALMAPGENERATOR_API AIslandMap : public AActor
 {
 	GENERATED_BODY()
-	
+
+public:
+	// The random seed to use for the island.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
+	int32 Seed;
+	// Modifies how we calculate drainage.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
+	int32 DrainageSeed;
+	// Modifies how we calculate drainage.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
+	int32 RiverSeed;
+	// Options for using jagged edges on the map, to help blend between areas.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Edges")
+	FNoisyEdgeOptions NoisyEdgeOptions;
+	// The size of our map, starting at (0, 0).
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	FVector2D MapSize;
+	// The amount of spacing on the edge of the map.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Edges", meta = (ClampMin = "0"))
+	int32 BoundarySpacing;
+	// How much spacing between Poisson points.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0.0"))
+	float PoissonSpacing;
+	// Maximum samples to generate each step.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
+	int32 PoissonSamples;
+	// Modifies the types of biomes we produce.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	FBiomeBias BiomeBias;
+	// Modifies the shape of the island we generate.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	FIslandShape Shape;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Edges", meta = (ClampMin = "0"))
+	int32 NumRivers;
+	// How "smooth" the island is.
+	// Higher values are more smooth and create fewer bays and lakes.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map", meta = (ClampMin = "-1.0", ClampMax = "1.0"))
+	float Smoothing;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
+	TArray<float> IslandShapeAmplitudes;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
+	float Persistence;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Mesh")
+	UTriangleDualMesh* Mesh;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "RNG")
+	FRandomStream Rng;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "RNG")
+	FRandomStream RiverRng;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "RNG")
+	FRandomStream DrainageRng;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	const UBiome* Biomes;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	const UElevation* Elevation;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	const UMoisture* Moisture;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	const UNoisyEdges* NoisyEdges;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	const URivers* Rivers;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	const UWater* Water;
+
+	UPROPERTY()
+	TArray<int32> r_water;
+	UPROPERTY()
+	TArray<int32> r_ocean;
+	UPROPERTY()
+	TArray<int32> t_coastdistance;
+	UPROPERTY()
+	TArray<int32> t_elevation;
+	UPROPERTY()
+	TArray<int32> t_downslope_s;
+	UPROPERTY()
+	TArray<int32> r_elevation;
+	UPROPERTY()
+	TArray<int32> s_flow;
+	UPROPERTY()
+	TArray<int32> r_waterdistance;
+	UPROPERTY()
+	TArray<int32> r_moisture;
+	UPROPERTY()
+	TArray<int32> r_coast;
+	UPROPERTY()
+	TArray<int32> r_temperature;
+	UPROPERTY()
+	TArray<FName> r_biome;
+	UPROPERTY()
+	TArray<int32> spring_t;
+	UPROPERTY()
+	TArray<int32> river_t;
+
 public:	
 	// Sets default values for this actor's properties
 	AIslandMap();
@@ -34,9 +136,4 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

@@ -19,17 +19,60 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PolygonalMapGenerator.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "IslandMapUtils.generated.h"
 
+USTRUCT(BlueprintType)
+struct POLYGONALMAPGENERATOR_API FIslandShape
+{
+	GENERATED_BODY()
+		// How many iterations we should have when smoothing the island.
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
+		int32 Octaves;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
+		float Round;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
+		float Inflate;
+
+	FIslandShape()
+	{
+		Octaves = 5;
+		Round = 0.5f;
+		Inflate = 0.4f;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct POLYGONALMAPGENERATOR_API FBiomeBias
+{
+	GENERATED_BODY()
+		// How much rainfall the island receives. Higher values are wetter.
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map", meta = (ClampMin = "-1.0", ClampMax = "1.0"))
+		float Rainfall;
+	// How hot the northern part of the island is. Higher values are hotter.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map", meta = (ClampMin = "-1.5", ClampMax = "1.5"))
+		float NorthernTemperature;
+	// How hot the southern part of the island is. Higher values are hotter.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map", meta = (ClampMin = "-1.5", ClampMax = "1.5"))
+		float SouthernTemperature;
+
+	FBiomeBias()
+	{
+		Rainfall = 0.0f;
+		NorthernTemperature = 0.0f;
+		SouthernTemperature = 0.0f;
+	}
+};
 
 /**
  * 
  */
 UCLASS()
-class POLYGONALMAPGENERATOR_API UDualMeshHelpers : public UBlueprintFunctionLibrary
+class POLYGONALMAPGENERATOR_API UIslandMapUtils : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 	
 public:
+	static void RandomShuffle(TArray<int32>& OutShuffledArray, FRandomStream& Rng);
 };

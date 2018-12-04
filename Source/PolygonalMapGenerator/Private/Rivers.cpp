@@ -18,3 +18,13 @@
 
 #include "Rivers.h"
 
+TArray<int32> URivers::find_spring_t(UTriangleDualMesh* Mesh, const TArray<int32>& r_water, const TArray<int32>& t_elevation, const TArray<int32>& t_downslope_s) const
+{
+	unimplemented();
+	return TArray<int32>();
+}
+
+void URivers::assign_s_flow(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<int32>& t_downslope_s, const TArray<int32>& river_t, const TArray<int32>& t_elevation) const
+{
+	unimplemented();
+}
