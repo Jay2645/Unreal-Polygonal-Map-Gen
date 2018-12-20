@@ -20,6 +20,7 @@
 
 #include "CoreMinimal.h"
 #include "PolygonalMapGenerator.h"
+#include "DelaunayHelper.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "IslandMapUtils.generated.h"
 
@@ -27,13 +28,17 @@ USTRUCT(BlueprintType)
 struct POLYGONALMAPGENERATOR_API FIslandShape
 {
 	GENERATED_BODY()
-		// How many iterations we should have when smoothing the island.
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
-		int32 Octaves;
+	// How many iterations we should have when smoothing the island.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
-		float Round;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
-		float Inflate;
+	int32 Octaves;
+	// The ratio of island to water.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float Round;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float Inflate;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
+	TArray<float> Amplitudes;
 
 	FIslandShape()
 	{
@@ -74,5 +79,6 @@ class POLYGONALMAPGENERATOR_API UIslandMapUtils : public UBlueprintFunctionLibra
 	GENERATED_BODY()
 	
 public:
-	static void RandomShuffle(TArray<int32>& OutShuffledArray, FRandomStream& Rng);
+	static void RandomShuffle(TArray<FTriangleIndex>& OutShuffledArray, FRandomStream& Rng);
+	static float FBMNoise(TArray<float> Amplitudes, FVector2D Position);
 };

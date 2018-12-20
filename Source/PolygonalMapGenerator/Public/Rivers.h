@@ -20,6 +20,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "PolygonalMapGenerator.h"
 #include "TriangleDualMesh.h"
 #include "Rivers.generated.h"
 
@@ -32,6 +33,26 @@ class POLYGONALMAPGENERATOR_API URivers : public UDataAsset
 	GENERATED_BODY()
 	
 public:
-	TArray<int32> find_spring_t(UTriangleDualMesh* Mesh, const TArray<int32>& r_water, const TArray<int32>& t_elevation, const TArray<int32>& t_downslope_s) const;
-	void assign_s_flow(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<int32>& t_downslope_s, const TArray<int32>& river_t, const TArray<int32>& t_elevation) const;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float MinSpringElevation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float MaxSpringElevation;
+
+public:
+	URivers();
+
+private:
+	/**
+	* Is this triangle water?
+	*/
+	bool t_water(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
+
+public:
+	/**
+	* Find candidates for river sources
+	*
+	* Unlike the assign_* functions this does not write into an existing array
+	*/
+	TArray<FTriangleIndex> find_spring_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const;
+	void assign_s_flow(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const;
 };

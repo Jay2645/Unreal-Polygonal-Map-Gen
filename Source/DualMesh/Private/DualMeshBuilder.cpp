@@ -104,9 +104,9 @@ void UDualMeshBuilder::ClearNonBoundaryPoints()
 	Points.SetNum(NumBoundaryRegions);
 }
 
-void UDualMeshBuilder::AddPoisson(FRandomStream& Rng, float Spacing, int32 MaxStepSamples)
+void UDualMeshBuilder::AddPoisson(FRandomStream& Rng, FVector2D MapOffset, float Spacing, int32 MaxStepSamples)
 {
-	UPoissonDiscUtilities::Distribute2D(Points, Rng.GetCurrentSeed(), MaxMeshSize, Spacing, MaxStepSamples);
+	UPoissonDiscUtilities::Distribute2D(Points, Rng.GetCurrentSeed(), MaxMeshSize - MapOffset, MapOffset * 0.5f, Spacing, MaxStepSamples);
 	Rng.GetFraction(); // Generates the next seed
 }
 

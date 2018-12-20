@@ -41,7 +41,7 @@ public:
 	* @param WrapY - Wrap output in Y direction.
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (DisplayName = "Distribute in 2D (Poisson Disc)"), Category = "Procedural Generation|Random Sampling|Distribution")
-	static void Distribute2D(TArray<FVector2D>& Samples, int32 Seed = 0, FVector2D Size = FVector2D(1.0, 1.0), float MinimumDistance = 1.0f, int32 MaxStepSamples = 30, bool WrapX = false, bool WrapY = false);
+	static void Distribute2D(TArray<FVector2D>& Samples, int32 Seed = 0, FVector2D Size = FVector2D(1.0, 1.0), FVector2D StartLocation = FVector2D(0.0f, 0.0f), float MinimumDistance = 1.0f, int32 MaxStepSamples = 30, bool WrapX = false, bool WrapY = false);
 
 	/**
 	* Generate samples using a PoissonDisc distribution in 3D space.

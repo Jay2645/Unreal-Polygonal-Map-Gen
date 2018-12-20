@@ -86,11 +86,11 @@ class DUALMESH_API UTriangleDualMesh : public UObject
 	friend class UDualMeshBuilder;
 
 protected:
-	TArray<int32> _halfedges;
-	TArray<int32> _triangles;
+	TArray<FSideIndex> _halfedges;
+	TArray<FPointIndex> _triangles;
 	TArray<FVector2D> _r_vertex;
 	TArray<FVector2D> _t_vertex;
-	TArray<int32> _r_in_s;
+	TMap<FPointIndex, FSideIndex> _r_in_s;
 
 	FDualMesh Mesh;
 
@@ -107,44 +107,55 @@ public:
 	// Static helpers
 
 	// Alias for UDelaunayHelper::GetNextSide, for people coming from the original DualMesh API
-	static int32 s_to_t(int32 s);
-	static int32 s_next_s(int32 s);
-	static int32 s_prev_s(int32 s);
-
-protected:
-	float r_x(int32 r) const;
-	float r_y(int32 r) const;
-	float t_x(int32 t) const;
-	float t_y(int32 t) const;
-
-	FVector2D r_pos(int32 r) const;
-	FVector2D t_pos(int32 t) const;
-
-	int32 s_begin_r(int32 s) const;
-	int32 s_end_r(int32 s) const;
-
-	int32 s_inner_t(int32 s) const;
-	int32 s_outer_t(int32 s) const;
-
-	int32 s_opposite_s(int32 s) const;
-
-	TArray<int32> t_circulate_s(int32 t) const;
-	TArray<int32> t_circulate_r(int32 t) const;
-	TArray<int32> t_circulate_t(int32 t) const;
-
-	TArray<int32> r_circulate_s(int32 r) const;
-	TArray<int32> r_circulate_r(int32 r) const;
-	TArray<int32> r_circulate_t(int32 r) const;
-
-	int32 ghost_r() const;
-	bool s_ghost(int32 s) const;
-	bool r_ghost(int32 r) const;
-	bool t_ghost(int32 t) const;
-
-	bool s_boundary(int32 s) const;
-	bool r_boundary(int32 r) const;
-
+	static FTriangleIndex s_to_t(FSideIndex s);
+	static FSideIndex s_next_s(FSideIndex s);
+	static FSideIndex s_prev_s(FSideIndex s);
 
 public:
+	float r_x(FPointIndex r) const;
+	float r_y(FPointIndex r) const;
+	float t_x(FTriangleIndex t) const;
+	float t_y(FTriangleIndex t) const;
+
+	FVector2D r_pos(FPointIndex r) const;
+	FVector2D t_pos(FTriangleIndex t) const;
+
+	FPointIndex s_begin_r(FSideIndex s) const;
+	FPointIndex s_end_r(FSideIndex s) const;
+
+	FTriangleIndex s_inner_t(FSideIndex s) const;
+	FTriangleIndex s_outer_t(FSideIndex s) const;
+
+	FSideIndex s_opposite_s(FSideIndex s) const;
+
+	TArray<FSideIndex> t_circulate_s(FTriangleIndex t) const;
+	TArray<FPointIndex> t_circulate_r(FTriangleIndex t) const;
+	TArray<FTriangleIndex> t_circulate_t(FTriangleIndex t) const;
+
+	TArray<FSideIndex> r_circulate_s(FPointIndex r) const;
+	TArray<FPointIndex> r_circulate_r(FPointIndex r) const;
+	TArray<FTriangleIndex> r_circulate_t(FPointIndex r) const;
+
+	FPointIndex ghost_r() const;
+	bool s_ghost(FSideIndex s) const;
+	bool r_ghost(FPointIndex r) const;
+	bool t_ghost(FTriangleIndex t) const;
+	bool t_ghost(const FDelaunayTriangle& Triangle) const;
+	bool s_boundary(FSideIndex s) const;
+	bool r_boundary(FPointIndex r) const;
+
 	void InitializeMesh(const FDualMesh& Input, int32 BoundaryRegions);
+	FVector2D GetSize() const;
+
+	TArray<FVector2D>& GetPoints();
+	TArray<FVector2D>& GetTriangleCentroids();
+	TArray<FSideIndex>& GetHalfEdges();
+	TArray<FPointIndex>& GetTriangles();
+
+	void Draw(const AActor* WorldObject) const;
+	void Draw(const UWorld* World) const;
+	void DrawDelaunayVertices(const UWorld* World) const;
+	void DrawVoronoiEdges(const UWorld* World) const;
+	void DrawDelaunayEdges(const UWorld* World) const;
+	void DrawVoronoiPoints(const UWorld* World) const;
 };

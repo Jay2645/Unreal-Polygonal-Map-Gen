@@ -15,8 +15,35 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+#include "IslandMapUtils.h"
+#include "RandomSampling/SimplexNoise.h"
 
-void UIslandMapUtils::RandomShuffle(TArray<int32>& OutShuffledArray, FRandomStream& Rng)
+void UIslandMapUtils::RandomShuffle(TArray<FTriangleIndex>& OutShuffledArray, FRandomStream& Rng)
 {
-	unimplemented();
+	for (int i = OutShuffledArray.Num() - 1; i > 0; i--)
+	{
+		int32 j = Rng.RandRange(0, i);
+		int32 swap = OutShuffledArray[i];
+		OutShuffledArray[i] = OutShuffledArray[j];
+		OutShuffledArray[j] = swap;
+	}
+}
+
+float UIslandMapUtils::FBMNoise(TArray<float> Amplitudes, FVector2D Position)
+{
+	float sum = 0.0f;
+	float sumOfAmplitudes = 0.0f;
+	FCustomSimplexNoise noise;
+	for (size_t octave = 0; octave < Amplitudes.Num(); octave++)
+	{
+		size_t frequency = ((size_t)1) << octave;
+		sum += Amplitudes[octave] * noise.fractal(octave, Position * frequency);
+		sumOfAmplitudes += Amplitudes[octave];
+	}
+
+	if (sumOfAmplitudes == 0.0f)
+	{
+		return 0.0f;
+	}
+	return sum / sumOfAmplitudes;
 }

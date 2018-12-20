@@ -21,6 +21,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "TriangleDualMesh.h"
+#include "IslandMapUtils.h"
 #include "Water.generated.h"
 
 /**
@@ -30,8 +31,17 @@ UCLASS()
 class POLYGONALMAPGENERATOR_API UWater : public UDataAsset
 {
 	GENERATED_BODY()
-	
+
 public:
-	void assign_r_ocean(TArray<int32>& r_ocean, UTriangleDualMesh* Mesh, const TArray<int32>& r_water) const;
-	void assign_r_water(TArray<int32>& r_water, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
+	// The value governing when a tile should be marked as water.
+	// Higher values mean more tiles will become water.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WaterCutoff;
+
+public:
+	UWater();
+
+public:
+	void assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
+	void assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
 };

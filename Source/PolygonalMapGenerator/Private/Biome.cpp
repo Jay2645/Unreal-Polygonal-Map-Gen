@@ -18,17 +18,17 @@
 
 #include "Biome.h"
 
-void UBiome::assign_r_coast(TArray<int32>& r_coast, UTriangleDualMesh* Mesh, const TArray<int32>& r_ocean) const
+void UBiome::assign_r_coast(TArray<int32>& r_coast, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	unimplemented();
 }
 
-void UBiome::assign_r_temperature(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<int32>& r_ocean, const TArray<int32>& r_water, const TArray<int32>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const
+void UBiome::assign_r_temperature(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const
 {
 	unimplemented();
 }
 
-void UBiome::assign_r_biome(TArray<FName>& r_biome, UTriangleDualMesh* Mesh, const TArray<int32>& r_ocean, const TArray<int32>& r_water, const TArray<int32>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const
+void UBiome::assign_r_biome(TArray<FName>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<int32>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const
 {
 	unimplemented();
 }

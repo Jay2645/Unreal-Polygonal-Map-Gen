@@ -18,7 +18,7 @@
 
 #include "PoissonDiscUtilities.h"
 
-void UPoissonDiscUtilities::Distribute2D(TArray<FVector2D>& Samples, int32 Seed, FVector2D Size, float MinimumDistance, int32 MaxStepSamples, bool WrapX, bool WrapY)
+void UPoissonDiscUtilities::Distribute2D(TArray<FVector2D>& Samples, int32 Seed, FVector2D Size, FVector2D StartLocation, float MinimumDistance, int32 MaxStepSamples, bool WrapX, bool WrapY)
 {
 	uint64 iCells, iCellsX, iCellsY, iCell, iCellX, iCellY;
 	double dCellSize;
@@ -145,7 +145,7 @@ void UPoissonDiscUtilities::Distribute2D(TArray<FVector2D>& Samples, int32 Seed,
 	// Fill up the output array with generated samples.
 	for (uint64 n = 0; n < iCells; ++n) {
 		if (v2DSamples[n] != NULL)
-			Samples.Add(*v2DSamples[n]);
+			Samples.Add(*v2DSamples[n] + StartLocation);
 	}
 
 	// Destroy temporary arrays and lists.

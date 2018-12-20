@@ -20,6 +20,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "TriangleDualMesh.h"
 #include "Moisture.generated.h"
 
 /**
@@ -31,7 +32,7 @@ class POLYGONALMAPGENERATOR_API UMoisture : public UDataAsset
 	GENERATED_BODY()
 	
 public:
-	TSet<int32> find_moisture_seeds_r(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<int32>& r_ocean, const TArray<int32>& r_water) const;
-	void assign_r_moisture(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<int32>& r_water, const TSet<int32>& r_moisture_seeds) const;
-	void redistribute_r_moisture(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<int32>& r_water, float MinMoisture, float MaxMoisture) const;
+	TSet<int32> find_moisture_seeds_r(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const;
+	void assign_r_moisture(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<int32>& r_moisture_seeds) const;
+	void redistribute_r_moisture(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const;
 };

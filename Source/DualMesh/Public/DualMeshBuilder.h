@@ -54,7 +54,7 @@ public:
 	void AddPoints(const TArray<FVector2D>& NewPoints);
 	TArray<FVector2D> GetBoundaryPoints() const;
 	void ClearNonBoundaryPoints();
-	void AddPoisson(FRandomStream& Rng, float Spacing = 1.0f, int32 MaxStepSamples = 30);
+	void AddPoisson(FRandomStream& Rng, FVector2D MapOffset = FVector2D(0.0f, 0.0f), float Spacing = 1.0f, int32 MaxStepSamples = 30);
 
 	UTriangleDualMesh* Create();
 };

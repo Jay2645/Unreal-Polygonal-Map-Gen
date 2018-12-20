@@ -52,6 +52,9 @@ public:
 	// The size of our map, starting at (0, 0).
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	FVector2D MapSize;
+	// The size of our map, starting at (0, 0).
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	FVector2D PoissonSize;
 	// The amount of spacing on the edge of the map.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Edges", meta = (ClampMin = "0"))
 	int32 BoundarySpacing;
@@ -74,8 +77,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map", meta = (ClampMin = "-1.0", ClampMax = "1.0"))
 	float Smoothing;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
-	TArray<float> IslandShapeAmplitudes;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
 	float Persistence;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Mesh")
@@ -101,17 +102,17 @@ public:
 	const UWater* Water;
 
 	UPROPERTY()
-	TArray<int32> r_water;
+	TArray<bool> r_water;
 	UPROPERTY()
-	TArray<int32> r_ocean;
+	TArray<bool> r_ocean;
 	UPROPERTY()
-	TArray<int32> t_coastdistance;
+	TArray<float> t_coastdistance;
 	UPROPERTY()
-	TArray<int32> t_elevation;
+	TArray<float> t_elevation;
 	UPROPERTY()
-	TArray<int32> t_downslope_s;
+	TArray<FSideIndex> t_downslope_s;
 	UPROPERTY()
-	TArray<int32> r_elevation;
+	TArray<float> r_elevation;
 	UPROPERTY()
 	TArray<int32> s_flow;
 	UPROPERTY()
@@ -125,9 +126,9 @@ public:
 	UPROPERTY()
 	TArray<FName> r_biome;
 	UPROPERTY()
-	TArray<int32> spring_t;
+	TArray<FTriangleIndex> spring_t;
 	UPROPERTY()
-	TArray<int32> river_t;
+	TArray<FTriangleIndex> river_t;
 
 public:	
 	// Sets default values for this actor's properties
@@ -136,4 +137,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+public:
+	void Draw() const;
 };

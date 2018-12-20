@@ -41,14 +41,14 @@ public:
 * @brief A Perlin Simplex Noise C++ Implementation (1D, 2D, 3D, 4D).
 */
 USTRUCT(BlueprintType)
-struct FCustomSimplexNoise 
+struct DUALMESH_API FCustomSimplexNoise
 {
 	GENERATED_BODY()
 public:
 	// Fractal/Fractional Brownian Motion (fBm) noise summation
-	float fractal(size_t octaves, float x) const;
-	float fractal(size_t octaves, float x, float y) const;
-	float fractal(size_t octaves, float x, float y, float z) const;
+	float fractal(size_t octaves, float x, float frequency = 1.0f, float amplitude = 1.0f, float lacunarity = 2.0f, float persistence = 0.5f) const;
+	float fractal(size_t octaves, FVector2D Position, float frequency = 1.0f, float amplitude = 1.0f, float lacunarity = 2.0f, float persistence = 0.5f) const;
+	float fractal(size_t octaves, FVector Position, float frequency = 1.0f, float amplitude = 1.0f, float lacunarity = 2.0f, float persistence = 0.5f) const;
 
 	/**
 	* Constructor of to initialize a fractal noise summation
@@ -58,20 +58,5 @@ public:
 	* @param[in] lacunarity   Lacunarity specifies the frequency multiplier between successive octaves (default to 2.0).
 	* @param[in] persistence  Persistence is the loss of amplitude between successive octaves (usually 1/lacunarity)
 	*/
-	FCustomSimplexNoise(float frequency = 1.0f,
-		float amplitude = 1.0f,
-		float lacunarity = 2.0f,
-		float persistence = 0.5f) :
-		mFrequency(frequency),
-		mAmplitude(amplitude),
-		mLacunarity(lacunarity),
-		mPersistence(persistence) {
-	}
-
-private:
-	// Parameters of Fractional Brownian Motion (fBm) : sum of N "octaves" of noise
-	float mFrequency;   ///< Frequency ("width") of the first octave of noise (default to 1.0)
-	float mAmplitude;   ///< Amplitude ("height") of the first octave of noise (default to 1.0)
-	float mLacunarity;  ///< Lacunarity specifies the frequency multiplier between successive octaves (default to 2.0).
-	float mPersistence; ///< Persistence is the loss of amplitude between successive octaves (usually 1/lacunarity)
+	FCustomSimplexNoise() { }
 };

@@ -432,18 +432,20 @@ float USimplexNoise::Get3DNoise(const FVector& Position)
 *
 * @return Noise value in the range[-1; 1], value of 0 on all integer coordinates.
 */
-float FCustomSimplexNoise::fractal(size_t octaves, float x) const {
+float FCustomSimplexNoise::fractal(size_t octaves, float x, float frequency, float amplitude, float lacunarity, float persistence) const {
 	float output = 0.f;
 	float denom = 0.f;
-	float frequency = mFrequency;
-	float amplitude = mAmplitude;
-
 	for (size_t i = 0; i < octaves; i++) {
 		output += (amplitude * USimplexNoise::noise(x * frequency));
 		denom += amplitude;
 
-		frequency *= mLacunarity;
-		amplitude *= mPersistence;
+		frequency *= lacunarity;
+		amplitude *= persistence;
+	}
+
+	if (denom == 0.0f)
+	{
+		return 0.0f;
 	}
 
 	return (output / denom);
@@ -458,18 +460,21 @@ float FCustomSimplexNoise::fractal(size_t octaves, float x) const {
 *
 * @return Noise value in the range[-1; 1], value of 0 on all integer coordinates.
 */
-float FCustomSimplexNoise::fractal(size_t octaves, float x, float y) const {
+float FCustomSimplexNoise::fractal(size_t octaves, FVector2D Position, float frequency, float amplitude, float lacunarity, float persistence) const {
 	float output = 0.f;
 	float denom = 0.f;
-	float frequency = mFrequency;
-	float amplitude = mAmplitude;
 
 	for (size_t i = 0; i < octaves; i++) {
-		output += (amplitude * USimplexNoise::noise(x * frequency, y * frequency));
+		output += (amplitude * USimplexNoise::noise(Position.X * frequency, Position.Y * frequency));
 		denom += amplitude;
 
-		frequency *= mLacunarity;
-		amplitude *= mPersistence;
+		frequency *= lacunarity;
+		amplitude *= persistence;
+	}
+
+	if (denom == 0.0f)
+	{
+		return 0.0f;
 	}
 
 	return (output / denom);
@@ -485,18 +490,21 @@ float FCustomSimplexNoise::fractal(size_t octaves, float x, float y) const {
 *
 * @return Noise value in the range[-1; 1], value of 0 on all integer coordinates.
 */
-float FCustomSimplexNoise::fractal(size_t octaves, float x, float y, float z) const {
+float FCustomSimplexNoise::fractal(size_t octaves, FVector Position, float frequency, float amplitude, float lacunarity, float persistence) const {
 	float output = 0.f;
 	float denom = 0.f;
-	float frequency = mFrequency;
-	float amplitude = mAmplitude;
 
 	for (size_t i = 0; i < octaves; i++) {
-		output += (amplitude * USimplexNoise::noise(x * frequency, y * frequency, z * frequency));
+		output += (amplitude * USimplexNoise::noise(Position.X * frequency, Position.Y * frequency, Position.Z * frequency));
 		denom += amplitude;
 
-		frequency *= mLacunarity;
-		amplitude *= mPersistence;
+		frequency *= lacunarity;
+		amplitude *= persistence;
+	}
+
+	if (denom == 0.0f)
+	{
+		return 0.0f;
 	}
 
 	return (output / denom);

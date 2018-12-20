@@ -20,6 +20,8 @@
 
 #include "TriangleDualMesh.h"
 #include "DelaunayHelper.h"
+#include "DrawDebugHelpers.h"
+#include "GameFramework/Actor.h"
 
 FDualMesh::FDualMesh(const TArray<FVector2D>& GivenPoints, const FVector2D& MaxMapSize)
 	: FDelaunayMesh(GivenPoints)
@@ -27,18 +29,20 @@ FDualMesh::FDualMesh(const TArray<FVector2D>& GivenPoints, const FVector2D& MaxM
 	MaxSize = MaxMapSize;
 	NumSolidSides = DelaunayTriangles.Num();
 	AddGhostStructure();
+
+	UE_LOG(LogDualMesh, Log, TEXT("Final dual mesh had %d solid sides and a map size of %f, %f."), NumSolidSides, MaxSize.X, MaxSize.Y);
 }
 
 void FDualMesh::AddGhostStructure()
 {
-	const int32 ghostRegion = Coordinates.Num();
+	const FPointIndex ghostRegion = Coordinates.Num();
 	int32 numUnpairedSides = 0;
-	int32 firstUnpairedEdge = -1;
-	TArray<int32> regionsUnpairedSides;
+	FPointIndex firstUnpairedEdge = FPointIndex();
+	TArray<FPointIndex> regionsUnpairedSides;
 	regionsUnpairedSides.SetNumZeroed(NumSolidSides);
-	for (int i = 0; i < NumSolidSides; i++)
+	for (FPointIndex i = 0; i < NumSolidSides; i++)
 	{
-		if (HalfEdges[i] == -1)
+		if (!HalfEdges[i].IsValid())
 		{
 			numUnpairedSides++;
 			regionsUnpairedSides[DelaunayTriangles[i]] = i;
@@ -50,11 +54,11 @@ void FDualMesh::AddGhostStructure()
 	newVertices.Append(Coordinates);
 	newVertices.Add(FVector2D(MaxSize.X / 2.0f, MaxSize.Y / 2.0f));
 
-	TArray<int32> sideNewStartRegions;
+	TArray<FPointIndex> sideNewStartRegions;
 	sideNewStartRegions.Append(DelaunayTriangles);
 	sideNewStartRegions.SetNumZeroed(NumSolidSides + 3 * numUnpairedSides);
 
-	TArray<int32> sideNewOppositeSides;
+	TArray<FSideIndex> sideNewOppositeSides;
 	sideNewOppositeSides.Append(HalfEdges);
 	sideNewOppositeSides.SetNumZeroed(NumSolidSides + 3 * numUnpairedSides);
 
@@ -62,7 +66,7 @@ void FDualMesh::AddGhostStructure()
 	for (int i = 0; i < numUnpairedSides; i++)
 	{
 		// Construct a ghost side for s
-		int32 ghostSide = NumSolidSides + 3 * i;
+		FSideIndex ghostSide = NumSolidSides + 3 * i;
 		sideNewOppositeSides[s] = ghostSide;
 		sideNewOppositeSides[ghostSide] = s;
 		sideNewStartRegions[ghostSide] = sideNewStartRegions[UTriangleDualMesh::s_next_s(s)];
@@ -84,176 +88,262 @@ void FDualMesh::AddGhostStructure()
 	HalfEdges = sideNewOppositeSides;
 }
 
-int32 UTriangleDualMesh::s_to_t(int32 s)
+FTriangleIndex UTriangleDualMesh::s_to_t(FSideIndex s)
 {
-	return FMath::FloorToInt((float)s / 3.0f);
+	return UDelaunayHelper::GetTriangleIndexFromHalfEdge(s);
 }
 
-int32 UTriangleDualMesh::s_next_s(int32 s)
+FSideIndex UTriangleDualMesh::s_next_s(FSideIndex s)
 {
 	return UDelaunayHelper::NextHalfEdge(s);
 }
 
-int32 UTriangleDualMesh::s_prev_s(int32 s)
+FSideIndex UTriangleDualMesh::s_prev_s(FSideIndex s)
 {
 	return UDelaunayHelper::PreviousHalfEdge(s);
 }
 
-float UTriangleDualMesh::r_x(int32 r) const
+float UTriangleDualMesh::r_x(FPointIndex r) const
 {
 	return r_pos(r).X;
 }
 
-float UTriangleDualMesh::r_y(int32 r) const
+float UTriangleDualMesh::r_y(FPointIndex r) const
 {
 	return r_pos(r).Y;
 }
 
-float UTriangleDualMesh::t_x(int32 t) const
+float UTriangleDualMesh::t_x(FTriangleIndex t) const
 {
 	return t_pos(t).X;
 }
 
-float UTriangleDualMesh::t_y(int32 t) const
+float UTriangleDualMesh::t_y(FTriangleIndex t) const
 {
 	return t_pos(t).Y;
 }
 
-FVector2D UTriangleDualMesh::r_pos(int32 r) const
+FVector2D UTriangleDualMesh::r_pos(FPointIndex r) const
 {
-	return _r_vertex[r];
+	if(_r_vertex.IsValidIndex(r))
+	{
+		return _r_vertex[r];
+	}
+	else
+	{
+		return FVector2D(-1.0f, -1.0f);
+	}
 }
 
-FVector2D UTriangleDualMesh::t_pos(int32 t) const
+FVector2D UTriangleDualMesh::t_pos(FTriangleIndex t) const
 {
-	return _t_vertex[t];
+	if(_t_vertex.IsValidIndex(t))
+	{
+		return _t_vertex[t];
+	}
+	else
+	{
+		return FVector2D(-1.0f, -1.0f);
+	}
 }
 
-int32 UTriangleDualMesh::s_begin_r(int32 s) const
+FPointIndex UTriangleDualMesh::s_begin_r(FSideIndex s) const
 {
-	return _triangles[s];
+	if (_triangles.IsValidIndex(s))
+	{
+		return _triangles[s];
+	}
+	else
+	{
+		return FPointIndex();
+	}
 }
 
-int32 UTriangleDualMesh::s_end_r(int32 s) const
+FPointIndex UTriangleDualMesh::s_end_r(FSideIndex s) const
 {
-	return _triangles[UTriangleDualMesh::s_next_s(s)];
+	if (_triangles.IsValidIndex(s))
+	{
+		return _triangles[UTriangleDualMesh::s_next_s(s)];
+	}
+	else
+	{
+		return FPointIndex();
+	}
 }
 
-int32 UTriangleDualMesh::s_inner_t(int32 s) const
+FTriangleIndex UTriangleDualMesh::s_inner_t(FSideIndex s) const
 {
 	return UTriangleDualMesh::s_to_t(s);
 }
 
-int32 UTriangleDualMesh::s_outer_t(int32 s) const
+FTriangleIndex UTriangleDualMesh::s_outer_t(FSideIndex s) const
 {
-	return UTriangleDualMesh::s_to_t(_halfedges[s]);
+	return UTriangleDualMesh::s_to_t(s_opposite_s(s));
 }
 
-int32 UTriangleDualMesh::s_opposite_s(int32 s) const
+FSideIndex UTriangleDualMesh::s_opposite_s(FSideIndex s) const
 {
-	return _halfedges[s];
-}
-
-TArray<int32> UTriangleDualMesh::t_circulate_s(int32 t) const
-{
-	TArray<int32> out_s;
-	out_s.SetNum(3);
-	for (int32 i = 0; i < 3; i++)
+	if (_halfedges.IsValidIndex(s))
 	{
-		out_s[i] = 3 * t + i; 
-	} 
-	return out_s;
+		return _halfedges[s];
+	}
+	else
+	{
+		return FSideIndex();
+	}
 }
 
-TArray<int32> UTriangleDualMesh::t_circulate_r(int32 t) const
+TArray<FSideIndex> UTriangleDualMesh::t_circulate_s(FTriangleIndex t) const
 {
-	TArray<int32> out_r;
+	return UDelaunayHelper::EdgesOfTriangle(t);
+}
+
+TArray<FPointIndex> UTriangleDualMesh::t_circulate_r(FTriangleIndex t) const
+{
+	TArray<FPointIndex> out_r;
+	TArray<FSideIndex> out_s = t_circulate_s(t);
 	out_r.SetNum(3);
-	for (int32 i = 0; i < 3; i++) 
+	for (int i = 0; i < 3; i++) 
 	{ 
-		out_r[i] = _triangles[3 * t + i]; 
+		out_r[i] = _triangles[out_s[i]]; 
 	} 
 	return out_r;
 }
 
-TArray<int32> UTriangleDualMesh::t_circulate_t(int32 t) const
+TArray<FTriangleIndex> UTriangleDualMesh::t_circulate_t(FTriangleIndex t) const
 {
-	TArray<int32> out_t;
+	TArray<FTriangleIndex> out_t;
+	TArray<FSideIndex> out_s = t_circulate_s(t);
 	out_t.SetNum(3);
-	for (int32 i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		out_t[i] = s_outer_t(3 * t + i);
+		out_t[i] = s_outer_t(out_s[i]);
 	}
 	return out_t;
 }
 
-TArray<int32> UTriangleDualMesh::r_circulate_s(int32 r) const
+TArray<FSideIndex> UTriangleDualMesh::r_circulate_s(FPointIndex r) const
 {
-	const int32 s0 = _r_in_s[r];
-	int32 incoming = s0;
-	TArray<int32> out_s;
+	TArray<FSideIndex> out_s;
+	if(!_r_in_s.Contains(r))
+	{
+		return out_s;
+	}
+
+	const FSideIndex s0 = _r_in_s[r];
+	FSideIndex incoming = s0;
 	do
 	{
-		out_s.Add(_halfedges[incoming]);
-		int32 outgoing = UTriangleDualMesh::s_next_s(incoming);
+		if (!_halfedges.IsValidIndex(incoming))
+		{
+			UE_LOG(LogDualMesh, Error, TEXT("Incoming side was invalid!"));
+			return out_s;
+		}
+		FSideIndex next = _halfedges[incoming];
+		if (!next.IsValid())
+		{
+			UE_LOG(LogDualMesh, Error, TEXT("Next side was invalid!"));
+			return out_s;
+		}
+		out_s.Add(next);
+		FSideIndex outgoing = UTriangleDualMesh::s_next_s(incoming);
 		incoming = _halfedges[outgoing];
-	} while (incoming != -1 && incoming != s0);
+	} while (incoming.IsValid() && incoming != s0);
 	return out_s;
 }
 
-TArray<int32> UTriangleDualMesh::r_circulate_r(int32 r) const
+TArray<FPointIndex> UTriangleDualMesh::r_circulate_r(FPointIndex r) const
 {
-	const int32 s0 = _r_in_s[r];
-	int32 incoming = s0;
-	TArray<int32> out_r;
-	do {
-		out_r.Add(s_begin_r(incoming));
-		int32 outgoing = UTriangleDualMesh::s_next_s(incoming);
-		incoming = _halfedges[outgoing];
-	} while (incoming != -1 && incoming != s0);
+	TArray<FPointIndex> out_r;
+	if (!_r_in_s.Contains(r))
+	{
+		return out_r;
+	}
+
+	const FSideIndex s0 = _r_in_s[r];
+	if (s0.IsValid())
+	{
+		FSideIndex incoming = s0;
+		do {
+			FPointIndex next = s_begin_r(incoming);
+			if (!next.IsValid())
+			{
+				UE_LOG(LogDualMesh, Error, TEXT("Next region was invalid!"));
+				return out_r;
+			}
+			out_r.Add(next);
+			FSideIndex outgoing = UTriangleDualMesh::s_next_s(incoming);
+			incoming = _halfedges[outgoing];
+		} while (incoming.IsValid() && incoming != s0);
+	}
+	else
+	{
+		UE_LOG(LogDualMesh, Warning, TEXT("Attempted to start from an invalid region (%d)."), r);
+	}
 	return out_r;
 }
 
-TArray<int32> UTriangleDualMesh::r_circulate_t(int32 r) const
+TArray<FTriangleIndex> UTriangleDualMesh::r_circulate_t(FPointIndex r) const
 {
-	const int32 s0 = _r_in_s[r];
-	int32 incoming = s0;
-	TArray<int32> out_t;
+	TArray<FTriangleIndex> out_t;
+	if (!_r_in_s.Contains(r))
+	{
+		return out_t;
+	}
+
+	const FSideIndex s0 = _r_in_s[r];
+	FSideIndex incoming = s0;
 	do
 	{
-		out_t.Add(UTriangleDualMesh::s_to_t(incoming));
-		int32 outgoing = UTriangleDualMesh::s_next_s(incoming);
+		FTriangleIndex next = UTriangleDualMesh::s_to_t(incoming);
+		if (!next.IsValid())
+		{
+			UE_LOG(LogDualMesh, Error, TEXT("Next triangle was invalid!"));
+			return out_t;
+		}
+		out_t.Add(next);
+		FSideIndex outgoing = UTriangleDualMesh::s_next_s(incoming);
 		incoming = _halfedges[outgoing];
-	} while (incoming != -1 && incoming != s0);
+	} while (incoming.IsValid() && incoming != s0);
 	return out_t;
 }
 
-int32 UTriangleDualMesh::ghost_r() const
+FPointIndex UTriangleDualMesh::ghost_r() const
 {
-	return NumRegions - 1;
+	if (NumRegions == 0)
+	{
+		UE_LOG(LogDualMesh, Error, TEXT("No regions defined yet! Did you initialize the dual mesh?"));
+		return FPointIndex();
+	}
+	return FPointIndex(NumRegions - 1);
 }
 
-bool UTriangleDualMesh::s_ghost(int32 s) const
+bool UTriangleDualMesh::s_ghost(FSideIndex s) const
 {
 	return s >= NumSolidSides;
 }
 
-bool UTriangleDualMesh::r_ghost(int32 r) const
+bool UTriangleDualMesh::r_ghost(FPointIndex r) const
 {
-	return r == NumRegions - 1;
+	return r == ghost_r();
 }
 
-bool UTriangleDualMesh::t_ghost(int32 t) const
+bool UTriangleDualMesh::t_ghost(FTriangleIndex t) const
 {
-	return s_ghost(3 * t);
+	return s_ghost(UDelaunayHelper::TriangleIndexToEdge(t));
 }
 
-bool UTriangleDualMesh::s_boundary(int32 s) const
+bool UTriangleDualMesh::t_ghost(const FDelaunayTriangle& Triangle) const
+{
+	return r_ghost(Triangle.AIndex) || r_ghost(Triangle.BIndex) || r_ghost(Triangle.CIndex);
+}
+
+bool UTriangleDualMesh::s_boundary(FSideIndex s) const
 {
 	return s_ghost(s) && (s % 3 == 0);
 }
 
-bool UTriangleDualMesh::r_boundary(int32 r) const
+bool UTriangleDualMesh::r_boundary(FPointIndex r) const
 {
 	return r < NumBoundaryRegions;
 }
@@ -267,25 +357,24 @@ void UTriangleDualMesh::InitializeMesh(const FDualMesh& Input, int32 BoundaryReg
 	_triangles = Mesh.DelaunayTriangles;
 	_halfedges = Mesh.HalfEdges;
 
-	NumSides = _triangles.Num();
+	NumSides = _halfedges.Num();
 	NumRegions = _r_vertex.Num();
 	NumSolidRegions = NumRegions - 1;
-	NumTriangles = NumSides / 3;
-	NumSolidTriangles = NumSolidSides / 3;
+	NumTriangles = _triangles.Num();
+	NumSolidTriangles = NumSolidSides;
 
-	_r_in_s.SetNum(NumRegions);
-	for (int32 s = 0; s < _triangles.Num(); s++)
+	for (FSideIndex s = 0; s < _triangles.Num(); s++)
 	{
-		int32 endpoint = _triangles[UTriangleDualMesh::s_next_s(s)];
-		if (_r_in_s[endpoint] == 0 || _halfedges[s] == -1)
+		FPointIndex endpoint = _triangles[UTriangleDualMesh::s_next_s(s)];
+		if (!_r_in_s.Contains(endpoint) || !_halfedges[s].IsValid())
 		{
-			_r_in_s[endpoint] = s;
+			_r_in_s.Add(endpoint, s);
 		}
 	}
 
 	// Construct triangle coordinates
 	_t_vertex.SetNum(NumTriangles);
-	for (int32 s = 0; s < _triangles.Num(); s += 3)
+	for (FSideIndex s = 0; s < _triangles.Num(); s += 3)
 	{
 		FVector2D a = _r_vertex[_triangles[s]];
 		FVector2D b = _r_vertex[_triangles[s + 1]];
@@ -296,12 +385,132 @@ void UTriangleDualMesh::InitializeMesh(const FDualMesh& Input, int32 BoundaryReg
 			float dx = b.X - a.X;
 			float dy = b.Y - a.Y;
 			float scale = 10.0f / FMath::Sqrt(dx * dx + dy * dy); // go 10 units away from side
-			_t_vertex[s / 3] = FVector2D(0.5f * (a.X + b.X) + dy * scale, 0.5f * (a.Y + b.Y) - dx * scale);
+			_t_vertex[s] = FVector2D(0.5f * (a.X + b.X) + dy * scale, 0.5f * (a.Y + b.Y) - dx * scale);
 		}
 		else
 		{
 			// solid triangle center is at the centroid
-			_t_vertex[s / 3] = FVector2D((a.X + b.X + c.X) / 3.0f, (a.Y + b.Y + c.Y) / 3.0f);
+			_t_vertex[s] = FVector2D((a.X + b.X + c.X) / 3.0f, (a.Y + b.Y + c.Y) / 3.0f);
+		}
+		_t_vertex[s + 1] = _t_vertex[s];
+		_t_vertex[s + 2] = _t_vertex[s];
+	}
+}
+
+FVector2D UTriangleDualMesh::GetSize() const
+{
+	return Mesh.MaxSize;
+}
+
+TArray<FVector2D>& UTriangleDualMesh::GetPoints()
+{
+	return _r_vertex;
+}
+
+TArray<FVector2D>& UTriangleDualMesh::GetTriangleCentroids()
+{
+	return _t_vertex;
+}
+
+
+TArray<FSideIndex>& UTriangleDualMesh::GetHalfEdges()
+{
+	return _halfedges;
+}
+
+TArray<FPointIndex>& UTriangleDualMesh::GetTriangles()
+{
+	return _triangles;
+}
+
+void UTriangleDualMesh::Draw(const AActor* WorldObject) const
+{
+	Draw(WorldObject->GetWorld());
+}
+
+void UTriangleDualMesh::Draw(const UWorld* World) const
+{
+	DrawDelaunayVertices(World);
+	DrawDelaunayEdges(World);
+	//DrawVoronoiPoints(World);
+	//DrawVoronoiEdges(World);
+}
+
+void UTriangleDualMesh::DrawDelaunayVertices(const UWorld* World) const
+{
+	// Draw delaunay vertices as red dots
+	int32 count = 0;
+	for (int r = 0; r < _r_vertex.Num(); r++)
+	{
+		FVector2D vertex = _r_vertex[r];
+		float zCoord = r_ghost(r) ? -500.0f : 0.0f;
+		FVector vertexWorldSpace = FVector(vertex.X, vertex.Y, zCoord);
+		DrawDebugPoint(World, vertexWorldSpace, 10.0f, FColor::Red, false, 999.0f);
+		count++;
+	}
+	UE_LOG(LogDualMesh, Log, TEXT("Drew %d delaunay points."), count);
+}
+
+void UTriangleDualMesh::DrawVoronoiEdges(const UWorld* World) const
+{
+	// Draw voronoi polygons as green lines
+	int32 count = 0;
+	for (int e = 0; e < _halfedges.Num(); e++)
+	{
+		if (e < _halfedges[e])
+		{
+			FDelaunayTriangle triangleP = UDelaunayHelper::GetTriangleFromHalfEdge(Mesh, e);
+			FDelaunayTriangle triangleQ = UDelaunayHelper::GetTriangleFromHalfEdge(Mesh, _halfedges[e]);
+			if (!triangleP.IsValid() || !triangleQ.IsValid())// || s_ghost(e) || s_ghost(_halfedges[e]))
+			{
+				continue;
+			}
+			FVector2D p = triangleP.GetCircumcenter();
+			FVector2D q = triangleQ.GetCircumcenter();
+			FVector pVector = FVector(p.X, p.Y, 0.0f);
+			FVector qVector = FVector(q.X, q.Y, 0.0f);
+			UE_LOG(LogDualMesh, Log, TEXT("Voronoi edge: (%f, %f) -> (%f, %f)"), pVector.X, pVector.Y, qVector.X, qVector.Y);
+			DrawDebugLine(World, pVector, qVector, FColor::Green, false, 999.0f);
+			count++;
 		}
 	}
+	UE_LOG(LogDualMesh, Log, TEXT("Drew %d voronoi edges."), count);
+}
+
+void UTriangleDualMesh::DrawDelaunayEdges(const UWorld* World) const
+{
+	int32 count = 0;
+	for (int e = 0; e < _triangles.Num(); e++)
+	{
+		if (e < _halfedges[e])
+		{
+			const FVector2D p = _r_vertex[_triangles[e]];
+			const FVector2D q = _r_vertex[_triangles[UDelaunayHelper::NextHalfEdge(e)]];
+			float pZCoord = r_ghost(_triangles[e]) ? -1000.0f : 0.0f;
+			float qZCoord = r_ghost(_triangles[UDelaunayHelper::NextHalfEdge(e)]) ? -1000.0f : 0.0f;
+			FVector pVector = FVector(p.X, p.Y, pZCoord);
+			FVector qVector = FVector(q.X, q.Y, qZCoord);
+			DrawDebugDirectionalArrow(World, pVector, qVector, 10.0f, FColor::Magenta, false, 999.0f);
+			count++;
+		}
+	}
+	UE_LOG(LogDualMesh, Log, TEXT("Drew %d delaunay edges."), count);
+}
+
+void UTriangleDualMesh::DrawVoronoiPoints(const UWorld* World) const
+{
+	int32 count = 0;
+	for (int s = 0; s < _triangles.Num(); s += 3)
+	{
+		if (s_ghost(s))
+		{
+			continue;
+		}
+		FDelaunayTriangle triangle = UDelaunayHelper::ConvertTriangleIDToTriangle(Mesh, s);
+		FVector2D vertex = triangle.GetCircumcenter();
+		FVector vertexWorldSpace = FVector(vertex.X, vertex.Y, 0.0f);
+		DrawDebugPoint(World, vertexWorldSpace, 10.0f, FColor::Blue, false, 999.0f);
+		count++;
+	}
+	UE_LOG(LogDualMesh, Log, TEXT("Drew %d voronoi points."), count);
 }
