@@ -43,6 +43,8 @@ protected:
 	bool r_lake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
 	bool s_lake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
 
+	virtual void DistributeElevations(TArray<float> &t_elevation, UTriangleDualMesh* Mesh, const TArray<int32> &t_coastdistance, const TArray<bool>& r_ocean, int32 MinDistance, int32 MaxDistance) const;
+
 public:
 	/**
 	* Elevation is based on breadth first search from the seed points,
@@ -56,7 +58,8 @@ public:
 	*    was reached with distance 2 and another with distance 3, and we need
 	*    to revisit that node and make sure it's set to 2.
 	*/
-	void assign_t_elevation(TArray<float>& t_elevation, TArray<float>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
+	void assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
+
 	/**
 	* Redistribute elevation values so that lower elevations are more common
 	* than higher elevations. Specifically, we want elevation Z to have frequency

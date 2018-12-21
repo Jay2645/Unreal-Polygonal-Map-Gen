@@ -73,12 +73,13 @@ void AIslandMap::BeginPlay()
 
 	// Elevation
 	Elevation->assign_t_elevation(t_elevation, t_coastdistance, t_downslope_s, Mesh, r_ocean, r_water, DrainageRng);
-	Elevation->redistribute_t_elevation(t_elevation, Mesh);
+	//Elevation->redistribute_t_elevation(t_elevation, Mesh);
 	Elevation->assign_r_elevation(r_elevation, Mesh, t_elevation, r_ocean);
 
 	Draw();
 
 	UE_LOG(LogMapGen, Log, TEXT("Generated map elevation."));
+	return;
 
 	// Rivers
 	spring_t = Rivers->find_spring_t(Mesh, r_water, t_elevation, t_downslope_s);
@@ -93,8 +94,6 @@ void AIslandMap::BeginPlay()
 	Rivers->assign_s_flow(s_flow, Mesh, t_downslope_s, river_t);
 
 	UE_LOG(LogMapGen, Log, TEXT("Generated map rivers."));
-
-	return;
 
 	// Moisture
 	Moisture->assign_r_moisture(r_moisture, r_waterdistance, Mesh, r_water, Moisture->find_moisture_seeds_r(Mesh, s_flow, r_ocean, r_water));
@@ -114,14 +113,14 @@ void AIslandMap::Draw() const
 {
 	UWorld* world = GetWorld();
 	const TArray<FSideIndex>& _halfedges = Mesh->GetHalfEdges();
-	const TArray<FPointIndex>& _triangles = Mesh->GetTriangles();
+	const FDualMesh& mesh = Mesh->GetRawMesh();
 	const TArray<FVector2D>& _r_vertex = Mesh->GetPoints();
-	for (int e = 0; e < _triangles.Num(); e++)
+	for (FSideIndex e = 0; e < _halfedges.Num(); e++)
 	{
 		if (e < _halfedges[e])
 		{
-			FPointIndex first = _triangles[e];
-			FPointIndex second = _triangles[UDelaunayHelper::NextHalfEdge(e)];
+			FPointIndex first = UDelaunayHelper::GetPointIndexFromHalfEdge(mesh, e);
+			FPointIndex second = UDelaunayHelper::GetPointIndexFromHalfEdge(mesh, UDelaunayHelper::NextHalfEdge(e));
 
 			if (Mesh->r_ghost(first) || Mesh->r_ghost(second))
 			{

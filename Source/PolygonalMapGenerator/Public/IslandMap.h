@@ -106,7 +106,7 @@ public:
 	UPROPERTY()
 	TArray<bool> r_ocean;
 	UPROPERTY()
-	TArray<float> t_coastdistance;
+	TArray<int32> t_coastdistance;
 	UPROPERTY()
 	TArray<float> t_elevation;
 	UPROPERTY()

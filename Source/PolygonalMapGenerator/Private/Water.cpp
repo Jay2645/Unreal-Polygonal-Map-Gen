@@ -51,6 +51,22 @@ void UWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, cons
 			}
 		}
 	}
+
+#if !UE_BUILD_SHIPPING
+	bool bFoundOceanTile = false;
+	for (int i = 0; i < r_ocean.Num(); i++)
+	{
+		if (r_ocean[i])
+		{
+			bFoundOceanTile = true;
+			break;
+		}
+	}
+	if (!bFoundOceanTile)
+	{
+		UE_LOG(LogMapGen, Error, TEXT("Did not generate any ocean tiles!"));
+	}
+#endif
 }
 
 void UWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const

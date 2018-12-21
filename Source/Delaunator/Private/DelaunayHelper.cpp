@@ -328,6 +328,18 @@ FSideIndex UDelaunayHelper::PreviousHalfEdge(FSideIndex HalfEdge)
 	return (HalfEdge % 3 == 0) ? HalfEdge + 2 : HalfEdge - 1;
 }
 
+FSideIndex UDelaunayHelper::OppositeHalfEdge(const FDelaunayMesh& Triangulation, FSideIndex HalfEdge)
+{
+	if (Triangulation.HalfEdges.IsValidIndex(HalfEdge))
+	{
+		return Triangulation.HalfEdges[HalfEdge];
+	}
+	else
+	{
+		return FSideIndex();
+	}
+}
+
 TArray<FSideIndex> UDelaunayHelper::EdgesFromIncomingEdge(const FDelaunayMesh& Triangulation, FSideIndex Start)
 {
 	TArray<FSideIndex> result;

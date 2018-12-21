@@ -469,6 +469,9 @@ public:
 	// Given a Half-edge index, gets the previous half-edge
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Half-Edge")
 	static FSideIndex PreviousHalfEdge(FSideIndex HalfEdge);
+	// Given a Half-edge index, gets the opposite half-edge
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Half-Edge")
+	static FSideIndex OppositeHalfEdge(const FDelaunayMesh& Triangulation, FSideIndex HalfEdge);
 
 	// Given a half-edge leading to a point, gets all other half-edges connected to that point
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Delaunator|Half-Edge")

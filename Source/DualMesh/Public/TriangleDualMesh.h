@@ -87,7 +87,7 @@ class DUALMESH_API UTriangleDualMesh : public UObject
 
 protected:
 	TArray<FSideIndex> _halfedges;
-	TArray<FPointIndex> _triangles;
+	TArray<FDelaunayTriangle> _triangles;
 	TArray<FVector2D> _r_vertex;
 	TArray<FVector2D> _t_vertex;
 	TMap<FPointIndex, FSideIndex> _r_in_s;
@@ -150,7 +150,8 @@ public:
 	TArray<FVector2D>& GetPoints();
 	TArray<FVector2D>& GetTriangleCentroids();
 	TArray<FSideIndex>& GetHalfEdges();
-	TArray<FPointIndex>& GetTriangles();
+	TArray<FDelaunayTriangle>& GetTriangles();
+	FDualMesh& GetRawMesh();
 
 	void Draw(const AActor* WorldObject) const;
 	void Draw(const UWorld* World) const;
