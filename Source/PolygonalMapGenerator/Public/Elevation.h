@@ -44,6 +44,7 @@ protected:
 	bool s_lake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
 
 	virtual void DistributeElevations(TArray<float> &t_elevation, UTriangleDualMesh* Mesh, const TArray<int32> &t_coastdistance, const TArray<bool>& r_ocean, int32 MinDistance, int32 MaxDistance) const;
+	virtual void UpdateCoastDistance(TArray<int32> &t_coastdistance, UTriangleDualMesh* Mesh, FTriangleIndex Triangle, int32 Distance) const;
 
 public:
 	/**
@@ -58,19 +59,19 @@ public:
 	*    was reached with distance 2 and another with distance 3, and we need
 	*    to revisit that node and make sure it's set to 2.
 	*/
-	void assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
+	virtual void assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
 
 	/**
 	* Redistribute elevation values so that lower elevations are more common
 	* than higher elevations. Specifically, we want elevation Z to have frequency
 	* (1-Z), for all the non-ocean regions.
 	*/
-	void redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh) const;
+	virtual void redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
 	/**
 	* Set r elevation to the average of the t elevations. There's a
 	* corner case though: it is possible for an ocean region (r) to be
 	* surrounded by coastline corners (t), and coastlines are set to 0
 	* elevation. This means the region elevation would be 0. To avoid
 	* this, I subtract a small amount for ocean regions. */
-	void assign_r_elevation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const;
+	virtual void assign_r_elevation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const;
 };

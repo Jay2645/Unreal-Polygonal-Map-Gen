@@ -37,6 +37,11 @@ public:
 	// Higher values mean more tiles will become water.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float WaterCutoff;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float NoiseScale;
+	// Inverts all non-border land and water.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bInvertLandAndWater;
 
 public:
 	UWater();

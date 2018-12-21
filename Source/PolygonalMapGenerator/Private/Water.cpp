@@ -22,6 +22,8 @@
 UWater::UWater()
 {
 	WaterCutoff = 0.0f;
+	NoiseScale = 1.0f;
+	bInvertLandAndWater = false;
 }
 
 void UWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const
@@ -32,12 +34,13 @@ void UWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, cons
 	r_ocean.Empty(Mesh->NumRegions);
 	r_ocean.SetNumZeroed(Mesh->NumRegions);
 	TArray<FPointIndex> stack = { Mesh->ghost_r() };
-	TArray<FPointIndex> r_out;
+	r_ocean[stack[0]] = true;
+
 	while (stack.Num() > 0)
 	{
 		FPointIndex r1 = stack.Pop();
 		check(r1.IsValid());
-		r_out = Mesh->r_circulate_r(r1);
+		TArray<FPointIndex> r_out = Mesh->r_circulate_r(r1);
 		for (FPointIndex r2 : r_out)
 		{
 			if (!r2.IsValid())
@@ -53,18 +56,21 @@ void UWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, cons
 	}
 
 #if !UE_BUILD_SHIPPING
-	bool bFoundOceanTile = false;
+	int32 oceanTileCount = 0;
 	for (int i = 0; i < r_ocean.Num(); i++)
 	{
 		if (r_ocean[i])
 		{
-			bFoundOceanTile = true;
-			break;
+			oceanTileCount++;
 		}
 	}
-	if (!bFoundOceanTile)
+	if (oceanTileCount == 0)
 	{
 		UE_LOG(LogMapGen, Error, TEXT("Did not generate any ocean tiles!"));
+	}
+	else
+	{
+		UE_LOG(LogMapGen, Log, TEXT("Generated %d ocean tiles out of %d total."), oceanTileCount, r_ocean.Num());
 	}
 #endif
 }
@@ -80,8 +86,8 @@ void UWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangle
 		r_water.Empty(Mesh->NumRegions);
 		r_water.SetNumZeroed(Mesh->NumRegions);
 		FVector2D meshSize = Mesh->GetSize() * 0.5f;
-		FVector2D offset = FVector2D(Rng.FRandRange(-100000.0f, 100000.0f), Rng.FRandRange(-100000.0f, 100000.0f));
-		for (int r = 0; r < r_water.Num(); r++)
+		FVector2D offset = FVector2D(Rng.FRandRange(-meshSize.X, meshSize.X), Rng.FRandRange(-meshSize.Y, meshSize.Y));
+		for (FPointIndex r = 0; r < r_water.Num(); r++)
 		{
 			if (Mesh->r_ghost(r) || Mesh->r_boundary(r))
 			{
@@ -89,14 +95,17 @@ void UWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangle
 			}
 			else
 			{
-				FVector2D nVector = Mesh->r_pos(r) * 0.5f;
+				FVector2D nVector = Mesh->r_pos(r);
 				nVector.X /= meshSize.X;
 				nVector.Y /= meshSize.Y;
-				float n = UIslandMapUtils::FBMNoise(Shape.Amplitudes, nVector + offset);
+				nVector = (nVector + offset) * NoiseScale;
+				float n = UIslandMapUtils::FBMNoise(Shape.Amplitudes, nVector);
 				float distance = FMath::Max(FMath::Abs(nVector.X), FMath::Abs(nVector.Y));
-				float lerpedN = FMath::Lerp(n, 0.5f, Shape.Round);
-				float modifiedN = lerpedN - (1.0f - Shape.Inflate);
-				r_water[r] = modifiedN * distance * distance < WaterCutoff;
+				r_water[r] = n * distance * distance > WaterCutoff;
+				if (bInvertLandAndWater)
+				{
+					r_water[r] = !r_water[r];
+				}
 			}
 #if !UE_BUILD_SHIPPING
 			if (r_water[r])
@@ -105,6 +114,7 @@ void UWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangle
 			}
 #endif
 		}
+
 #if !UE_BUILD_SHIPPING
 		UE_LOG(LogMapGen, Log, TEXT("Generated %d water regions out of %d total regions."), count, r_water.Num());
 #endif

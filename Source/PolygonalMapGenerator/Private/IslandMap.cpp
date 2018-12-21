@@ -73,7 +73,7 @@ void AIslandMap::BeginPlay()
 
 	// Elevation
 	Elevation->assign_t_elevation(t_elevation, t_coastdistance, t_downslope_s, Mesh, r_ocean, r_water, DrainageRng);
-	//Elevation->redistribute_t_elevation(t_elevation, Mesh);
+	Elevation->redistribute_t_elevation(t_elevation, Mesh, r_ocean);
 	Elevation->assign_r_elevation(r_elevation, Mesh, t_elevation, r_ocean);
 
 	Draw();
@@ -115,6 +115,26 @@ void AIslandMap::Draw() const
 	const TArray<FSideIndex>& _halfedges = Mesh->GetHalfEdges();
 	const FDualMesh& mesh = Mesh->GetRawMesh();
 	const TArray<FVector2D>& _r_vertex = Mesh->GetPoints();
+
+/*	const TArray<FVector2D>& _t_vertex = Mesh->GetTriangleCentroids();
+
+	for (FTriangleIndex t = 0; t < _t_vertex.Num(); t++)
+	{
+		TArray<FPointIndex> trianglePoints = Mesh->t_circulate_r(t);
+		int count = 0;
+		for (FPointIndex r : trianglePoints)
+		{
+			if (r_ocean[r])
+			{
+				count++;
+			}
+		}
+		// True if 2 or more points of the triangle are ocean
+		FColor color = count >= 2 ? FColor::Blue : FColor::Magenta;
+		DrawDebugPoint(world, FVector(_t_vertex[t].X, _t_vertex[t].Y, t_elevation[t] * 10000), 10.0f, color, false, 9999.0f);
+	}
+
+	return;*/
 	for (FSideIndex e = 0; e < _halfedges.Num(); e++)
 	{
 		if (e < _halfedges[e])

@@ -40,7 +40,17 @@ TArray<FTriangleIndex> UElevation::find_coasts_t(UTriangleDualMesh* Mesh, const 
 
 bool UElevation::t_ocean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
-	return r_ocean[Mesh->s_begin_r(UDelaunayHelper::TriangleIndexToEdge(t))];
+	TArray<FPointIndex> trianglePoints = Mesh->t_circulate_r(t);
+	int count = 0;
+	for (FPointIndex r : trianglePoints)
+	{
+		if (r_ocean[r])
+		{
+			count++;
+		}
+	}
+	// True if 2 or more points of the triangle are ocean
+	return count >= 2;
 }
 
 bool UElevation::r_lake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
@@ -60,8 +70,32 @@ void UElevation::DistributeElevations(TArray<float> &t_elevation, UTriangleDualM
 	{
 		float d = (float)t_coastdistance[t];
 		// Ocean values scale linearly down, so they're "upside-down mountains"
-		t_elevation[t] = t_ocean(t, Mesh, r_ocean) ? (-d / (float)MinDistance) : (d / (float)MaxDistance);
-		UE_LOG(LogMapGen, Log, TEXT("Triangle index %d's distance from coastline: %f; elevation: %f"), t, d, t_elevation[t]);
+		if (t_ocean(t, Mesh, r_ocean))
+		{
+			t_elevation[t] = -d / (float)MinDistance;
+			UE_LOG(LogMapGen, Log, TEXT("Ocean triangle index %d's distance from coastline: %f; min distance: %d; elevation: %f"), t, d, MinDistance, t_elevation[t]);
+		}
+		else
+		{
+			t_elevation[t] = d / (float)MaxDistance;
+			UE_LOG(LogMapGen, Log, TEXT("Land triangle index %d's distance from coastline: %f; max distance: %d; elevation: %f"), t, d, MaxDistance, t_elevation[t]);
+		}
+	}
+}
+
+void UElevation::UpdateCoastDistance(TArray<int32> &t_coastdistance, UTriangleDualMesh* Mesh, FTriangleIndex Triangle, int32 Distance) const
+{
+	// Update the coast distance array to make sure we're still pointing to the nearest coast
+	t_coastdistance[Triangle] = Distance;
+	TArray<FSideIndex> out_s = Mesh->t_circulate_s(Triangle);
+	for (int i = 0; i < out_s.Num(); i++)
+	{
+		FSideIndex s = out_s[i];
+		FTriangleIndex neighbor_t = Mesh->s_outer_t(s);
+		if (t_coastdistance[neighbor_t] > Distance + 1)
+		{
+			UpdateCoastDistance(t_coastdistance, Mesh, neighbor_t, Distance + 1);
+		}
 	}
 }
 
@@ -89,7 +123,6 @@ void UElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t
 	t_elevation.SetNumZeroed(Mesh->NumTriangles);
 
 	// Find all coasts and set them to be 0 distance away from the nearest coast
-	TArray<FSideIndex> out_s;
 	TArray<FTriangleIndex> queue_t = find_coasts_t(Mesh, r_ocean);
 	if (queue_t.Num() == 0)
 	{
@@ -112,7 +145,7 @@ void UElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t
 		FTriangleIndex current_t = queue_t[0];
 		queue_t.RemoveAt(0);
 		// Find all sides of the current triangle
-		out_s = Mesh->t_circulate_s(current_t);
+		TArray<FSideIndex> out_s = Mesh->t_circulate_s(current_t);
 
 		// Iterate over each side of the triangle, starting from a random offset
 		int32 iOffset = DrainageRng.RandRange(0, out_s.Num() - 1);
@@ -133,16 +166,15 @@ void UElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t
 			if (t_coastdistance[neighbor_t] == -1 || newDistance < t_coastdistance[neighbor_t])
 			{
 				// Point it "downhill" to the next side
-				// @TODO: Should we check the neighbors of this array to ensure they're still valid?
 				t_downslope_s[neighbor_t] = Mesh->s_opposite_s(s);
-				// Update the coast distance array to make sure we're still pointing to the nearest coast
-				t_coastdistance[neighbor_t] = newDistance;
+
+				UpdateCoastDistance(t_coastdistance, Mesh, neighbor_t, newDistance);
 
 				// If this tile is ocean, see if we need to update how far away this underwater tile 
 				// is from a coast
 				if (t_ocean(neighbor_t, Mesh, r_ocean) && newDistance > minDistance) { minDistance = newDistance; }
 				// If this tile is land, see if we need to update how far away this land tile is from a coast
-				if (!t_ocean(neighbor_t, Mesh, r_ocean) && newDistance > maxDistance) { maxDistance = newDistance; }
+				else if (!t_ocean(neighbor_t, Mesh, r_ocean) && newDistance > maxDistance) { maxDistance = newDistance; }
 
 				if (lake)
 				{
@@ -173,7 +205,7 @@ void UElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t
 	DistributeElevations(t_elevation, Mesh, t_coastdistance, r_ocean, minDistance, maxDistance);
 }
 
-void UElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh) const
+void UElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	// SCALE_FACTOR increases the mountain area. At 1.0 the maximum
 	// elevation barely shows up on the map, so we set it to 1.1.
@@ -182,7 +214,7 @@ void UElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleD
 	TArray<FTriangleIndex> nonocean_t;
 	for (FTriangleIndex t = 0; t < Mesh->NumSolidTriangles; t++)
 	{
-		if (t_elevation[t] > 0.0)
+		if (!t_ocean(t, Mesh, r_ocean))
 		{
 			nonocean_t.Add(t);
 		}
@@ -190,7 +222,7 @@ void UElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleD
 
 	nonocean_t.Sort([t_elevation](const FTriangleIndex& A, const FTriangleIndex& B)
 	{
-		return t_elevation[A] > t_elevation[B];
+		return t_elevation[A] < t_elevation[B];
 	});
 
 	if (nonocean_t.Num() > 0)
@@ -215,6 +247,7 @@ void UElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleD
 		{
 			x = 1.0;
 		}
+		UE_LOG(LogMapGen, Log, TEXT("Redistributing elevation for triangle %d for %f to %f."), nonocean_t[i], t_elevation[nonocean_t[i]], x);
 		t_elevation[nonocean_t[i]] = x;
 	}
 }
