@@ -22,7 +22,6 @@
 UWater::UWater()
 {
 	WaterCutoff = 0.0f;
-	NoiseScale = 1.0f;
 	bInvertLandAndWater = false;
 }
 
@@ -98,7 +97,7 @@ void UWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangle
 				FVector2D nVector = Mesh->r_pos(r);
 				nVector.X /= meshSize.X;
 				nVector.Y /= meshSize.Y;
-				nVector = (nVector + offset) * NoiseScale;
+				nVector = (nVector + offset) * Shape.IslandFragmentation;
 				float n = UIslandMapUtils::FBMNoise(Shape.Amplitudes, nVector);
 				float distance = FMath::Max(FMath::Abs(nVector.X), FMath::Abs(nVector.Y));
 				r_water[r] = n * distance * distance > WaterCutoff;

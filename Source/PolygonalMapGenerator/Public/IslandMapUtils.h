@@ -31,11 +31,10 @@ struct POLYGONALMAPGENERATOR_API FIslandShape
 	// How many iterations we should have when smoothing the island.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
 	int32 Octaves;
-	// The ratio of island to water.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0.0", ClampMax = "1.0"))
-	float Round;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0.0", ClampMax = "1.0"))
-	float Inflate;
+	// Modifies the scale of the noise used to generate water versus land.
+	// Larger values will generate many small islands. Smaller values will make one big island.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Map", meta = (ClampMin = "0.01"))
+	float IslandFragmentation;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
 	TArray<float> Amplitudes;
@@ -43,8 +42,7 @@ struct POLYGONALMAPGENERATOR_API FIslandShape
 	FIslandShape()
 	{
 		Octaves = 5;
-		Round = 0.5f;
-		Inflate = 0.4f;
+		IslandFragmentation = 1.0f;
 	}
 };
 
