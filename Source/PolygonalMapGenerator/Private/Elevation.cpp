@@ -73,12 +73,12 @@ void UElevation::DistributeElevations(TArray<float> &t_elevation, UTriangleDualM
 		if (t_ocean(t, Mesh, r_ocean))
 		{
 			t_elevation[t] = -d / (float)MinDistance;
-			UE_LOG(LogMapGen, Log, TEXT("Ocean triangle index %d's distance from coastline: %f; min distance: %d; elevation: %f"), t, d, MinDistance, t_elevation[t]);
+			//UE_LOG(LogMapGen, Log, TEXT("Ocean triangle index %d's distance from coastline: %f; min distance: %d; elevation: %f"), t, d, MinDistance, t_elevation[t]);
 		}
 		else
 		{
 			t_elevation[t] = d / (float)MaxDistance;
-			UE_LOG(LogMapGen, Log, TEXT("Land triangle index %d's distance from coastline: %f; max distance: %d; elevation: %f"), t, d, MaxDistance, t_elevation[t]);
+			//UE_LOG(LogMapGen, Log, TEXT("Land triangle index %d's distance from coastline: %f; max distance: %d; elevation: %f"), t, d, MaxDistance, t_elevation[t]);
 		}
 	}
 }
@@ -247,7 +247,7 @@ void UElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleD
 		{
 			x = 1.0;
 		}
-		UE_LOG(LogMapGen, Log, TEXT("Redistributing elevation for triangle %d for %f to %f."), nonocean_t[i], t_elevation[nonocean_t[i]], x);
+		//UE_LOG(LogMapGen, Log, TEXT("Redistributing elevation for triangle %d for %f to %f."), nonocean_t[i], t_elevation[nonocean_t[i]], x);
 		t_elevation[nonocean_t[i]] = x;
 	}
 }

@@ -76,7 +76,7 @@ void AIslandMap::BeginPlay()
 	Elevation->redistribute_t_elevation(t_elevation, Mesh, r_ocean);
 	Elevation->assign_r_elevation(r_elevation, Mesh, t_elevation, r_ocean);
 
-	Draw();
+	//Draw();
 
 	UE_LOG(LogMapGen, Log, TEXT("Generated map elevation."));
 	return;
