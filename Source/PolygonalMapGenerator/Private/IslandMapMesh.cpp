@@ -39,19 +39,29 @@ void AIslandMapMesh::CreateDynmaicMesh()
 
 	for (FPointIndex r = 0; r < vertices.Num(); r++)
 	{
-		vertices[r] = FVector(points[r].X, points[r].Y, r_elevation[r] * ZScale);
+		float z = Mesh->r_ghost(r) ? -10 * ZScale : r_elevation[r] * ZScale;
+		vertices[r] = FVector(points[r].X, points[r].Y, z);
 		vertexColors[r] = FLinearColor(0.75, 0.75, 0.75, 1.0);
 	}
 	for (FTriangleIndex t = 0; t < triangles.Num(); t++)
 	{
 		triangles[t] = (int32)rawMesh.DelaunayTriangles[t];
-		normals[t] = FVector(1.0f, 0.0f, 0.0f);
+		FDelaunayTriangle triangle = UDelaunayHelper::ConvertTriangleIDToTriangle(rawMesh, t);
+		FVector a = FVector(triangle.A.X, triangle.A.Y, r_elevation[triangle.AIndex]);
+		FVector b = FVector(triangle.B.X, triangle.B.Y, r_elevation[triangle.BIndex]);
+		FVector c = FVector(triangle.C.X, triangle.C.Y, r_elevation[triangle.CIndex]);
+		normals[t] = FVector::CrossProduct(c - a, b - a).GetSafeNormal();
 		uv0[t] = FVector2D::ZeroVector;
-		tangents[t] = FProcMeshTangent(0, 1, 0);
+		tangents[t] = FProcMeshTangent((a - b).GetSafeNormal(), true);
 	}
 
 	MapMesh->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uv0, vertexColors, tangents, true);
 
 	// Enable collision data
 	MapMesh->ContainsPhysicsTriMeshData(true);
+
+	if (GroundMaterial)
+	{
+		MapMesh->SetMaterial(0, GroundMaterial);
+	}
 }

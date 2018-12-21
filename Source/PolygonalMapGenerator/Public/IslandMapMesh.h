@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "IslandMap.h"
 #include "ProceduralMeshComponent.h"
+#include "Materials/MaterialInterface.h"
 #include "IslandMapMesh.generated.h"
 
 /**
@@ -23,6 +24,8 @@ private:
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float ZScale;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UMaterialInterface* GroundMaterial;
 
 public:
 	AIslandMapMesh();
