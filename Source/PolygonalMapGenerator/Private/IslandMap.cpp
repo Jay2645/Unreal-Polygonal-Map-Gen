@@ -114,9 +114,6 @@ void AIslandMap::GenerateIsland_Implementation()
 
 	UE_LOG(LogMapGen, Log, TEXT("Generated map elevation."));
 
-	OnIslandGenComplete();
-	return;
-
 	// Rivers
 	spring_t = Rivers->find_spring_t(Mesh, r_water, t_elevation, t_downslope_s);
 	UE_LOG(LogMapGen, Log, TEXT("Created %d springs."), spring_t.Num());

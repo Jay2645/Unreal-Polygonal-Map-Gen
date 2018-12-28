@@ -75,8 +75,6 @@ void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriang
 			{
 				FSideIndex s = t_downslope_s[t];
 
-				UE_LOG(LogMapGen, Log, TEXT("Current index: %d Next downslope: %d"), t, s);
-
 				if (!s.IsValid())
 				{
 					break;
