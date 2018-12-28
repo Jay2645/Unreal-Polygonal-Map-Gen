@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "0.1",
+	"VersionName": "1.0",
 	"FriendlyName": "Polygonal Map Generator",
 	"Description": "An Unreal Engine 4 implementation of the Polygonal Map Generator for generating islands found at http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/.",
 	"Category": "Rendering",
@@ -11,7 +11,7 @@
 	"MarketplaceURL": "https://github.com/Jay2645/Unreal-Polygonal-Map-Gen",
 	"SupportURL": "https://github.com/Jay2645/Unreal-Polygonal-Map-Gen",
 	"CanContainContent": true,
-	"IsBetaVersion": true,
+	"IsBetaVersion": false,
 	"Installed": false,
   "Modules": [
     {
