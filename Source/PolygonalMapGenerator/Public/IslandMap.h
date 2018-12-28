@@ -26,6 +26,7 @@
 #include "TriangleDualMesh.h"
 
 #include "IslandMapUtils.h"
+#include "IslandMeshBuilder.h"
 #include "IslandBiome.h"
 #include "IslandElevation.h"
 #include "IslandMoisture.h"
@@ -49,21 +50,6 @@ public:
 	// Modifies how we calculate drainage.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
 	int32 RiverSeed;
-	// The size of our map, starting at (0, 0).
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
-	FVector2D MapSize;
-	// The size of our map, starting at (0, 0).
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
-	FVector2D PoissonSize;
-	// The amount of spacing on the edge of the map.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Edges", meta = (ClampMin = "0"))
-	int32 BoundarySpacing;
-	// How much spacing between Poisson points.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0.0"))
-	float PoissonSpacing;
-	// Maximum samples to generate each step.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Points", meta = (ClampMin = "0"))
-	int32 PoissonSamples;
 	// Modifies the types of biomes we produce.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	FBiomeBias BiomeBias;
@@ -88,6 +74,8 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "RNG")
 	FRandomStream DrainageRng;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
+	const UIslandMeshBuilder* PointGenerator;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	const UIslandBiome* Biomes;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")

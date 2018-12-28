@@ -24,26 +24,22 @@
 // Sets default values
 AIslandMap::AIslandMap()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	Seed = 0;
-	MapSize = FVector2D(107500.0, 107500.0);
-	PoissonSize = FVector2D(100000.0, 100000.0);
-	BoundarySpacing = 1000;
-	PoissonSpacing = 1075.0f;
-	PoissonSamples = 30;
 	NumRivers = 30;
 }
 
 // Called when the game starts or when spawned
 void AIslandMap::BeginPlay()
 {
+	Super::BeginPlay();
+
 	GenerateIsland();
 }
 
 void AIslandMap::GenerateIsland_Implementation()
 {
-	if (Water == NULL || Elevation == NULL || Rivers == NULL || Moisture == NULL || Biomes == NULL)
+	if (PointGenerator == NULL || Water == NULL || Elevation == NULL || Rivers == NULL || Moisture == NULL || Biomes == NULL)
 	{
 		UE_LOG(LogMapGen, Error, TEXT("IslandMap not properly set up!"));
 		return;
@@ -63,12 +59,8 @@ void AIslandMap::GenerateIsland_Implementation()
 		Shape.Amplitudes[i] = FMath::Pow(Persistence, i);
 	}
 
-	Super::BeginPlay();
-
-	UDualMeshBuilder* builder = NewObject<UDualMeshBuilder>();
-	builder->Initialize(MapSize, BoundarySpacing);
-	builder->AddPoisson(Rng, MapSize - PoissonSize, PoissonSpacing, PoissonSamples);
-	Mesh = builder->Create();
+	// Generate map points
+	Mesh = PointGenerator->GenerateDualMesh(Rng);
 
 	// Reset all arrays
 
@@ -157,25 +149,6 @@ void AIslandMap::Draw() const
 	const FDualMesh& mesh = Mesh->GetRawMesh();
 	const TArray<FVector2D>& _r_vertex = Mesh->GetPoints();
 
-/*	const TArray<FVector2D>& _t_vertex = Mesh->GetTriangleCentroids();
-
-	for (FTriangleIndex t = 0; t < _t_vertex.Num(); t++)
-	{
-		TArray<FPointIndex> trianglePoints = Mesh->t_circulate_r(t);
-		int count = 0;
-		for (FPointIndex r : trianglePoints)
-		{
-			if (r_ocean[r])
-			{
-				count++;
-			}
-		}
-		// True if 2 or more points of the triangle are ocean
-		FColor color = count >= 2 ? FColor::Blue : FColor::Magenta;
-		DrawDebugPoint(world, FVector(_t_vertex[t].X, _t_vertex[t].Y, t_elevation[t] * 10000), 10.0f, color, false, 9999.0f);
-	}
-
-	return;*/
 	for (FSideIndex e = 0; e < _halfedges.Num(); e++)
 	{
 		if (e < _halfedges[e])
