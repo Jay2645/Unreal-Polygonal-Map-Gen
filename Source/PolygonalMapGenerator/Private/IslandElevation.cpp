@@ -17,7 +17,7 @@
 */
 #include "IslandElevation.h"
 
-TArray<FTriangleIndex> UIslandElevation::find_coasts_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+TArray<FTriangleIndex> UIslandElevation::FindCoastTriangles(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	TSet<FTriangleIndex> coasts_t;
 	for (FSideIndex s = 0; s < Mesh->NumSides; s++)
@@ -38,7 +38,7 @@ TArray<FTriangleIndex> UIslandElevation::find_coasts_t(UTriangleDualMesh* Mesh, 
 	return coasts_t.Array();
 }
 
-bool UIslandElevation::t_ocean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+bool UIslandElevation::IsTriangleOcean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	TArray<FPointIndex> trianglePoints = Mesh->t_circulate_r(t);
 	int count = 0;
@@ -53,14 +53,14 @@ bool UIslandElevation::t_ocean(FTriangleIndex t, UTriangleDualMesh* Mesh, const 
 	return count >= 2;
 }
 
-bool UIslandElevation::r_lake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
+bool UIslandElevation::IsRegionLake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
 {
 	return r_water[r] && !r_ocean[r];
 }
 
-bool UIslandElevation::s_lake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
+bool UIslandElevation::IsSideLake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
 {
-	return r_lake(Mesh->s_begin_r(s), r_water, r_ocean) || r_lake(Mesh->s_end_r(s), r_water, r_ocean);
+	return IsRegionLake(Mesh->s_begin_r(s), r_water, r_ocean) || IsRegionLake(Mesh->s_end_r(s), r_water, r_ocean);
 }
 
 void UIslandElevation::DistributeElevations(TArray<float> &t_elevation, UTriangleDualMesh* Mesh, const TArray<int32> &t_coastdistance, const TArray<bool>& r_ocean, int32 MinDistance, int32 MaxDistance) const
@@ -70,7 +70,7 @@ void UIslandElevation::DistributeElevations(TArray<float> &t_elevation, UTriangl
 	{
 		float d = (float)t_coastdistance[t];
 		// Ocean values scale linearly down, so they're "upside-down mountains"
-		if (t_ocean(t, Mesh, r_ocean))
+		if (IsTriangleOcean(t, Mesh, r_ocean))
 		{
 			t_elevation[t] = -d / (float)MinDistance;
 			//UE_LOG(LogMapGen, Log, TEXT("Ocean triangle index %d's distance from coastline: %f; min distance: %d; elevation: %f"), t, d, MinDistance, t_elevation[t]);
@@ -99,7 +99,7 @@ void UIslandElevation::UpdateCoastDistance(TArray<int32> &t_coastdistance, UTria
 	}
 }
 
-void UIslandElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const
+void UIslandElevation::AssignTriangleElevations_Implementation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const
 {
 	// TODO: this messes up lakes, as they will no longer all be at the same elevation
 
@@ -123,7 +123,7 @@ void UIslandElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int
 	t_elevation.SetNumZeroed(Mesh->NumTriangles);
 
 	// Find all coasts and set them to be 0 distance away from the nearest coast
-	TArray<FTriangleIndex> queue_t = find_coasts_t(Mesh, r_ocean);
+	TArray<FTriangleIndex> queue_t = FindCoastTriangles(Mesh, r_ocean);
 	if (queue_t.Num() == 0)
 	{
 		UE_LOG(LogMapGen, Error, TEXT("No triangles were marked as coast!"));
@@ -156,7 +156,7 @@ void UIslandElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int
 			// Check to see if this side is a lake
 			// If it is, keep the distance from the nearest coast the same (to ensure that lakes keep elevation)
 			// If it isn't, increment the distance from the nearest coast
-			bool lake = s_lake(s, Mesh, r_water, r_ocean);
+			bool lake = IsSideLake(s, Mesh, r_water, r_ocean);
 			int32 newDistance = (lake ? 0 : 1) + t_coastdistance[current_t];
 
 			// Get the next triangle down the line
@@ -172,9 +172,9 @@ void UIslandElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int
 
 				// If this tile is ocean, see if we need to update how far away this underwater tile 
 				// is from a coast
-				if (t_ocean(neighbor_t, Mesh, r_ocean) && newDistance > minDistance) { minDistance = newDistance; }
+				if (IsTriangleOcean(neighbor_t, Mesh, r_ocean) && newDistance > minDistance) { minDistance = newDistance; }
 				// If this tile is land, see if we need to update how far away this land tile is from a coast
-				else if (!t_ocean(neighbor_t, Mesh, r_ocean) && newDistance > maxDistance) { maxDistance = newDistance; }
+				else if (!IsTriangleOcean(neighbor_t, Mesh, r_ocean) && newDistance > maxDistance) { maxDistance = newDistance; }
 
 				if (lake)
 				{
@@ -205,16 +205,16 @@ void UIslandElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int
 	DistributeElevations(t_elevation, Mesh, t_coastdistance, r_ocean, minDistance, maxDistance);
 }
 
-void UIslandElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+void UIslandElevation::RedistributeTriangleElevations_Implementation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	// SCALE_FACTOR increases the mountain area. At 1.0 the maximum
 	// elevation barely shows up on the map, so we set it to 1.1.
 	const float SCALE_FACTOR = 1.1f;
 
 	TArray<FTriangleIndex> nonocean_t;
-	for (FTriangleIndex t = 0; t < Mesh->NumSolidTriangles; t++)
+	for (FTriangleIndex t = 0; t < t_elevation.Num(); t++)
 	{
-		if (!t_ocean(t, Mesh, r_ocean))
+		if (!IsTriangleOcean(t, Mesh, r_ocean))
 		{
 			nonocean_t.Add(t);
 		}
@@ -252,12 +252,12 @@ void UIslandElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTri
 	}
 }
 
-void UIslandElevation::assign_r_elevation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const
+void UIslandElevation::AssignRegionElevations_Implementation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const
 {
 	const float max_ocean_elevation = -0.01;
 
-	r_elevation.Empty(Mesh->NumTriangles);
-	r_elevation.SetNumZeroed(Mesh->NumTriangles);
+	r_elevation.Empty(Mesh->NumRegions);
+	r_elevation.SetNumZeroed(Mesh->NumRegions);
 
 	TArray<FTriangleIndex> out_t;
 	for (FPointIndex r = 0; r < Mesh->NumRegions; r++)
@@ -275,4 +275,19 @@ void UIslandElevation::assign_r_elevation(TArray<float>& r_elevation, UTriangleD
 			r_elevation[r] = max_ocean_elevation;
 		}
 	}
+}
+
+void UIslandElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const
+{
+	AssignTriangleElevations(t_elevation, t_coastdistance, t_downslope_s, Mesh, r_ocean, r_water, DrainageRng);
+}
+
+void UIslandElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+{
+	RedistributeTriangleElevations(t_elevation, Mesh, r_ocean);
+}
+
+void UIslandElevation::assign_r_elevation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const
+{
+	AssignRegionElevations(r_elevation, Mesh, t_elevation, r_ocean);
 }

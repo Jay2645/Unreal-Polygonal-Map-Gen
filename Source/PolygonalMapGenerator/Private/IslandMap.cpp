@@ -38,6 +38,11 @@ AIslandMap::AIslandMap()
 // Called when the game starts or when spawned
 void AIslandMap::BeginPlay()
 {
+	GenerateIsland();
+}
+
+void AIslandMap::GenerateIsland_Implementation()
+{
 	if (Water == NULL || Elevation == NULL || Rivers == NULL || Moisture == NULL || Biomes == NULL)
 	{
 		UE_LOG(LogMapGen, Error, TEXT("IslandMap not properly set up!"));
@@ -59,11 +64,42 @@ void AIslandMap::BeginPlay()
 	}
 
 	Super::BeginPlay();
-	
+
 	UDualMeshBuilder* builder = NewObject<UDualMeshBuilder>();
 	builder->Initialize(MapSize, BoundarySpacing);
 	builder->AddPoisson(Rng, MapSize - PoissonSize, PoissonSpacing, PoissonSamples);
 	Mesh = builder->Create();
+
+	// Reset all arrays
+
+	r_water.Empty(Mesh->NumRegions);
+	r_water.SetNumZeroed(Mesh->NumRegions);
+	r_ocean.Empty(Mesh->NumRegions);
+	r_ocean.SetNumZeroed(Mesh->NumRegions);
+
+	t_elevation.Empty(Mesh->NumTriangles);
+	t_elevation.SetNumZeroed(Mesh->NumTriangles);
+	t_downslope_s.Empty(Mesh->NumTriangles);
+	t_downslope_s.SetNum(Mesh->NumTriangles);
+	t_coastdistance.Empty(Mesh->NumTriangles);
+	t_coastdistance.SetNumZeroed(Mesh->NumTriangles);
+	r_elevation.Empty(Mesh->NumRegions);
+	r_elevation.SetNumZeroed(Mesh->NumRegions);
+
+	s_flow.Empty(Mesh->NumSides);
+	s_flow.SetNumZeroed(Mesh->NumSides);
+
+	r_moisture.Empty(Mesh->NumRegions);
+	r_moisture.SetNumZeroed(Mesh->NumRegions);
+	r_waterdistance.Empty(Mesh->NumRegions);
+	r_waterdistance.SetNumZeroed(Mesh->NumRegions);
+
+	r_coast.Empty(Mesh->NumRegions);
+	r_coast.SetNumZeroed(Mesh->NumRegions);
+	r_temperature.Empty(Mesh->NumRegions);
+	r_temperature.SetNumZeroed(Mesh->NumRegions);
+	r_biome.Empty(Mesh->NumRegions);
+	r_biome.SetNumZeroed(Mesh->NumRegions);
 
 	// Water
 	Water->assign_r_water(r_water, Rng, Mesh, Shape);
@@ -76,9 +112,9 @@ void AIslandMap::BeginPlay()
 	Elevation->redistribute_t_elevation(t_elevation, Mesh, r_ocean);
 	Elevation->assign_r_elevation(r_elevation, Mesh, t_elevation, r_ocean);
 
-	//Draw();
-
 	UE_LOG(LogMapGen, Log, TEXT("Generated map elevation."));
+
+	OnIslandGenComplete();
 	return;
 
 	// Rivers
@@ -107,6 +143,14 @@ void AIslandMap::BeginPlay()
 	Biomes->assign_r_biome(r_biome, Mesh, r_ocean, r_water, r_coast, r_temperature, r_moisture);
 
 	UE_LOG(LogMapGen, Log, TEXT("Generated map biomes."));
+
+	// Do whatever we need to do when the island generation is done
+	OnIslandGenComplete();
+}
+
+void AIslandMap::OnIslandGenComplete_Implementation()
+{
+	Draw();
 }
 
 void AIslandMap::Draw() const

@@ -44,7 +44,18 @@ public:
 public:
 	UIslandWater();
 
+protected:
+	void AssignOcean_Implementation(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
+	void AssignWater_Implementation(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
+
 public:
-	void assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Water")
+	void AssignOcean(UPARAM(ref) TArray<bool>& OceanRegions, UTriangleDualMesh* Mesh, const TArray<bool>& WaterRegions) const;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Water")
+	void AssignWater(UPARAM(ref) TArray<bool>& WaterRegions, UPARAM(ref) FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& IslandShape) const;
+
+	// Alias for AssignWater, using the old-style function name (for people coming from the old API).
 	void assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
+	// Alias for AssignOcean, using the old-style function name (for people coming from the old API).
+	void assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
 };

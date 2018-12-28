@@ -18,17 +18,32 @@
 
 #include "IslandBiome.h"
 
-void UIslandBiome::assign_r_coast(TArray<int32>& r_coast, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+void UIslandBiome::AssignCoast_Implementation(TArray<int32>& r_coast, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	unimplemented();
+}
+
+void UIslandBiome::AssignTemperature_Implementation(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const
+{
+	unimplemented();
+}
+
+void UIslandBiome::AssignBiome_Implementation(TArray<FName>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<int32>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const
+{
+	unimplemented();
+}
+
+void UIslandBiome::assign_r_coast(TArray<int32>& r_coast, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+{
+	AssignCoast(r_coast, Mesh, r_ocean);
 }
 
 void UIslandBiome::assign_r_temperature(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const
 {
-	unimplemented();
+	AssignTemperature(r_temperature, Mesh, r_ocean, r_water, r_elevation, r_moisture, NorthernTemperature, SouthernTemperature);
 }
 
 void UIslandBiome::assign_r_biome(TArray<FName>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<int32>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const
 {
-	unimplemented();
+	AssignBiome(r_biome, Mesh, r_ocean, r_water, r_coast, r_temperature, r_moisture);
 }

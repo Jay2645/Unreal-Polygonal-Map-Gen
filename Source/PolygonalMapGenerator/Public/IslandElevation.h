@@ -38,14 +38,22 @@ protected:
 	* Coast corners are connected to coast sides, which have
 	* ocean on one side and land on the other
 	*/
-	virtual TArray<FTriangleIndex> find_coasts_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
+	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Elevation")
+	virtual TArray<FTriangleIndex> FindCoastTriangles(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
 
-	bool t_ocean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
-	bool r_lake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
-	bool s_lake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
+	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Elevation")
+	bool IsTriangleOcean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
+	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Elevation")
+	bool IsRegionLake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
+	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Elevation")
+	bool IsSideLake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
 
 	virtual void DistributeElevations(TArray<float> &t_elevation, UTriangleDualMesh* Mesh, const TArray<int32> &t_coastdistance, const TArray<bool>& r_ocean, int32 MinDistance, int32 MaxDistance) const;
 	virtual void UpdateCoastDistance(TArray<int32> &t_coastdistance, UTriangleDualMesh* Mesh, FTriangleIndex Triangle, int32 Distance) const;
+
+	void AssignTriangleElevations_Implementation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
+	void RedistributeTriangleElevations_Implementation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
+	void AssignRegionElevations_Implementation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const;
 
 public:
 	/**
@@ -60,19 +68,27 @@ public:
 	*    was reached with distance 2 and another with distance 3, and we need
 	*    to revisit that node and make sure it's set to 2.
 	*/
-	virtual void assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Elevation")
+	void AssignTriangleElevations(UPARAM(ref) TArray<float>& TriangleElevations, UPARAM(ref) TArray<int32>& TriangleCoastDistances, UPARAM(ref) TArray<FSideIndex>& TriangleDownslopeSides, UTriangleDualMesh* Mesh, const TArray<bool>& OceanRegions, const TArray<bool>& WaterRegions, UPARAM(ref) FRandomStream& DrainageRng) const;
 
 	/**
 	* Redistribute elevation values so that lower elevations are more common
 	* than higher elevations. Specifically, we want elevation Z to have frequency
 	* (1-Z), for all the non-ocean regions.
 	*/
-	virtual void redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Elevation")
+	void RedistributeTriangleElevations(UPARAM(ref) TArray<float>& TriangleElevations, UTriangleDualMesh* Mesh, const TArray<bool>& OceanRegions) const;
 	/**
 	* Set r elevation to the average of the t elevations. There's a
 	* corner case though: it is possible for an ocean region (r) to be
 	* surrounded by coastline corners (t), and coastlines are set to 0
 	* elevation. This means the region elevation would be 0. To avoid
 	* this, I subtract a small amount for ocean regions. */
-	virtual void assign_r_elevation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Elevation")
+	void AssignRegionElevations(UPARAM(ref) TArray<float>& RegionElevations, UTriangleDualMesh* Mesh, const TArray<float>& TriangleElevations, const TArray<bool>& OceanRegions) const;
+	
+	
+	void assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
+	void redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
+	void assign_r_elevation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const;
 };

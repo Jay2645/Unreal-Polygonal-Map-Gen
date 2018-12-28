@@ -18,18 +18,33 @@
 
 #include "IslandMoisture.h"
 
-TSet<int32> UIslandMoisture::find_moisture_seeds_r(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const
+TSet<int32> UIslandMoisture::FindMoistureSeeds_Implementation(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const
 {
 	unimplemented();
 	return TSet<int32>();
 }
 
-void UIslandMoisture::assign_r_moisture(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<int32>& r_moisture_seeds) const
+void UIslandMoisture::AssignRegionMoisture_Implementation(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<int32>& r_moisture_seeds) const
 {
 	unimplemented();
 }
 
-void UIslandMoisture::redistribute_r_moisture(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const
+void UIslandMoisture::RedistributeRegionMoisture_Implementation(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const
 {
 	unimplemented();
+}
+
+void UIslandMoisture::assign_r_moisture(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<int32>& r_moisture_seeds) const
+{
+	AssignRegionMoisture(r_moisture, r_waterdistance, Mesh, r_water, r_moisture_seeds);
+}
+
+void UIslandMoisture::redistribute_r_moisture(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const
+{
+	RedistributeRegionMoisture(r_moisture, Mesh, r_water, MinMoisture, MaxMoisture);
+}
+
+TSet<int32> UIslandMoisture::find_moisture_seeds_r(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const
+{
+	return FindMoistureSeeds(Mesh, s_flow, r_ocean, r_water);
 }

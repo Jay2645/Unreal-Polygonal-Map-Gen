@@ -29,7 +29,7 @@ void UIslandMapUtils::RandomShuffle(TArray<FTriangleIndex>& OutShuffledArray, FR
 	}
 }
 
-float UIslandMapUtils::FBMNoise(TArray<float> Amplitudes, FVector2D Position)
+float UIslandMapUtils::FBMNoise(const TArray<float>& Amplitudes, const FVector2D& Position)
 {
 	float sum = 0.0f;
 	float sumOfAmplitudes = 0.0f;

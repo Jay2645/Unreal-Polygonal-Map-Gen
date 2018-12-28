@@ -25,7 +25,7 @@ UIslandWater::UIslandWater()
 	bInvertLandAndWater = false;
 }
 
-void UIslandWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const
+void UIslandWater::AssignOcean_Implementation(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const
 {
 	/* A region is ocean if it is a water region connected to the ghost region,
 	which is outside the boundary of the map; this could be any seed set but
@@ -74,7 +74,7 @@ void UIslandWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh
 #endif
 }
 
-void UIslandWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const
+void UIslandWater::AssignWater_Implementation(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const
 {
 	if (Mesh)
 	{
@@ -122,4 +122,14 @@ void UIslandWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTr
 	{
 		UE_LOG(LogMapGen, Error, TEXT("Mesh was invalid!"));
 	}
+}
+
+void UIslandWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const
+{
+	AssignWater(r_water, Rng, Mesh, Shape);
+}
+
+void UIslandWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const
+{
+	AssignOcean(r_ocean, Mesh, r_water);
 }

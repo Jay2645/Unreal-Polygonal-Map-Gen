@@ -69,7 +69,7 @@ struct POLYGONALMAPGENERATOR_API FBiomeBias
 };
 
 /**
- * 
+ * A collection of utilities used in island generation.
  */
 UCLASS()
 class POLYGONALMAPGENERATOR_API UIslandMapUtils : public UBlueprintFunctionLibrary
@@ -77,6 +77,8 @@ class POLYGONALMAPGENERATOR_API UIslandMapUtils : public UBlueprintFunctionLibra
 	GENERATED_BODY()
 	
 public:
-	static void RandomShuffle(TArray<FTriangleIndex>& OutShuffledArray, FRandomStream& Rng);
-	static float FBMNoise(TArray<float> Amplitudes, FVector2D Position);
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Utils")
+	static void RandomShuffle(TArray<FTriangleIndex>& OutShuffledArray, UPARAM(ref) FRandomStream& Rng);
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Utils")
+	static float FBMNoise(const TArray<float>& Amplitudes, const FVector2D& Position);
 };

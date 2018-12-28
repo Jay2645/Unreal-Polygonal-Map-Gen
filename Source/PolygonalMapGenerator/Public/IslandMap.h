@@ -132,6 +132,14 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
+	void GenerateIsland();
+	virtual void GenerateIsland_Implementation();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
+	void OnIslandGenComplete();
+	virtual void OnIslandGenComplete_Implementation();
+
 public:
 	void Draw() const;
 };

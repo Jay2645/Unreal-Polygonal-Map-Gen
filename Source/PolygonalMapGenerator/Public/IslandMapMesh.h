@@ -31,6 +31,6 @@ public:
 	AIslandMapMesh();
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void CreateDynmaicMesh();
+	virtual void OnIslandGenComplete_Implementation() override;
+	virtual void CreateIslandMesh();
 };

@@ -8,18 +8,15 @@ AIslandMapMesh::AIslandMapMesh()
 
 	MapMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
 	RootComponent = MapMesh;
-	// New in UE 4.17, multi-threaded PhysX cooking.
 	MapMesh->bUseAsyncCooking = true;
 }
 
-void AIslandMapMesh::BeginPlay()
+void AIslandMapMesh::OnIslandGenComplete_Implementation()
 {
-	Super::BeginPlay();
-
-	CreateDynmaicMesh();
+	CreateIslandMesh();
 }
 
-void AIslandMapMesh::CreateDynmaicMesh()
+void AIslandMapMesh::CreateIslandMesh()
 {
 	const TArray<FVector2D>& points = Mesh->GetPoints();
 	const FDualMesh& rawMesh = Mesh->GetRawMesh();
