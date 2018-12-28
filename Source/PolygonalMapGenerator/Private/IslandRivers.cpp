@@ -94,12 +94,6 @@ void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriang
 				}
 				processedSlopes.Add(t);
 
-				if (processedSlopes.Num() > 100)
-				{
-					UE_LOG(LogMapGen, Error, TEXT("Processed too many slopes!"));
-					return;
-				}
-
 				t = next_t;
 			}
 		}

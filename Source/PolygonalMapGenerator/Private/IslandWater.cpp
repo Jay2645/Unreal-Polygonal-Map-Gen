@@ -84,6 +84,9 @@ void UIslandWater::AssignWater_Implementation(TArray<bool>& r_water, FRandomStre
 		/* A region is water if the noise value is low */
 		r_water.Empty(Mesh->NumRegions);
 		r_water.SetNumZeroed(Mesh->NumRegions);
+
+		InitializeWater(r_water, Mesh, Rng);
+
 		FVector2D meshSize = Mesh->GetSize() * 0.5f;
 		FVector2D offset = FVector2D(Rng.FRandRange(-meshSize.X, meshSize.X), Rng.FRandRange(-meshSize.Y, meshSize.Y));
 		for (FPointIndex r = 0; r < r_water.Num(); r++)
@@ -94,13 +97,7 @@ void UIslandWater::AssignWater_Implementation(TArray<bool>& r_water, FRandomStre
 			}
 			else
 			{
-				FVector2D nVector = Mesh->r_pos(r);
-				nVector.X /= meshSize.X;
-				nVector.Y /= meshSize.Y;
-				nVector = (nVector + offset) * Shape.IslandFragmentation;
-				float n = UIslandMapUtils::FBMNoise(Shape.Amplitudes, nVector);
-				float distance = FMath::Max(FMath::Abs(nVector.X), FMath::Abs(nVector.Y));
-				r_water[r] = n * distance * distance > WaterCutoff;
+				r_water[r] = IsPointLand(r, Mesh, meshSize, offset, Shape);
 				if (bInvertLandAndWater)
 				{
 					r_water[r] = !r_water[r];
@@ -122,6 +119,16 @@ void UIslandWater::AssignWater_Implementation(TArray<bool>& r_water, FRandomStre
 	{
 		UE_LOG(LogMapGen, Error, TEXT("Mesh was invalid!"));
 	}
+}
+
+void UIslandWater::InitializeWater_Implementation(TArray<bool>& r_water, UTriangleDualMesh* Mesh, FRandomStream& Rng) const
+{
+	// Empty
+}
+
+bool UIslandWater::IsPointLand_Implementation(FPointIndex Point, UTriangleDualMesh* Mesh, const FVector2D& HalfMeshSize, const FVector2D& Offset, const FIslandShape& Shape) const
+{
+	return false;
 }
 
 void UIslandWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const

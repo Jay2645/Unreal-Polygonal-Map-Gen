@@ -27,7 +27,7 @@
 /**
  * A class which determines which areas on the island are land and which are water.
  */
-UCLASS(Blueprintable)
+UCLASS(Abstract, Blueprintable)
 class POLYGONALMAPGENERATOR_API UIslandWater : public UDataAsset
 {
 	GENERATED_BODY()
@@ -47,6 +47,13 @@ public:
 protected:
 	virtual void AssignOcean_Implementation(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
 	virtual void AssignWater_Implementation(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
+	virtual bool IsPointLand_Implementation(FPointIndex Point, UTriangleDualMesh* Mesh, const FVector2D& HalfMeshSize, const FVector2D& Offset, const FIslandShape& Shape) const;
+	virtual void InitializeWater_Implementation(TArray<bool>& r_water, UTriangleDualMesh* Mesh, FRandomStream& Rng) const;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Water")
+	bool IsPointLand(FPointIndex Point, UTriangleDualMesh* Mesh, const FVector2D& HalfMeshSize, const FVector2D& Offset, const FIslandShape& Shape) const;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Water")
+	void InitializeWater(UPARAM(ref) TArray<bool>& r_water, UTriangleDualMesh* Mesh, UPARAM(ref) FRandomStream& Rng) const;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Water")
