@@ -25,6 +25,8 @@
 
 #include "PolygonalMapGenerator.h"
 #include "DelaunayHelper.h"
+#include "TriangleDualMesh.h"
+#include "ProceduralMeshComponent.h"
 
 #include "IslandMapUtils.generated.h"
 
@@ -135,4 +137,6 @@ public:
 	// the FName into a GameplayTag.
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Biomes")
 	static FBiomeData GetBiome(const UDataTable* BiomeData, bool bIsOcean, bool bIsWater, bool bIsCoast, float Temperature, float Moisture);
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation")
+	static void GenerateMapMesh(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation);
 };
