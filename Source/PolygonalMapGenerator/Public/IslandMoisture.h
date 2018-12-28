@@ -33,13 +33,13 @@ class POLYGONALMAPGENERATOR_API UIslandMoisture : public UDataAsset
 
 protected:
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Moisture")
-	TSet<FPointIndex> FindRiverbanks(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow) const;
+	virtual TSet<FPointIndex> FindRiverbanks(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow) const;
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Moisture")
-	TSet<FPointIndex> FindLakeshores(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const;
+	virtual TSet<FPointIndex> FindLakeshores(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const;
 
-	TSet<FPointIndex> FindMoistureSeeds_Implementation(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const;
-	void AssignRegionMoisture_Implementation(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<FPointIndex>& r_moisture_seeds) const;
-	void RedistributeRegionMoisture_Implementation(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const;
+	virtual TSet<FPointIndex> FindMoistureSeeds_Implementation(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const;
+	virtual void AssignRegionMoisture_Implementation(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<FPointIndex>& r_moisture_seeds) const;
+	virtual void RedistributeRegionMoisture_Implementation(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Moisture")

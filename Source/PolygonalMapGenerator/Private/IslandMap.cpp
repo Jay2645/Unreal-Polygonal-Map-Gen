@@ -195,23 +195,8 @@ void AIslandMap::Draw() const
 			FVector pVector = FVector(p.X, p.Y, pZCoord * 10000);
 			FVector qVector = FVector(q.X, q.Y, qZCoord * 10000);
 
-			FColor color = FColor::Magenta;
-			if (r_water.IsValidIndex(first) && r_water.IsValidIndex(second))
-			{
-				if (r_water[first] || r_water[second])
-				{
-					color = FColor::Blue;
-				}
-			}
-			if (r_coast.IsValidIndex(first) && r_coast.IsValidIndex(second))
-			{
-				if (r_coast[first] || r_coast[second])
-				{
-					color = FColor::Yellow;
-				}
-			}
-
-			DrawDebugLine(world, pVector, qVector, color, false, 999.0f);
+			FLinearColor color = FMath::Lerp(r_biome[first].DebugColor.ReinterpretAsLinear(), r_biome[second].DebugColor.ReinterpretAsLinear(), 0.5f);
+			DrawDebugLine(world, pVector, qVector, color.ToFColor(false), false, 999.0f);
 		}
 	}
 }

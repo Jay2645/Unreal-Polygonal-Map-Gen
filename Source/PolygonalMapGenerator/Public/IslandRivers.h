@@ -47,10 +47,10 @@ protected:
 	* Is this triangle water?
 	*/
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Rivers")
-	bool IsTriangleWater(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& WaterRegions) const;
+	virtual bool IsTriangleWater(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& WaterRegions) const;
 
-	TArray<FTriangleIndex> FindSpringTriangles_Implementation(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const;
-	void AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const;
+	virtual TArray<FTriangleIndex> FindSpringTriangles_Implementation(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const;
+	virtual void AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const;
 
 public:
 	/**

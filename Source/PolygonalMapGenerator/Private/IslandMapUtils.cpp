@@ -47,3 +47,206 @@ float UIslandMapUtils::FBMNoise(const TArray<float>& Amplitudes, const FVector2D
 	}
 	return sum / sumOfAmplitudes;
 }
+
+FBiomeData UIslandMapUtils::GetBiome(const UDataTable* BiomeData, bool bIsOcean, bool bIsWater, bool bIsCoast, float Temperature, float Moisture)
+{
+	if (BiomeData == NULL)
+	{
+		UE_LOG(LogMapGen, Error, TEXT("Passed in an empty Biome Data table! Can't determine any biomes."));
+		return FBiomeData();
+	}
+
+	Moisture = FMath::Clamp(Moisture, 0.0f, 1.0f);
+	Temperature = FMath::Clamp(Temperature, 0.0f, 1.0f);
+
+	TArray<FBiomeData> possibleBiomes;
+	for (auto it : BiomeData->GetRowMap())
+	{
+		FName rowName = it.Key;
+		if (it.Value == NULL)
+		{
+			// Should never happen
+			checkNoEntry();
+		}
+		possibleBiomes.Add(*((FBiomeData*)it.Value));
+	}
+
+	TArray<FBiomeData> newPossibleBiomes;
+
+	// Check ocean
+	if (bIsOcean)
+	{
+		for (FBiomeData biome : possibleBiomes)
+		{
+			if (biome.bIsOcean)
+			{
+				newPossibleBiomes.Add(biome);
+			}
+		}
+		possibleBiomes = newPossibleBiomes;
+		if (possibleBiomes.Num() == 1)
+		{
+			return possibleBiomes[0];
+		}
+		else if (possibleBiomes.Num() == 0)
+		{
+			UE_LOG(LogMapGen, Error, TEXT("Could not find any ocean biomes!"));
+			return FBiomeData();
+		}
+		// Recycle the new biomes array
+		newPossibleBiomes.Empty();
+	}
+	else
+	{
+		for (FBiomeData biome : possibleBiomes)
+		{
+			if (!biome.bIsOcean)
+			{
+				newPossibleBiomes.Add(biome);
+			}
+		}
+		possibleBiomes = newPossibleBiomes;
+		if (possibleBiomes.Num() == 1)
+		{
+			return possibleBiomes[0];
+		}
+		else if (possibleBiomes.Num() == 0)
+		{
+			UE_LOG(LogMapGen, Error, TEXT("Could not find any ocean biomes!"));
+			return FBiomeData();
+		}
+		// Recycle the new biomes array
+		newPossibleBiomes.Empty();
+	}
+
+	// Check water
+	if (bIsWater)
+	{
+		for (FBiomeData biome : possibleBiomes)
+		{
+			if (biome.bIsWater)
+			{
+				newPossibleBiomes.Add(biome);
+			}
+		}
+		possibleBiomes = newPossibleBiomes;
+		if (possibleBiomes.Num() == 1)
+		{
+			return possibleBiomes[0];
+		}
+		else if (possibleBiomes.Num() == 0)
+		{
+			UE_LOG(LogMapGen, Error, TEXT("Could not find any water biomes!"));
+			return FBiomeData();
+		}
+		newPossibleBiomes.Empty();
+	}
+	else
+	{
+		for (FBiomeData biome : possibleBiomes)
+		{
+			if (!biome.bIsWater)
+			{
+				newPossibleBiomes.Add(biome);
+			}
+		}
+		possibleBiomes = newPossibleBiomes;
+		if (possibleBiomes.Num() == 1)
+		{
+			return possibleBiomes[0];
+		}
+		else if (possibleBiomes.Num() == 0)
+		{
+			UE_LOG(LogMapGen, Error, TEXT("Could not find any water biomes!"));
+			return FBiomeData();
+		}
+		newPossibleBiomes.Empty();
+	}
+
+	// Check coast
+	if (bIsCoast)
+	{
+		for (FBiomeData biome : possibleBiomes)
+		{
+			if (biome.bIsCoast)
+			{
+				newPossibleBiomes.Add(biome);
+			}
+		}
+		possibleBiomes = newPossibleBiomes;
+		if (possibleBiomes.Num() == 1)
+		{
+			return possibleBiomes[0];
+		}
+		else if (possibleBiomes.Num() == 0)
+		{
+			UE_LOG(LogMapGen, Error, TEXT("Could not find any coastal biomes!"));
+			return FBiomeData();
+		}
+		newPossibleBiomes.Empty();
+	}
+	else
+	{
+		for (FBiomeData biome : possibleBiomes)
+		{
+			if (!biome.bIsCoast)
+			{
+				newPossibleBiomes.Add(biome);
+			}
+		}
+		possibleBiomes = newPossibleBiomes;
+		if (possibleBiomes.Num() == 1)
+		{
+			return possibleBiomes[0];
+		}
+		else if (possibleBiomes.Num() == 0)
+		{
+			UE_LOG(LogMapGen, Error, TEXT("Could not find any coastal biomes!"));
+			return FBiomeData();
+		}
+		newPossibleBiomes.Empty();
+	}
+	
+	// Check moisture
+	for (FBiomeData biome : possibleBiomes)
+	{
+		if ((biome.MinMoisture < Moisture || biome.MinMoisture == 0.0f && Moisture == 0.0f) && biome.MaxMoisture >= Moisture)
+		{
+			newPossibleBiomes.Add(biome);
+		}
+	}
+	possibleBiomes = newPossibleBiomes;
+	if (possibleBiomes.Num() == 1)
+	{
+		return possibleBiomes[0];
+	}
+	else if (possibleBiomes.Num() == 0)
+	{
+		UE_LOG(LogMapGen, Error, TEXT("Could not find any biomes with moisture %f!"), Moisture);
+		return FBiomeData();
+	}
+	newPossibleBiomes.Empty();
+
+	// Check temperature
+	for (FBiomeData biome : possibleBiomes)
+	{
+		if ((biome.MinTemperature < Temperature || biome.MinTemperature == 0.0f && Temperature == 0.0f) && biome.MaxTemperature >= Temperature)
+		{
+			newPossibleBiomes.Add(biome);
+		}
+	}
+	possibleBiomes = newPossibleBiomes;
+	if (possibleBiomes.Num() == 1)
+	{
+		return possibleBiomes[0];
+	}
+	else if (possibleBiomes.Num() == 0)
+	{
+		UE_LOG(LogMapGen, Error, TEXT("Could not find any biomes with moisture %f!"), Moisture);
+		return FBiomeData();
+	}
+
+	UE_LOG(LogMapGen, Warning, TEXT("Had %d possible candidates for temperature %f and moisture %f."), possibleBiomes.Num(), Temperature, Moisture);
+
+	return possibleBiomes[0];
+}

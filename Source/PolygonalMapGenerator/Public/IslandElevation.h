@@ -42,18 +42,18 @@ protected:
 	virtual TArray<FTriangleIndex> FindCoastTriangles(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
 
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Elevation")
-	bool IsTriangleOcean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
+	virtual bool IsTriangleOcean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Elevation")
-	bool IsRegionLake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
+	virtual bool IsRegionLake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Elevation")
-	bool IsSideLake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
+	virtual bool IsSideLake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const;
 
 	virtual void DistributeElevations(TArray<float> &t_elevation, UTriangleDualMesh* Mesh, const TArray<int32> &t_coastdistance, const TArray<bool>& r_ocean, int32 MinDistance, int32 MaxDistance) const;
 	virtual void UpdateCoastDistance(TArray<int32> &t_coastdistance, UTriangleDualMesh* Mesh, FTriangleIndex Triangle, int32 Distance) const;
 
-	void AssignTriangleElevations_Implementation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
-	void RedistributeTriangleElevations_Implementation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
-	void AssignRegionElevations_Implementation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const;
+	virtual void AssignTriangleElevations_Implementation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const;
+	virtual void RedistributeTriangleElevations_Implementation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
+	virtual void AssignRegionElevations_Implementation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const;
 
 public:
 	/**

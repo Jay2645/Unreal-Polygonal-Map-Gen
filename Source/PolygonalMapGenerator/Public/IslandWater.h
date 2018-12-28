@@ -45,8 +45,8 @@ public:
 	UIslandWater();
 
 protected:
-	void AssignOcean_Implementation(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
-	void AssignWater_Implementation(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
+	virtual void AssignOcean_Implementation(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
+	virtual void AssignWater_Implementation(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Water")

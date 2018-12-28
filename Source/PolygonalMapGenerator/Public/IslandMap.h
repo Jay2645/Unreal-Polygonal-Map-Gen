@@ -20,14 +20,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayTagContainer.h"
+
+#include "RandomSampling/SimplexNoise.h"
 #include "TriangleDualMesh.h"
+
 #include "IslandMapUtils.h"
 #include "IslandBiome.h"
 #include "IslandElevation.h"
 #include "IslandMoisture.h"
 #include "IslandRivers.h"
 #include "IslandWater.h"
-#include "RandomSampling/SimplexNoise.h"
+
 #include "IslandMap.generated.h"
 
 UCLASS()
@@ -114,11 +118,11 @@ public:
 	UPROPERTY()
 	TArray<int32> r_moisture;
 	UPROPERTY()
-	TArray<int32> r_coast;
+	TArray<bool> r_coast;
 	UPROPERTY()
 	TArray<int32> r_temperature;
 	UPROPERTY()
-	TArray<FName> r_biome;
+	TArray<FBiomeData> r_biome;
 	UPROPERTY()
 	TArray<FTriangleIndex> spring_t;
 	UPROPERTY()
