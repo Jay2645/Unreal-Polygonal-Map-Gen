@@ -16,15 +16,15 @@
 * limitations under the License.
 */
 
-#include "Rivers.h"
+#include "IslandRivers.h"
 
-URivers::URivers()
+UIslandRivers::UIslandRivers()
 {
 	MinSpringElevation = 0.3f;
 	MaxSpringElevation = 0.9f;
 }
 
-bool URivers::t_water(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const
+bool UIslandRivers::t_water(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const
 {
 	TArray<FPointIndex> regions = Mesh->t_circulate_r(t);
 	for (FPointIndex r : regions)
@@ -37,7 +37,7 @@ bool URivers::t_water(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bo
 	return false;
 }
 
-TArray<FTriangleIndex> URivers::find_spring_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const
+TArray<FTriangleIndex> UIslandRivers::find_spring_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const
 {
 	TSet<FTriangleIndex> spring_t;
 	if (Mesh != NULL)
@@ -60,7 +60,7 @@ TArray<FTriangleIndex> URivers::find_spring_t(UTriangleDualMesh* Mesh, const TAr
 	return spring_t.Array();
 }
 
-void URivers::assign_s_flow(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const
+void UIslandRivers::assign_s_flow(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const
 {
 	if (Mesh)
 	{

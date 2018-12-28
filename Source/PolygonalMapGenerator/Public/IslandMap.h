@@ -22,12 +22,11 @@
 #include "GameFramework/Actor.h"
 #include "TriangleDualMesh.h"
 #include "IslandMapUtils.h"
-#include "NoisyEdges.h"
-#include "Biome.h"
-#include "Elevation.h"
-#include "Moisture.h"
-#include "Rivers.h"
-#include "Water.h"
+#include "IslandBiome.h"
+#include "IslandElevation.h"
+#include "IslandMoisture.h"
+#include "IslandRivers.h"
+#include "IslandWater.h"
 #include "RandomSampling/SimplexNoise.h"
 #include "IslandMap.generated.h"
 
@@ -46,9 +45,6 @@ public:
 	// Modifies how we calculate drainage.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
 	int32 RiverSeed;
-	// Options for using jagged edges on the map, to help blend between areas.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Edges")
-	FNoisyEdgeOptions NoisyEdgeOptions;
 	// The size of our map, starting at (0, 0).
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	FVector2D MapSize;
@@ -89,17 +85,15 @@ public:
 	FRandomStream DrainageRng;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
-	const UBiome* Biomes;
+	const UIslandBiome* Biomes;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
-	const UElevation* Elevation;
+	const UIslandElevation* Elevation;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
-	const UMoisture* Moisture;
+	const UIslandMoisture* Moisture;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
-	const UNoisyEdges* NoisyEdges;
+	const UIslandRivers* Rivers;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
-	const URivers* Rivers;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
-	const UWater* Water;
+	const UIslandWater* Water;
 
 	UPROPERTY()
 	TArray<bool> r_water;

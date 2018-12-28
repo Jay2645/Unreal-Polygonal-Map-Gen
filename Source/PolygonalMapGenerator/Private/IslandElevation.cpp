@@ -15,9 +15,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include "Elevation.h"
+#include "IslandElevation.h"
 
-TArray<FTriangleIndex> UElevation::find_coasts_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+TArray<FTriangleIndex> UIslandElevation::find_coasts_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	TSet<FTriangleIndex> coasts_t;
 	for (FSideIndex s = 0; s < Mesh->NumSides; s++)
@@ -38,7 +38,7 @@ TArray<FTriangleIndex> UElevation::find_coasts_t(UTriangleDualMesh* Mesh, const 
 	return coasts_t.Array();
 }
 
-bool UElevation::t_ocean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+bool UIslandElevation::t_ocean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	TArray<FPointIndex> trianglePoints = Mesh->t_circulate_r(t);
 	int count = 0;
@@ -53,17 +53,17 @@ bool UElevation::t_ocean(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray
 	return count >= 2;
 }
 
-bool UElevation::r_lake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
+bool UIslandElevation::r_lake(FPointIndex r, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
 {
 	return r_water[r] && !r_ocean[r];
 }
 
-bool UElevation::s_lake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
+bool UIslandElevation::s_lake(FSideIndex s, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<bool>& r_ocean) const
 {
 	return r_lake(Mesh->s_begin_r(s), r_water, r_ocean) || r_lake(Mesh->s_end_r(s), r_water, r_ocean);
 }
 
-void UElevation::DistributeElevations(TArray<float> &t_elevation, UTriangleDualMesh* Mesh, const TArray<int32> &t_coastdistance, const TArray<bool>& r_ocean, int32 MinDistance, int32 MaxDistance) const
+void UIslandElevation::DistributeElevations(TArray<float> &t_elevation, UTriangleDualMesh* Mesh, const TArray<int32> &t_coastdistance, const TArray<bool>& r_ocean, int32 MinDistance, int32 MaxDistance) const
 {
 	// We initially base elevation on distance from a coast
 	for (FTriangleIndex t = 0; t < t_coastdistance.Num(); t++)
@@ -83,7 +83,7 @@ void UElevation::DistributeElevations(TArray<float> &t_elevation, UTriangleDualM
 	}
 }
 
-void UElevation::UpdateCoastDistance(TArray<int32> &t_coastdistance, UTriangleDualMesh* Mesh, FTriangleIndex Triangle, int32 Distance) const
+void UIslandElevation::UpdateCoastDistance(TArray<int32> &t_coastdistance, UTriangleDualMesh* Mesh, FTriangleIndex Triangle, int32 Distance) const
 {
 	// Update the coast distance array to make sure we're still pointing to the nearest coast
 	t_coastdistance[Triangle] = Distance;
@@ -99,7 +99,7 @@ void UElevation::UpdateCoastDistance(TArray<int32> &t_coastdistance, UTriangleDu
 	}
 }
 
-void UElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const
+void UIslandElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t_coastdistance, TArray<FSideIndex>& t_downslope_s, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, FRandomStream& DrainageRng) const
 {
 	// TODO: this messes up lakes, as they will no longer all be at the same elevation
 
@@ -205,7 +205,7 @@ void UElevation::assign_t_elevation(TArray<float>& t_elevation, TArray<int32>& t
 	DistributeElevations(t_elevation, Mesh, t_coastdistance, r_ocean, minDistance, maxDistance);
 }
 
-void UElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
+void UIslandElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {
 	// SCALE_FACTOR increases the mountain area. At 1.0 the maximum
 	// elevation barely shows up on the map, so we set it to 1.1.
@@ -252,7 +252,7 @@ void UElevation::redistribute_t_elevation(TArray<float>& t_elevation, UTriangleD
 	}
 }
 
-void UElevation::assign_r_elevation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const
+void UIslandElevation::assign_r_elevation(TArray<float>& r_elevation, UTriangleDualMesh* Mesh, const TArray<float>& t_elevation, const TArray<bool>& r_ocean) const
 {
 	const float max_ocean_elevation = -0.01;
 

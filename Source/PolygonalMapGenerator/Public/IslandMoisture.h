@@ -21,13 +21,13 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "TriangleDualMesh.h"
-#include "Moisture.generated.h"
+#include "IslandMoisture.generated.h"
 
 /**
- * 
+ * A class which determines how much moisture different areas on the island recieve.
  */
-UCLASS()
-class POLYGONALMAPGENERATOR_API UMoisture : public UDataAsset
+UCLASS(Blueprintable)
+class POLYGONALMAPGENERATOR_API UIslandMoisture : public UDataAsset
 {
 	GENERATED_BODY()
 	

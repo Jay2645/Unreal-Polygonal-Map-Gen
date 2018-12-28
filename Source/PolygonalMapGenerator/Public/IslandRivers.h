@@ -22,13 +22,14 @@
 #include "Engine/DataAsset.h"
 #include "PolygonalMapGenerator.h"
 #include "TriangleDualMesh.h"
-#include "Rivers.generated.h"
+#include "IslandRivers.generated.h"
 
 /**
- * 
+ * A class which determines where "springs" are on the island, and then
+ * generates rivers which flow downstream from these springs.
  */
-UCLASS()
-class POLYGONALMAPGENERATOR_API URivers : public UDataAsset
+UCLASS(Blueprintable)
+class POLYGONALMAPGENERATOR_API UIslandRivers : public UDataAsset
 {
 	GENERATED_BODY()
 	
@@ -39,7 +40,7 @@ public:
 	float MaxSpringElevation;
 
 public:
-	URivers();
+	UIslandRivers();
 
 private:
 	/**

@@ -22,13 +22,14 @@
 #include "Engine/DataAsset.h"
 #include "TriangleDualMesh.h"
 #include "PolygonalMapGenerator.h"
-#include "Elevation.generated.h"
+#include "IslandElevation.generated.h"
 
 /**
- * 
+ * A class which determines the elevation of various parts of the island,
+ * both above water and underwater.
  */
-UCLASS()
-class POLYGONALMAPGENERATOR_API UElevation : public UDataAsset
+UCLASS(Blueprintable)
+class POLYGONALMAPGENERATOR_API UIslandElevation : public UDataAsset
 {
 	GENERATED_BODY()
 

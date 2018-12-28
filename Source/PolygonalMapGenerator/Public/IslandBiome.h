@@ -21,13 +21,13 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "TriangleDualMesh.h"
-#include "Biome.generated.h"
+#include "IslandBiome.generated.h"
 
 /**
- * 
+ * A class which assigns biomes to parts of the island based on their attributes.
  */
-UCLASS()
-class POLYGONALMAPGENERATOR_API UBiome : public UDataAsset
+UCLASS(Blueprintable)
+class POLYGONALMAPGENERATOR_API UIslandBiome : public UDataAsset
 {
 	GENERATED_BODY()
 	

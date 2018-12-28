@@ -20,35 +20,31 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "NoisyEdges.generated.h"
-
-USTRUCT(BlueprintType)
-struct POLYGONALMAPGENERATOR_API FNoisyEdgeOptions
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Length;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Amplitude;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Seed;
-
-public:
-	FNoisyEdgeOptions()
-	{
-		Length = 1.0f;
-		Amplitude = 8;
-		Seed = 0;
-	}
-};
+#include "TriangleDualMesh.h"
+#include "IslandMapUtils.h"
+#include "IslandWater.generated.h"
 
 /**
- * 
+ * A class which determines which areas on the island are land and which are water.
  */
-UCLASS()
-class POLYGONALMAPGENERATOR_API UNoisyEdges : public UDataAsset
+UCLASS(Blueprintable)
+class POLYGONALMAPGENERATOR_API UIslandWater : public UDataAsset
 {
 	GENERATED_BODY()
-	
+
+public:
+	// The value governing when a tile should be marked as water.
+	// Higher values mean more tiles will become water.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WaterCutoff;
+	// Inverts all non-border land and water.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bInvertLandAndWater;
+
+public:
+	UIslandWater();
+
+public:
+	void assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const;
+	void assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const;
 };

@@ -16,5 +16,20 @@
 * limitations under the License.
 */
 
-#include "NoisyEdges.h"
+#include "IslandMoisture.h"
 
+TSet<int32> UIslandMoisture::find_moisture_seeds_r(UTriangleDualMesh* Mesh, const TArray<int32>& s_flow, const TArray<bool>& r_ocean, const TArray<bool>& r_water) const
+{
+	unimplemented();
+	return TSet<int32>();
+}
+
+void UIslandMoisture::assign_r_moisture(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<int32>& r_moisture_seeds) const
+{
+	unimplemented();
+}
+
+void UIslandMoisture::redistribute_r_moisture(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const
+{
+	unimplemented();
+}

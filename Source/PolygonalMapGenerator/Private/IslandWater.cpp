@@ -16,16 +16,16 @@
 * limitations under the License.
 */
 
-#include "Water.h"
+#include "IslandWater.h"
 #include "RandomSampling/SimplexNoise.h"
 
-UWater::UWater()
+UIslandWater::UIslandWater()
 {
 	WaterCutoff = 0.0f;
 	bInvertLandAndWater = false;
 }
 
-void UWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const
+void UIslandWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, const TArray<bool>& r_water) const
 {
 	/* A region is ocean if it is a water region connected to the ghost region,
 	which is outside the boundary of the map; this could be any seed set but
@@ -74,7 +74,7 @@ void UWater::assign_r_ocean(TArray<bool>& r_ocean, UTriangleDualMesh* Mesh, cons
 #endif
 }
 
-void UWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const
+void UIslandWater::assign_r_water(TArray<bool>& r_water, FRandomStream& Rng, UTriangleDualMesh* Mesh, const FIslandShape& Shape) const
 {
 	if (Mesh)
 	{
