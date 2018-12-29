@@ -216,3 +216,203 @@ void AIslandMap::OnIslandGenComplete_Implementation()
 {
 	// Do nothing by default
 }
+
+TArray<bool>& AIslandMap::GetWaterRegions()
+{
+	return r_water;
+}
+
+bool AIslandMap::IsPointWater(FPointIndex Region) const
+{
+	if (r_water.IsValidIndex(Region))
+	{
+		return r_water[Region];
+	}
+	else
+	{
+		return false;
+	}
+}
+
+TArray<bool>& AIslandMap::GetOceanRegions()
+{
+	return r_ocean;
+}
+
+bool AIslandMap::IsPointOcean(FPointIndex Region) const
+{
+	if (r_ocean.IsValidIndex(Region))
+	{
+		return r_ocean[Region];
+	}
+	else
+	{
+		return false;
+	}
+}
+
+TArray<bool>& AIslandMap::GetCoastalRegions()
+{
+	return r_coast;
+}
+
+bool AIslandMap::IsPointCoast(FPointIndex Region) const
+{
+	if (r_coast.IsValidIndex(Region))
+	{
+		return r_coast[Region];
+	}
+	else
+	{
+		return false;
+	}
+}
+
+TArray<float>& AIslandMap::GetRegionElevations()
+{
+	return r_elevation;
+}
+
+float AIslandMap::GetPointElevation(FPointIndex Region) const
+{
+	if (r_elevation.IsValidIndex(Region))
+	{
+		return r_elevation[Region];
+	}
+	else
+	{
+		return -1.0f;
+	}
+}
+
+TArray<int32>& AIslandMap::GetRegionWaterDistance()
+{
+	return r_waterdistance;
+}
+
+int32 AIslandMap::GetPointWaterDistance(FPointIndex Region) const
+{
+	if (r_waterdistance.IsValidIndex(Region))
+	{
+		return r_waterdistance[Region];
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+TArray<float>& AIslandMap::GetRegionMoisture()
+{
+	return r_moisture;
+}
+
+float AIslandMap::GetPointMoisture(FPointIndex Region) const
+{
+	if (r_moisture.IsValidIndex(Region))
+	{
+		return r_moisture[Region];
+	}
+	else
+	{
+		return -1.0f;
+	}
+}
+
+TArray<float>& AIslandMap::GetRegionTemperature()
+{
+	return r_temperature;
+}
+
+float AIslandMap::GetPointTemperature(FPointIndex Region) const
+{
+	if (r_temperature.IsValidIndex(Region))
+	{
+		return r_temperature[Region];
+	}
+	else
+	{
+		return -1.0f;
+	}
+}
+
+TArray<FBiomeData>& AIslandMap::GetRegionBiomes()
+{
+	return r_biome;
+}
+
+FBiomeData AIslandMap::GetPointBiome(FPointIndex Region) const
+{
+	if (r_biome.IsValidIndex(Region))
+	{
+		return r_biome[Region];
+	}
+	else
+	{
+		return FBiomeData();
+	}
+}
+
+TArray<int32>& AIslandMap::GetTriangleCoastDistances()
+{
+	return t_coastdistance;
+}
+
+int32 AIslandMap::GetTriangleCoastDistance(FTriangleIndex Triangle) const
+{
+	if (t_coastdistance.IsValidIndex(Triangle))
+	{
+		return t_coastdistance[Triangle];
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+TArray<float>& AIslandMap::GetTriangleElevations()
+{
+	return t_elevation;
+}
+
+float AIslandMap::GetTriangleElevation(FTriangleIndex Triangle) const
+{
+	if (t_elevation.IsValidIndex(Triangle))
+	{
+		return t_elevation[Triangle];
+	}
+	else
+	{
+		return -1.0f;
+	}
+}
+
+TArray<FSideIndex>& AIslandMap::GetTriangleDownslopes()
+{
+	return t_downslope_s;
+}
+
+TArray<int32>& AIslandMap::GetSideFlow()
+{
+	return s_flow;
+}
+
+TArray<FTriangleIndex>& AIslandMap::GetSpringTriangles()
+{
+	return spring_t;
+}
+
+bool AIslandMap::IsTriangleSpring(FTriangleIndex Triangle) const
+{
+	return spring_t.Contains(Triangle);
+}
+
+TArray<FTriangleIndex>& AIslandMap::GetRiverTriangles()
+{
+	return river_t;
+}
+
+bool AIslandMap::IsTriangleRiver(FTriangleIndex Triangle) const
+{
+	return river_t.Contains(Triangle);
+}

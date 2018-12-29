@@ -42,18 +42,18 @@ public:
 
 protected:
 	virtual void AssignCoast_Implementation(TArray<bool>& r_coast, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
-	virtual void AssignTemperature_Implementation(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const;
-	virtual void AssignBiome_Implementation(TArray<FBiomeData>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<bool>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const;
+	virtual void AssignTemperature_Implementation(TArray<float>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<float>& r_moisture, float NorthernTemperature, float SouthernTemperature) const;
+	virtual void AssignBiome_Implementation(TArray<FBiomeData>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<bool>& r_coast, const TArray<float>& r_temperature, const TArray<float>& r_moisture) const;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Biome")
 	void AssignCoast(UPARAM(ref) TArray<bool>& CoastalRegions, UTriangleDualMesh* Mesh, const TArray<bool>& OceanRegions) const;
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Biome")
-	void AssignTemperature(UPARAM(ref) TArray<int32>& RegionTemperatures, UTriangleDualMesh* Mesh, const TArray<bool>& OceanRegions, const TArray<bool>& WaterRegions, const TArray<float>& RegionElevations, const TArray<int32>& RegionMoisture, float NorthernTemperature, float SouthernTemperature) const;
+	void AssignTemperature(UPARAM(ref) TArray<float>& RegionTemperatures, UTriangleDualMesh* Mesh, const TArray<bool>& OceanRegions, const TArray<bool>& WaterRegions, const TArray<float>& RegionElevations, const TArray<float>& RegionMoisture, float NorthernTemperature, float SouthernTemperature) const;
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Biome")
-	void AssignBiome(UPARAM(ref) TArray<FBiomeData>& RegionBiomes, UTriangleDualMesh* Mesh, const TArray<bool>& OceanRegions, const TArray<bool>& WaterRegions, const TArray<bool>& CoastalRegions, const TArray<int32>& RegionTemperature, const TArray<int32>& RegionMoisture) const;
+	void AssignBiome(UPARAM(ref) TArray<FBiomeData>& RegionBiomes, UTriangleDualMesh* Mesh, const TArray<bool>& OceanRegions, const TArray<bool>& WaterRegions, const TArray<bool>& CoastalRegions, const TArray<float>& RegionTemperature, const TArray<float>& RegionMoisture) const;
 	
 	void assign_r_coast(TArray<bool>& r_coast, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const;
-	void assign_r_temperature(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const;
-	void assign_r_biome(TArray<FBiomeData>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<bool>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const;
+	void assign_r_temperature(TArray<float>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<float>& r_moisture, float NorthernTemperature, float SouthernTemperature) const;
+	void assign_r_biome(TArray<FBiomeData>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<bool>& r_coast, const TArray<float>& r_temperature, const TArray<float>& r_moisture) const;
 };

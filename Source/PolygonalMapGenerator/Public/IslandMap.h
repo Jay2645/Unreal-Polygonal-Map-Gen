@@ -41,6 +41,38 @@ UCLASS()
 class POLYGONALMAPGENERATOR_API AIslandMap : public AActor
 {
 	GENERATED_BODY()
+	friend class UIslandMapUtils;
+
+protected:
+	UPROPERTY()
+	TArray<bool> r_water;
+	UPROPERTY()
+	TArray<bool> r_ocean;
+	UPROPERTY()
+	TArray<bool> r_coast;
+	UPROPERTY()
+	TArray<float> r_elevation;
+	UPROPERTY()
+	TArray<int32> r_waterdistance;
+	UPROPERTY()
+	TArray<float> r_moisture;
+	UPROPERTY()
+	TArray<float> r_temperature;
+	UPROPERTY()
+	TArray<FBiomeData> r_biome;
+
+	UPROPERTY()
+	TArray<int32> t_coastdistance;
+	UPROPERTY()
+	TArray<float> t_elevation;
+	UPROPERTY()
+	TArray<FSideIndex> t_downslope_s;
+	UPROPERTY()
+	TArray<int32> s_flow;
+	UPROPERTY()
+	TArray<FTriangleIndex> spring_t;
+	UPROPERTY()
+	TArray<FTriangleIndex> river_t;
 
 public:
 	// The random seed to use for the island.
@@ -92,35 +124,6 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "RNG")
 	TArray<FIslandPolygon> Polygons;
 
-	UPROPERTY()
-	TArray<bool> r_water;
-	UPROPERTY()
-	TArray<bool> r_ocean;
-	UPROPERTY()
-	TArray<int32> t_coastdistance;
-	UPROPERTY()
-	TArray<float> t_elevation;
-	UPROPERTY()
-	TArray<FSideIndex> t_downslope_s;
-	UPROPERTY()
-	TArray<float> r_elevation;
-	UPROPERTY()
-	TArray<int32> s_flow;
-	UPROPERTY()
-	TArray<int32> r_waterdistance;
-	UPROPERTY()
-	TArray<int32> r_moisture;
-	UPROPERTY()
-	TArray<bool> r_coast;
-	UPROPERTY()
-	TArray<int32> r_temperature;
-	UPROPERTY()
-	TArray<FBiomeData> r_biome;
-	UPROPERTY()
-	TArray<FTriangleIndex> spring_t;
-	UPROPERTY()
-	TArray<FTriangleIndex> river_t;
-
 	UPROPERTY(BlueprintAssignable)
 	FOnIslandGenerationComplete OnIslandGenerationComplete;
 
@@ -141,5 +144,57 @@ protected:
 	virtual void OnIslandGenComplete_Implementation();
 
 public:
-	void Draw() const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Water")
+	TArray<bool>& GetWaterRegions();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Water")
+	bool IsPointWater(FPointIndex Region) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Ocean")
+	TArray<bool>& GetOceanRegions();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Ocean")
+	bool IsPointOcean(FPointIndex Region) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Ocean")
+	TArray<bool>& GetCoastalRegions();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Ocean")
+	bool IsPointCoast(FPointIndex Region) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Elevation")
+	TArray<float>& GetRegionElevations();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Elevation")
+	float GetPointElevation(FPointIndex Region) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Moisture")
+	TArray<int32>& GetRegionWaterDistance();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Moisture")
+	int32 GetPointWaterDistance(FPointIndex Region) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Moisture")
+	TArray<float>& GetRegionMoisture();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Moisture")
+	float GetPointMoisture(FPointIndex Region) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Temperature")
+	TArray<float>& GetRegionTemperature();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Temperature")
+	float GetPointTemperature(FPointIndex Region) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Biomes")
+	TArray<FBiomeData>& GetRegionBiomes();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Moisture")
+	FBiomeData GetPointBiome(FPointIndex Region) const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Ocean")
+	TArray<int32>& GetTriangleCoastDistances();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Ocean")
+	int32 GetTriangleCoastDistance(FTriangleIndex Triangle) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Elevation")
+	TArray<float>& GetTriangleElevations();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Elevation")
+	float GetTriangleElevation(FTriangleIndex Triangle) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Rivers")
+	TArray<FSideIndex>& GetTriangleDownslopes();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Rivers")
+	TArray<int32>& GetSideFlow();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Rivers")
+	TArray<FTriangleIndex>& GetSpringTriangles();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Rivers")
+	bool IsTriangleSpring(FTriangleIndex Triangle) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Rivers")
+	TArray<FTriangleIndex>& GetRiverTriangles();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Rivers")
+	bool IsTriangleRiver(FTriangleIndex Triangle) const;
 };

@@ -224,7 +224,7 @@ FBiomeData UIslandMapUtils::GetBiome(const UDataTable* BiomeData, bool bIsOcean,
 	}
 	else if (possibleBiomes.Num() == 0)
 	{
-		UE_LOG(LogMapGen, Error, TEXT("Could not find any biomes with moisture %f!"), Moisture);
+		UE_LOG(LogMapGen, Error, TEXT("Could not find any biomes with moisture %f! Is ocean? %d Is coast? %d Is water? %d"), Moisture, (uint8)bIsOcean, (uint8)bIsCoast, (uint8)bIsWater);
 		return FBiomeData();
 	}
 	newPossibleBiomes.Empty();
@@ -244,7 +244,7 @@ FBiomeData UIslandMapUtils::GetBiome(const UDataTable* BiomeData, bool bIsOcean,
 	}
 	else if (possibleBiomes.Num() == 0)
 	{
-		UE_LOG(LogMapGen, Error, TEXT("Could not find any biomes with moisture %f!"), Moisture);
+		UE_LOG(LogMapGen, Error, TEXT("Could not find any biomes with temperature %f! Is ocean? %d; Is coast? %d; Is water? %d; Moisture: %f"), Temperature, (uint8)bIsOcean, (uint8)bIsCoast, (uint8)bIsWater, Moisture);
 		return FBiomeData();
 	}
 
@@ -344,8 +344,21 @@ void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, const TArray<FIslandPolyg
 	}
 }
 
+void UIslandMapUtils::GenerateMesh(class AIslandMap* Map, UProceduralMeshComponent* MapMesh, float ZScale)
+{
+	if (Map == NULL)
+	{
+		return;
+	}
+	GenerateMapMesh(Map->Mesh, MapMesh, ZScale, Map->r_elevation);
+}
+
 void UIslandMapUtils::GenerateMapMesh(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation)
 {
+	if (Mesh == NULL || MapMesh == NULL)
+	{
+		return;
+	}
 	const TArray<FVector2D>& points = Mesh->GetPoints();
 	const FDualMesh& rawMesh = Mesh->GetRawMesh();
 	TArray<FVector> vertices;

@@ -158,6 +158,9 @@ public:
 	static void DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& RegionElevations, const TArray<int32>& SideFlow, const TArray<FBiomeData>& RegionBiomes);
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
 	static void DrawVoronoiMesh(AActor* Context, const TArray<FIslandPolygon>& Polygons);
+
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
+	static void GenerateMesh(class AIslandMap* Map, UProceduralMeshComponent* MapMesh, float ZScale);
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
 	static void GenerateMapMesh(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation);
 };

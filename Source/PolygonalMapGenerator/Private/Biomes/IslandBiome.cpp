@@ -39,7 +39,7 @@ void UIslandBiome::AssignCoast_Implementation(TArray<bool>& r_coast, UTriangleDu
 	}
 }
 
-void UIslandBiome::AssignTemperature_Implementation(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const
+void UIslandBiome::AssignTemperature_Implementation(TArray<float>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<float>& r_moisture, float NorthernTemperature, float SouthernTemperature) const
 {
 	r_temperature.Empty(Mesh->NumRegions);
 	r_temperature.SetNumZeroed(Mesh->NumRegions);
@@ -51,7 +51,7 @@ void UIslandBiome::AssignTemperature_Implementation(TArray<int32>& r_temperature
 	}
 }
 
-void UIslandBiome::AssignBiome_Implementation(TArray<FBiomeData>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<bool>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const
+void UIslandBiome::AssignBiome_Implementation(TArray<FBiomeData>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<bool>& r_coast, const TArray<float>& r_temperature, const TArray<float>& r_moisture) const
 {
 	r_biome.Empty(Mesh->NumRegions);
 	r_biome.SetNumZeroed(Mesh->NumRegions);
@@ -66,12 +66,12 @@ void UIslandBiome::assign_r_coast(TArray<bool>& r_coast, UTriangleDualMesh* Mesh
 	AssignCoast(r_coast, Mesh, r_ocean);
 }
 
-void UIslandBiome::assign_r_temperature(TArray<int32>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<int32>& r_moisture, float NorthernTemperature, float SouthernTemperature) const
+void UIslandBiome::assign_r_temperature(TArray<float>& r_temperature, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<float>& r_elevation, const TArray<float>& r_moisture, float NorthernTemperature, float SouthernTemperature) const
 {
 	AssignTemperature(r_temperature, Mesh, r_ocean, r_water, r_elevation, r_moisture, NorthernTemperature, SouthernTemperature);
 }
 
-void UIslandBiome::assign_r_biome(TArray<FBiomeData>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<bool>& r_coast, const TArray<int32>& r_temperature, const TArray<int32>& r_moisture) const
+void UIslandBiome::assign_r_biome(TArray<FBiomeData>& r_biome, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean, const TArray<bool>& r_water, const TArray<bool>& r_coast, const TArray<float>& r_temperature, const TArray<float>& r_moisture) const
 {
 	AssignBiome(r_biome, Mesh, r_ocean, r_water, r_coast, r_temperature, r_moisture);
 }

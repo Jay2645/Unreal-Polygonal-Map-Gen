@@ -57,7 +57,7 @@ TSet<FPointIndex> UIslandMoisture::FindMoistureSeeds_Implementation(UTriangleDua
 	return seeds;
 }
 
-void UIslandMoisture::AssignRegionMoisture_Implementation(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<FPointIndex>& seed_r) const
+void UIslandMoisture::AssignRegionMoisture_Implementation(TArray<float>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<FPointIndex>& seed_r) const
 {
 	r_moisture.Empty(Mesh->NumRegions);
 	r_moisture.SetNumZeroed(Mesh->NumRegions);
@@ -102,7 +102,7 @@ void UIslandMoisture::AssignRegionMoisture_Implementation(TArray<int32>& r_moist
 	}
 }
 
-void UIslandMoisture::RedistributeRegionMoisture_Implementation(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const
+void UIslandMoisture::RedistributeRegionMoisture_Implementation(TArray<float>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const
 {
 	TArray<FPointIndex> land_r;
 	for (FPointIndex r = 0; r < Mesh->NumSolidRegions; r++)
@@ -129,12 +129,12 @@ void UIslandMoisture::RedistributeRegionMoisture_Implementation(TArray<int32>& r
 	}
 }
 
-void UIslandMoisture::assign_r_moisture(TArray<int32>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<FPointIndex>& r_moisture_seeds) const
+void UIslandMoisture::assign_r_moisture(TArray<float>& r_moisture, TArray<int32>& r_waterdistance, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TSet<FPointIndex>& r_moisture_seeds) const
 {
 	AssignRegionMoisture(r_moisture, r_waterdistance, Mesh, r_water, r_moisture_seeds);
 }
 
-void UIslandMoisture::redistribute_r_moisture(TArray<int32>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const
+void UIslandMoisture::redistribute_r_moisture(TArray<float>& r_moisture, UTriangleDualMesh* Mesh, const TArray<bool>& r_water, float MinMoisture, float MaxMoisture) const
 {
 	RedistributeRegionMoisture(r_moisture, Mesh, r_water, MinMoisture, MaxMoisture);
 }
