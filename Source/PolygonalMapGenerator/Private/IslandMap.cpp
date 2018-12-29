@@ -27,6 +27,12 @@ AIslandMap::AIslandMap()
 	Seed = 0;
 	NumRivers = 30;
 
+	OnIslandPointGenerationComplete.AddDynamic(this, &AIslandMap::OnPointGenerationComplete);
+	OnIslandWaterGenerationComplete.AddDynamic(this, &AIslandMap::OnWaterGenerationComplete);
+	OnIslandElevationGenerationComplete.AddDynamic(this, &AIslandMap::OnElevationGenerationComplete);
+	OnIslandRiverGenerationComplete.AddDynamic(this, &AIslandMap::OnRiverGenerationComplete);
+	OnIslandMoistureGenerationComplete.AddDynamic(this, &AIslandMap::OnMoistureGenerationComplete);
+	OnIslandBiomeGenerationComplete.AddDynamic(this, &AIslandMap::OnBiomeGenerationComplete);
 	OnIslandGenerationComplete.AddDynamic(this, &AIslandMap::OnIslandGenComplete);
 }
 
@@ -36,6 +42,41 @@ void AIslandMap::BeginPlay()
 	Super::BeginPlay();
 
 	GenerateIsland();
+}
+
+void AIslandMap::OnPointGenerationComplete_Implementation()
+{
+	// Do nothing by default
+}
+
+void AIslandMap::OnWaterGenerationComplete_Implementation()
+{
+	// Do nothing by default
+}
+
+void AIslandMap::OnElevationGenerationComplete_Implementation()
+{
+	// Do nothing by default
+}
+
+void AIslandMap::OnRiverGenerationComplete_Implementation()
+{
+	// Do nothing by default
+}
+
+void AIslandMap::OnMoistureGenerationComplete_Implementation()
+{
+	// Do nothing by default
+}
+
+void AIslandMap::OnBiomeGenerationComplete_Implementation()
+{
+	// Do nothing by default
+}
+
+void AIslandMap::OnIslandGenComplete_Implementation()
+{
+	// Do nothing by default
 }
 
 void AIslandMap::GenerateIsland_Implementation()
@@ -74,7 +115,8 @@ void AIslandMap::GenerateIsland_Implementation()
 
 	// Generate map points
 	Mesh = PointGenerator->GenerateDualMesh(Rng); 
-	
+	OnIslandPointGenerationComplete.Broadcast();
+
 #if !UE_BUILD_SHIPPING
 	finishedTime = FDateTime::UtcNow();
 	difference = finishedTime - startTime;
@@ -123,6 +165,7 @@ void AIslandMap::GenerateIsland_Implementation()
 	// Water
 	Water->assign_r_water(r_water, Rng, Mesh, Shape);
 	Water->assign_r_ocean(r_ocean, Mesh, r_water);
+	OnIslandWaterGenerationComplete.Broadcast();
 
 #if !UE_BUILD_SHIPPING
 	finishedTime = FDateTime::UtcNow();
@@ -135,6 +178,7 @@ void AIslandMap::GenerateIsland_Implementation()
 	Elevation->assign_t_elevation(t_elevation, t_coastdistance, t_downslope_s, Mesh, r_ocean, r_water, DrainageRng);
 	Elevation->redistribute_t_elevation(t_elevation, Mesh, r_ocean);
 	Elevation->assign_r_elevation(r_elevation, Mesh, t_elevation, r_ocean);
+	OnIslandElevationGenerationComplete.Broadcast();
 
 #if !UE_BUILD_SHIPPING
 	finishedTime = FDateTime::UtcNow();
@@ -152,6 +196,7 @@ void AIslandMap::GenerateIsland_Implementation()
 		river_t[i] = spring_t[i];
 	}
 	Rivers->assign_s_flow(s_flow, CreatedRivers, Mesh, t_downslope_s, river_t, RiverRng);
+	OnIslandRiverGenerationComplete.Broadcast();
 
 #if !UE_BUILD_SHIPPING
 	finishedTime = FDateTime::UtcNow();
@@ -163,6 +208,7 @@ void AIslandMap::GenerateIsland_Implementation()
 	// Moisture
 	Moisture->assign_r_moisture(r_moisture, r_waterdistance, Mesh, r_water, Moisture->find_moisture_seeds_r(Mesh, s_flow, r_ocean, r_water));
 	Moisture->redistribute_r_moisture(r_moisture, Mesh, r_water, BiomeBias.Rainfall, 1.0f + BiomeBias.Rainfall);
+	OnIslandMoistureGenerationComplete.Broadcast();
 
 #if !UE_BUILD_SHIPPING
 	finishedTime = FDateTime::UtcNow();
@@ -175,6 +221,7 @@ void AIslandMap::GenerateIsland_Implementation()
 	Biomes->assign_r_coast(r_coast, Mesh, r_ocean);
 	Biomes->assign_r_temperature(r_temperature, Mesh, r_ocean, r_water, r_elevation, r_moisture, BiomeBias.NorthernTemperature, BiomeBias.SouthernTemperature);
 	Biomes->assign_r_biome(r_biome, Mesh, r_ocean, r_water, r_coast, r_temperature, r_moisture);
+	OnIslandBiomeGenerationComplete.Broadcast();
 
 #if !UE_BUILD_SHIPPING
 	finishedTime = FDateTime::UtcNow();
@@ -187,11 +234,6 @@ void AIslandMap::GenerateIsland_Implementation()
 
 	// Do whatever we need to do when the island generation is done
 	OnIslandGenerationComplete.Broadcast();
-}
-
-void AIslandMap::OnIslandGenComplete_Implementation()
-{
-	// Do nothing by default
 }
 
 TArray<FIslandPolygon>& AIslandMap::GetVoronoiPolygons()

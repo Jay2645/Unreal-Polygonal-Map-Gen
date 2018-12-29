@@ -129,6 +129,19 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
 	TArray<URiver*> CreatedRivers;
 
+
+	UPROPERTY(BlueprintAssignable)
+	FOnIslandGenerationComplete OnIslandPointGenerationComplete;
+	UPROPERTY(BlueprintAssignable)
+	FOnIslandGenerationComplete OnIslandWaterGenerationComplete;
+	UPROPERTY(BlueprintAssignable)
+	FOnIslandGenerationComplete OnIslandElevationGenerationComplete;
+	UPROPERTY(BlueprintAssignable)
+	FOnIslandGenerationComplete OnIslandRiverGenerationComplete;
+	UPROPERTY(BlueprintAssignable)
+	FOnIslandGenerationComplete OnIslandMoistureGenerationComplete;
+	UPROPERTY(BlueprintAssignable)
+	FOnIslandGenerationComplete OnIslandBiomeGenerationComplete;
 	UPROPERTY(BlueprintAssignable)
 	FOnIslandGenerationComplete OnIslandGenerationComplete;
 
@@ -141,14 +154,34 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
-	void GenerateIsland();
-	virtual void GenerateIsland_Implementation();
+	void OnPointGenerationComplete();
+	virtual void OnPointGenerationComplete_Implementation();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
+	void OnWaterGenerationComplete();
+	virtual void OnWaterGenerationComplete_Implementation();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
+	void OnElevationGenerationComplete();
+	virtual void OnElevationGenerationComplete_Implementation();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
+	void OnRiverGenerationComplete();
+	virtual void OnRiverGenerationComplete_Implementation();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
+	void OnMoistureGenerationComplete();
+	virtual void OnMoistureGenerationComplete_Implementation();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
+	void OnBiomeGenerationComplete();
+	virtual void OnBiomeGenerationComplete_Implementation();
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
 	void OnIslandGenComplete();
 	virtual void OnIslandGenComplete_Implementation();
 
 public:
+	// Creates the island using all the current parameters.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")
+	void GenerateIsland();
+	virtual void GenerateIsland_Implementation();
+
 	// WARNING: This will take a long time to compile and will use a lot of memory.
 	// Use with caution!
 	UFUNCTION()
