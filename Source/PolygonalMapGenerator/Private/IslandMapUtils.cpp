@@ -259,20 +259,27 @@ void UIslandMapUtils::DrawDelaunayFromMap(AIslandMap* Map)
 	{
 		return;
 	}
-	DrawDelaunayMesh(Map, Map->Mesh, Map->r_elevation, Map->s_flow, Map->r_biome);
+	DrawDelaunayMesh(Map, Map->Mesh, Map->r_elevation, Map->s_flow, Map->CreatedRivers, Map->t_elevation, Map->r_biome);
 }
 
 void UIslandMapUtils::DrawVoronoiFromMap(class AIslandMap* Map)
 {
-	DrawVoronoiMesh(Map, Map->Polygons);
+	if (Map == NULL)
+	{
+		return;
+	}
+	DrawVoronoiMesh(Map, Map->Mesh, Map->GetVoronoiPolygons(), Map->s_flow, Map->CreatedRivers, Map->t_elevation);
 }
 
-void UIslandMapUtils::DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& r_elevation, const TArray<int32>& s_flow, const TArray<FBiomeData>& r_biome)
+void UIslandMapUtils::DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& RegionElevations, const TArray<int32>& SideFlow, const TArray<FRiver>& Rivers, const TArray<float> &TriangleElevations, const TArray<FBiomeData>& RegionBiomes)
 {
 	if (Context == NULL || Mesh == NULL)
 	{
 		return;
 	}
+#if !UE_BUILD_SHIPPING
+	FDateTime startTime = FDateTime::UtcNow();
+#endif
 
 	UWorld* world = Context->GetWorld();
 	const TArray<FSideIndex>& _halfedges = Mesh->GetHalfEdges();
@@ -293,31 +300,33 @@ void UIslandMapUtils::DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh,
 
 			const FVector2D p = _r_vertex[first];
 			const FVector2D q = _r_vertex[second];
-			float pZCoord = r_elevation.IsValidIndex(first) ? r_elevation[first] : -1000.0f;
-			float qZCoord = r_elevation.IsValidIndex(second) ? r_elevation[second] : -1000.0f;
+			float pZCoord = RegionElevations.IsValidIndex(first) ? RegionElevations[first] : -1000.0f;
+			float qZCoord = RegionElevations.IsValidIndex(second) ? RegionElevations[second] : -1000.0f;
 			FVector pVector = FVector(p.X, p.Y, pZCoord * 10000);
 			FVector qVector = FVector(q.X, q.Y, qZCoord * 10000);
-
-			int flow = FMath::Max(s_flow[e], s_flow[UDelaunayHelper::NextHalfEdge(e)]);
-			if (flow == 0)
-			{
-				FLinearColor color = FMath::Lerp(r_biome[first].DebugColor.ReinterpretAsLinear(), r_biome[second].DebugColor.ReinterpretAsLinear(), 0.5f);
-				DrawDebugLine(world, pVector, qVector, color.ToFColor(false), false, 999.0f);
-			}
-			else
-			{
-				DrawDebugLine(world, pVector, qVector, FColor::Blue, false, 999.0f, (uint8)'\000', 100.0f * flow);
-			}
+			FLinearColor color = FMath::Lerp(RegionBiomes[first].DebugColor.ReinterpretAsLinear(), RegionBiomes[second].DebugColor.ReinterpretAsLinear(), 0.5f);
+			DrawDebugLine(world, pVector, qVector, color.ToFColor(false), false, 999.0f);
 		}
 	}
+
+#if !UE_BUILD_SHIPPING
+	FDateTime finishedTime = FDateTime::UtcNow();
+	FTimespan difference = finishedTime - startTime;
+	UE_LOG(LogMapGen, Log, TEXT("Drawing delaunay map took %f seconds."), difference.GetTotalSeconds());
+#endif
+
+	DrawRivers(Context, Mesh, Rivers, SideFlow, TriangleElevations);
 }
 
-void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, const TArray<FIslandPolygon>& Polygons)
+void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<FIslandPolygon>& Polygons, const TArray<int32>& SideFlow, const TArray<FRiver>& Rivers, const TArray<float>& TriangleElevations)
 {
 	if (Context == NULL)
 	{
 		return;
 	}
+#if !UE_BUILD_SHIPPING
+	FDateTime startTime = FDateTime::UtcNow();
+#endif
 
 	UWorld* world = Context->GetWorld();
 	for (int i = 0; i < Polygons.Num(); i++)
@@ -342,6 +351,54 @@ void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, const TArray<FIslandPolyg
 			DrawDebugLine(world, point, next, polygon.Biome.DebugColor, false, 999.0f);
 		}
 	}
+
+#if !UE_BUILD_SHIPPING
+	FDateTime finishedTime = FDateTime::UtcNow();
+	FTimespan difference = finishedTime - startTime;
+	UE_LOG(LogMapGen, Log, TEXT("Drawing voronoi map took %f seconds."), difference.GetTotalSeconds());
+#endif
+
+	DrawRivers(Context, Mesh, Rivers, SideFlow, TriangleElevations);
+}
+
+void UIslandMapUtils::DrawRivers(AActor* Context, UTriangleDualMesh* Mesh, const TArray<FRiver>& Rivers, const TArray<int32>& SideFlow, const TArray<float> &TriangleElevations)
+{
+	if (Context == NULL || Mesh == NULL)
+	{
+		return;
+	}
+
+#if !UE_BUILD_SHIPPING
+	FDateTime startTime = FDateTime::UtcNow();
+#endif
+
+	UWorld* world = Context->GetWorld();
+	for (FRiver river : Rivers)
+	{
+		for (int i = 0; i < river.RiverTriangles.Num() - 1; i++)
+		{
+			FTriangleIndex t1 = river.RiverTriangles[i];
+			int32 flow = SideFlow[river.Downslopes[i]];
+
+			FVector2D first2D = Mesh->t_pos(t1);
+			float z1 = TriangleElevations.IsValidIndex(t1) ? TriangleElevations[t1] : -1000.0f;
+			FVector first3D = FVector(first2D.X, first2D.Y, z1 * 10000);
+
+			FTriangleIndex t2 = river.RiverTriangles[i + 1];
+			FVector2D second2D = Mesh->t_pos(t2);
+			float z2 = TriangleElevations.IsValidIndex(t2) ? TriangleElevations[t2] : -1000.0f;
+			FVector second3D = FVector(second2D.X, second2D.Y, z2 * 10000);
+
+			DrawDebugLine(world, first3D, second3D, FColor::Blue, false, 999.0f, (uint8)'\000', 100.0f * flow);
+		}
+	}
+
+#if !UE_BUILD_SHIPPING
+	FDateTime finishedTime = FDateTime::UtcNow();
+	FTimespan difference = finishedTime - startTime;
+	UE_LOG(LogMapGen, Log, TEXT("Drawing rivers took %f seconds."), difference.GetTotalSeconds());
+#endif
+
 }
 
 void UIslandMapUtils::GenerateMesh(class AIslandMap* Map, UProceduralMeshComponent* MapMesh, float ZScale)

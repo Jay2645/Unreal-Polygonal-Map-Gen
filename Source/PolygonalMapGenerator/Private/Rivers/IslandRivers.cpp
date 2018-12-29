@@ -60,43 +60,50 @@ TArray<FTriangleIndex> UIslandRivers::FindSpringTriangles_Implementation(UTriang
 	return spring_t.Array();
 }
 
-TArray<FTriangleIndex> UIslandRivers::CreateRiver(FTriangleIndex RiverTriangle, TArray<int32> &s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s) const
+FRiver UIslandRivers::CreateRiver(FTriangleIndex RiverTriangle, TArray<int32> &s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s) const
 {
-	// We keep both a set and an array
-	// The set is for fast lookup when checking if we have already processed a point (we'll be doing this every iteration)
-	// The array is to keep track of the order in which we have navigated the river
 	TSet<FTriangleIndex> processedSlopes;
-	TArray<FTriangleIndex> river;
+	FRiver river;
+	FSideIndex lastS = FSideIndex();
 	while(true)
 	{
-		FSideIndex s = t_downslope_s[RiverTriangle];
+		if (processedSlopes.Contains(RiverTriangle))
+		{
+			UE_LOG(LogMapGen, Warning, TEXT("Tried to process a slope we've already processed once this loop! We have an infinite loop."));
+			break;
+		}
 
+		FSideIndex s = t_downslope_s[RiverTriangle];
 		if (!s.IsValid())
 		{
+			// Hit the coastline; add the last triangles
+			s = Mesh->s_opposite_s(lastS);
+			if (s.IsValid())
+			{
+				s_flow[s]++;
+				river.Add(RiverTriangle, s);
+			}
 			break;
 		}
 
 		s_flow[s]++;
+
+		river.Add(RiverTriangle, s);
+		processedSlopes.Add(RiverTriangle);
 
 		FTriangleIndex next_t = Mesh->s_outer_t(s);
 		if (next_t == RiverTriangle)
 		{
 			break;
 		}
-		if (processedSlopes.Contains(RiverTriangle))
-		{
-			UE_LOG(LogMapGen, Warning, TEXT("Tried to process a slope we've already processed once this loop! We have an infinite loop."));
-			break;
-		}
-		processedSlopes.Add(RiverTriangle);
-		river.Add(RiverTriangle);
 
 		RiverTriangle = next_t;
+		lastS = s;
 	}
 	return river;
 }
 
-void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const
+void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, TArray<FRiver>& Rivers, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const
 {
 	if (Mesh)
 	{
@@ -105,7 +112,7 @@ void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriang
 		s_flow.SetNumZeroed(Mesh->NumSides);
 		for (int i = 0; i < river_t.Num(); i++)
 		{
-			CreateRiver(river_t[i], s_flow, Mesh, t_downslope_s);
+			Rivers.Add(CreateRiver(river_t[i], s_flow, Mesh, t_downslope_s));
 		}
 	}
 	else
@@ -119,7 +126,7 @@ TArray<FTriangleIndex> UIslandRivers::find_spring_t(UTriangleDualMesh* Mesh, con
 	return FindSpringTriangles(Mesh, r_water, t_elevation, t_downslope_s);
 }
 
-void UIslandRivers::assign_s_flow(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const
+void UIslandRivers::assign_s_flow(TArray<int32>& s_flow, TArray<FRiver>& Rivers, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const
 {
-	AssignSideFlow(s_flow, Mesh, t_downslope_s, river_t);
+	AssignSideFlow(s_flow, Rivers, Mesh, t_downslope_s, river_t);
 }

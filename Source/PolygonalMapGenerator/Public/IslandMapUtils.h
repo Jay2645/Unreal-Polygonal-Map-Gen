@@ -53,6 +53,27 @@ struct POLYGONALMAPGENERATOR_API FIslandShape
 };
 
 USTRUCT(BlueprintType)
+struct POLYGONALMAPGENERATOR_API FRiver
+{
+	GENERATED_BODY()
+public:
+	TArray<FTriangleIndex> RiverTriangles;
+	TArray<FSideIndex> Downslopes;
+
+public:
+	void Add(FTriangleIndex Triangle, FSideIndex Downslope)
+	{
+		RiverTriangles.Add(Triangle);
+		Downslopes.Add(Downslope);
+	}
+
+	int32 Length() const
+	{
+		return RiverTriangles.Num();
+	}
+};
+
+USTRUCT(BlueprintType)
 struct POLYGONALMAPGENERATOR_API FBiomeBias
 {
 	GENERATED_BODY()
@@ -152,12 +173,16 @@ public:
 	static FBiomeData GetBiome(const UDataTable* BiomeData, bool bIsOcean, bool bIsWater, bool bIsCoast, float Temperature, float Moisture);
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
 	static void DrawDelaunayFromMap(class AIslandMap* Map);
-	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
+	//UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
+	UFUNCTION()
 	static void DrawVoronoiFromMap(class AIslandMap* Map);
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
-	static void DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& RegionElevations, const TArray<int32>& SideFlow, const TArray<FBiomeData>& RegionBiomes);
+	static void DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& RegionElevations, const TArray<int32>& SideFlow, const TArray<FRiver>& Rivers, const TArray<float> &TriangleElevations, const TArray<FBiomeData>& RegionBiomes);
+	//UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
+	UFUNCTION()
+	static void DrawVoronoiMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<FIslandPolygon>& Polygons, const TArray<int32>& SideFlow, const TArray<FRiver>& Rivers, const TArray<float>& TriangleElevations);
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
-	static void DrawVoronoiMesh(AActor* Context, const TArray<FIslandPolygon>& Polygons);
+	static void DrawRivers(AActor* Context, UTriangleDualMesh* Mesh, const TArray<FRiver>& Rivers, const TArray<int32>& SideFlow, const TArray<float> &TriangleElevations);
 
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
 	static void GenerateMesh(class AIslandMap* Map, UProceduralMeshComponent* MapMesh, float ZScale);

@@ -74,6 +74,11 @@ protected:
 	UPROPERTY()
 	TArray<FTriangleIndex> river_t;
 
+	// Note -- will be compiled when GetVoronoiPolygons is first called.
+	// This will take a long time to compile and use a lot of memory. Use with caution!
+	UPROPERTY()
+	TArray<FIslandPolygon> VoronoiPolygons;
+
 public:
 	// The random seed to use for the island.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
@@ -121,8 +126,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	const UIslandWater* Water;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "RNG")
-	TArray<FIslandPolygon> Polygons;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
+	TArray<FRiver> CreatedRivers;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnIslandGenerationComplete OnIslandGenerationComplete;
@@ -144,6 +149,11 @@ protected:
 	virtual void OnIslandGenComplete_Implementation();
 
 public:
+	// WARNING: This will take a long time to compile and will use a lot of memory.
+	// Use with caution!
+	UFUNCTION()
+	TArray<FIslandPolygon>& GetVoronoiPolygons();
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Water")
 	TArray<bool>& GetWaterRegions();
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Water")

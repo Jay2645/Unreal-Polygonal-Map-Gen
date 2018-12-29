@@ -20,8 +20,12 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+
 #include "PolygonalMapGenerator.h"
 #include "TriangleDualMesh.h"
+
+#include "IslandMapUtils.h"
+
 #include "IslandRivers.generated.h"
 
 /**
@@ -49,10 +53,10 @@ protected:
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Rivers")
 	virtual bool IsTriangleWater(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& WaterRegions) const;
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Rivers")
-	virtual TArray<FTriangleIndex> CreateRiver(FTriangleIndex RiverTriangle, TArray<int32> &s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s) const;
+	virtual FRiver CreateRiver(FTriangleIndex RiverTriangle, TArray<int32> &s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s) const;
 
 	virtual TArray<FTriangleIndex> FindSpringTriangles_Implementation(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const;
-	virtual void AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const;
+	virtual void AssignSideFlow_Implementation(TArray<int32>& s_flow, TArray<FRiver>& Rivers, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const;
 
 public:
 	/**
@@ -63,8 +67,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Rivers")
 	TArray<FTriangleIndex> FindSpringTriangles(UTriangleDualMesh* Mesh, const TArray<bool>& WaterRegions, const TArray<float>& TriangleElevations, const TArray<FSideIndex>& TriangleSideDownslopes) const;
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation|Rivers")
-	void AssignSideFlow(UPARAM(ref) TArray<int32>& SideFlow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& TriangleSideDownslopes, const TArray<FTriangleIndex>& RiverTriangles) const;
+	void AssignSideFlow(UPARAM(ref) TArray<int32>& SideFlow, UPARAM(ref) TArray<FRiver>& Rivers, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& TriangleSideDownslopes, const TArray<FTriangleIndex>& RiverTriangles) const;
 
 	TArray<FTriangleIndex> find_spring_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const;
-	void assign_s_flow(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const;
+	void assign_s_flow(TArray<int32>& s_flow, TArray<FRiver>& Rivers, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const;
 };

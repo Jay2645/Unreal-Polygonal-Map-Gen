@@ -151,7 +151,7 @@ void AIslandMap::GenerateIsland_Implementation()
 	{
 		river_t[i] = spring_t[i];
 	}
-	Rivers->assign_s_flow(s_flow, Mesh, t_downslope_s, river_t);
+	Rivers->assign_s_flow(s_flow, CreatedRivers, Mesh, t_downslope_s, river_t);
 
 #if !UE_BUILD_SHIPPING
 	finishedTime = FDateTime::UtcNow();
@@ -181,31 +181,8 @@ void AIslandMap::GenerateIsland_Implementation()
 	difference = finishedTime - startTime;
 	startTime = finishedTime;
 	UE_LOG(LogMapGen, Log, TEXT("Generated map biomes in %f seconds."), difference.GetTotalSeconds());
-#endif
-
-	Polygons.Empty(Mesh->NumSolidRegions);
-	Polygons.SetNumZeroed(Mesh->NumSolidRegions);
-	for (FPointIndex r = 0; r < Mesh->NumSolidRegions; r++)
-	{
-		Polygons[r].Biome = r_biome[r];
-		Polygons[r].Vertices = Mesh->r_circulate_t(r);
-		for (FTriangleIndex t : Polygons[r].Vertices)
-		{
-			if (!t.IsValid())
-			{
-				continue;
-			}
-			FVector2D point2D = Mesh->t_pos(t);
-			float z = t_elevation.IsValidIndex(t) ? t_elevation[t] : -1000.0f;
-			Polygons[r].VertexPoints.Add(FVector(point2D.X, point2D.Y, z * 10000));
-		}
-	}
-
-#if !UE_BUILD_SHIPPING
-	finishedTime = FDateTime::UtcNow();
-	difference = finishedTime - startTime;
 	FTimespan completedTime = finishedTime - generationStartTime;
-	UE_LOG(LogMapGen, Log, TEXT("Generated polygons in %f seconds. Total map generation time: %f seconds."), difference.GetTotalSeconds(), completedTime.GetTotalSeconds());
+	UE_LOG(LogMapGen, Log, TEXT("Total map generation time: %f seconds."), completedTime.GetTotalSeconds());
 #endif
 
 	// Do whatever we need to do when the island generation is done
@@ -215,6 +192,30 @@ void AIslandMap::GenerateIsland_Implementation()
 void AIslandMap::OnIslandGenComplete_Implementation()
 {
 	// Do nothing by default
+}
+
+TArray<FIslandPolygon>& AIslandMap::GetVoronoiPolygons()
+{
+	if (VoronoiPolygons.Num() == 0)
+	{
+		VoronoiPolygons.SetNumZeroed(Mesh->NumSolidRegions);
+		for (FPointIndex r = 0; r < Mesh->NumSolidRegions; r++)
+		{
+			VoronoiPolygons[r].Biome = r_biome[r];
+			VoronoiPolygons[r].Vertices = Mesh->r_circulate_t(r);
+			for (FTriangleIndex t : VoronoiPolygons[r].Vertices)
+			{
+				if (!t.IsValid())
+				{
+					continue;
+				}
+				FVector2D point2D = Mesh->t_pos(t);
+				float z = t_elevation.IsValidIndex(t) ? t_elevation[t] : -1000.0f;
+				VoronoiPolygons[r].VertexPoints.Add(FVector(point2D.X, point2D.Y, z * 10000));
+			}
+		}
+	}
+	return VoronoiPolygons;
 }
 
 TArray<bool>& AIslandMap::GetWaterRegions()
