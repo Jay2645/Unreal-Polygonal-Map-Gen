@@ -151,13 +151,13 @@ void AIslandMap::GenerateIsland_Implementation()
 	{
 		river_t[i] = spring_t[i];
 	}
-	Rivers->assign_s_flow(s_flow, CreatedRivers, Mesh, t_downslope_s, river_t);
+	Rivers->assign_s_flow(s_flow, CreatedRivers, Mesh, t_downslope_s, river_t, RiverRng);
 
 #if !UE_BUILD_SHIPPING
 	finishedTime = FDateTime::UtcNow();
 	difference = finishedTime - startTime;
 	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Generated %d map rivers in %f seconds."), river_t.Num(), difference.GetTotalSeconds());
+	UE_LOG(LogMapGen, Log, TEXT("Generated %d map rivers in %f seconds."), CreatedRivers.Num(), difference.GetTotalSeconds());
 #endif
 
 	// Moisture

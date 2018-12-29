@@ -127,7 +127,7 @@ public:
 	const UIslandWater* Water;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
-	TArray<FRiver> CreatedRivers;
+	TArray<URiver*> CreatedRivers;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnIslandGenerationComplete OnIslandGenerationComplete;

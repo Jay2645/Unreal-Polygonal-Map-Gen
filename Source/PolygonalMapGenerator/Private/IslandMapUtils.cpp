@@ -271,7 +271,7 @@ void UIslandMapUtils::DrawVoronoiFromMap(class AIslandMap* Map)
 	DrawVoronoiMesh(Map, Map->Mesh, Map->GetVoronoiPolygons(), Map->s_flow, Map->CreatedRivers, Map->t_elevation);
 }
 
-void UIslandMapUtils::DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& RegionElevations, const TArray<int32>& SideFlow, const TArray<FRiver>& Rivers, const TArray<float> &TriangleElevations, const TArray<FBiomeData>& RegionBiomes)
+void UIslandMapUtils::DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& RegionElevations, const TArray<int32>& SideFlow, const TArray<URiver*>& Rivers, const TArray<float> &TriangleElevations, const TArray<FBiomeData>& RegionBiomes)
 {
 	if (Context == NULL || Mesh == NULL)
 	{
@@ -318,7 +318,7 @@ void UIslandMapUtils::DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh,
 	DrawRivers(Context, Mesh, Rivers, SideFlow, TriangleElevations);
 }
 
-void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<FIslandPolygon>& Polygons, const TArray<int32>& SideFlow, const TArray<FRiver>& Rivers, const TArray<float>& TriangleElevations)
+void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<FIslandPolygon>& Polygons, const TArray<int32>& SideFlow, const TArray<URiver*>& Rivers, const TArray<float>& TriangleElevations)
 {
 	if (Context == NULL)
 	{
@@ -361,7 +361,7 @@ void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, UTriangleDualMesh* Mesh, 
 	DrawRivers(Context, Mesh, Rivers, SideFlow, TriangleElevations);
 }
 
-void UIslandMapUtils::DrawRivers(AActor* Context, UTriangleDualMesh* Mesh, const TArray<FRiver>& Rivers, const TArray<int32>& SideFlow, const TArray<float> &TriangleElevations)
+void UIslandMapUtils::DrawRivers(AActor* Context, UTriangleDualMesh* Mesh, const TArray<URiver*>& Rivers, const TArray<int32>& SideFlow, const TArray<float> &TriangleElevations)
 {
 	if (Context == NULL || Mesh == NULL)
 	{
@@ -373,18 +373,23 @@ void UIslandMapUtils::DrawRivers(AActor* Context, UTriangleDualMesh* Mesh, const
 #endif
 
 	UWorld* world = Context->GetWorld();
-	for (FRiver river : Rivers)
+	for (URiver* river : Rivers)
 	{
-		for (int i = 0; i < river.RiverTriangles.Num() - 1; i++)
+		if (river->RiverTriangles.Num() <= 1)
 		{
-			FTriangleIndex t1 = river.RiverTriangles[i];
-			int32 flow = SideFlow[river.Downslopes[i]];
+			UE_LOG(LogMapGen, Warning, TEXT("Created a very short river!"));
+			continue;
+		}
+		for (int i = 0; i < river->RiverTriangles.Num() - 1; i++)
+		{
+			FTriangleIndex t1 = river->RiverTriangles[i];
+			int32 flow = SideFlow[river->Downslopes[i]];
 
 			FVector2D first2D = Mesh->t_pos(t1);
 			float z1 = TriangleElevations.IsValidIndex(t1) ? TriangleElevations[t1] : -1000.0f;
 			FVector first3D = FVector(first2D.X, first2D.Y, z1 * 10000);
 
-			FTriangleIndex t2 = river.RiverTriangles[i + 1];
+			FTriangleIndex t2 = river->RiverTriangles[i + 1];
 			FVector2D second2D = Mesh->t_pos(t2);
 			float z2 = TriangleElevations.IsValidIndex(t2) ? TriangleElevations[t2] : -1000.0f;
 			FVector second3D = FVector(second2D.X, second2D.Y, z2 * 10000);
