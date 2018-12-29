@@ -73,12 +73,10 @@ void UIslandElevation::DistributeElevations(TArray<float> &t_elevation, UTriangl
 		if (IsTriangleOcean(t, Mesh, r_ocean))
 		{
 			t_elevation[t] = -d / (float)MinDistance;
-			//UE_LOG(LogMapGen, Log, TEXT("Ocean triangle index %d's distance from coastline: %f; min distance: %d; elevation: %f"), t, d, MinDistance, t_elevation[t]);
 		}
 		else
 		{
 			t_elevation[t] = d / (float)MaxDistance;
-			//UE_LOG(LogMapGen, Log, TEXT("Land triangle index %d's distance from coastline: %f; max distance: %d; elevation: %f"), t, d, MaxDistance, t_elevation[t]);
 		}
 	}
 }

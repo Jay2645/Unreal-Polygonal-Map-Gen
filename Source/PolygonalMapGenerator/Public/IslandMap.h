@@ -35,6 +35,8 @@
 
 #include "IslandMap.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnIslandGenerationComplete);
+
 UCLASS()
 class POLYGONALMAPGENERATOR_API AIslandMap : public AActor
 {
@@ -87,6 +89,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	const UIslandWater* Water;
 
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "RNG")
+	TArray<FIslandPolygon> Polygons;
+
 	UPROPERTY()
 	TArray<bool> r_water;
 	UPROPERTY()
@@ -115,6 +120,9 @@ public:
 	TArray<FTriangleIndex> spring_t;
 	UPROPERTY()
 	TArray<FTriangleIndex> river_t;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnIslandGenerationComplete OnIslandGenerationComplete;
 
 public:	
 	// Sets default values for this actor's properties

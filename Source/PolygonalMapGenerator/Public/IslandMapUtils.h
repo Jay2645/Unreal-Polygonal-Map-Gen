@@ -117,6 +117,19 @@ public:
 	}
 };
 
+USTRUCT(BlueprintType)
+struct POLYGONALMAPGENERATOR_API FIslandPolygon
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		FBiomeData Biome;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		TArray<FVector> VertexPoints;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		TArray<FTriangleIndex> Vertices;
+};
+
 /**
  * A collection of utilities used in island generation.
  */
@@ -137,6 +150,14 @@ public:
 	// the FName into a GameplayTag.
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Biomes")
 	static FBiomeData GetBiome(const UDataTable* BiomeData, bool bIsOcean, bool bIsWater, bool bIsCoast, float Temperature, float Moisture);
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation")
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
+	static void DrawDelaunayFromMap(class AIslandMap* Map);
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
+	static void DrawVoronoiFromMap(class AIslandMap* Map);
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
+	static void DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& RegionElevations, const TArray<int32>& SideFlow, const TArray<FBiomeData>& RegionBiomes);
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Debug")
+	static void DrawVoronoiMesh(AActor* Context, const TArray<FIslandPolygon>& Polygons);
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
 	static void GenerateMapMesh(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation);
 };

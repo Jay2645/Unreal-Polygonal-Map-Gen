@@ -17,6 +17,8 @@
 */
 #include "IslandMapUtils.h"
 #include "RandomSampling/SimplexNoise.h"
+#include "DrawDebugHelpers.h"
+#include "IslandMap.h"
 
 void UIslandMapUtils::RandomShuffle(TArray<FTriangleIndex>& OutShuffledArray, FRandomStream& Rng)
 {
@@ -249,6 +251,97 @@ FBiomeData UIslandMapUtils::GetBiome(const UDataTable* BiomeData, bool bIsOcean,
 	UE_LOG(LogMapGen, Warning, TEXT("Had %d possible candidates for temperature %f and moisture %f."), possibleBiomes.Num(), Temperature, Moisture);
 
 	return possibleBiomes[0];
+}
+
+void UIslandMapUtils::DrawDelaunayFromMap(AIslandMap* Map)
+{
+	if (Map == NULL)
+	{
+		return;
+	}
+	DrawDelaunayMesh(Map, Map->Mesh, Map->r_elevation, Map->s_flow, Map->r_biome);
+}
+
+void UIslandMapUtils::DrawVoronoiFromMap(class AIslandMap* Map)
+{
+	DrawVoronoiMesh(Map, Map->Polygons);
+}
+
+void UIslandMapUtils::DrawDelaunayMesh(AActor* Context, UTriangleDualMesh* Mesh, const TArray<float>& r_elevation, const TArray<int32>& s_flow, const TArray<FBiomeData>& r_biome)
+{
+	if (Context == NULL || Mesh == NULL)
+	{
+		return;
+	}
+
+	UWorld* world = Context->GetWorld();
+	const TArray<FSideIndex>& _halfedges = Mesh->GetHalfEdges();
+	const FDualMesh& mesh = Mesh->GetRawMesh();
+	const TArray<FVector2D>& _r_vertex = Mesh->GetPoints();
+
+	for (FSideIndex e = 0; e < _halfedges.Num(); e++)
+	{
+		if (e < _halfedges[e])
+		{
+			FPointIndex first = UDelaunayHelper::GetPointIndexFromHalfEdge(mesh, e);
+			FPointIndex second = UDelaunayHelper::GetPointIndexFromHalfEdge(mesh, UDelaunayHelper::NextHalfEdge(e));
+
+			if (Mesh->r_ghost(first) || Mesh->r_ghost(second))
+			{
+				continue;
+			}
+
+			const FVector2D p = _r_vertex[first];
+			const FVector2D q = _r_vertex[second];
+			float pZCoord = r_elevation.IsValidIndex(first) ? r_elevation[first] : -1000.0f;
+			float qZCoord = r_elevation.IsValidIndex(second) ? r_elevation[second] : -1000.0f;
+			FVector pVector = FVector(p.X, p.Y, pZCoord * 10000);
+			FVector qVector = FVector(q.X, q.Y, qZCoord * 10000);
+
+			int flow = FMath::Max(s_flow[e], s_flow[UDelaunayHelper::NextHalfEdge(e)]);
+			if (flow == 0)
+			{
+				FLinearColor color = FMath::Lerp(r_biome[first].DebugColor.ReinterpretAsLinear(), r_biome[second].DebugColor.ReinterpretAsLinear(), 0.5f);
+				DrawDebugLine(world, pVector, qVector, color.ToFColor(false), false, 999.0f);
+			}
+			else
+			{
+				DrawDebugLine(world, pVector, qVector, FColor::Blue, false, 999.0f, (uint8)'\000', 100.0f * flow);
+			}
+		}
+	}
+}
+
+void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, const TArray<FIslandPolygon>& Polygons)
+{
+	if (Context == NULL)
+	{
+		return;
+	}
+
+	UWorld* world = Context->GetWorld();
+	for (int i = 0; i < Polygons.Num(); i++)
+	{
+		const FIslandPolygon& polygon = Polygons[i];
+		for (int j = 0; j < polygon.VertexPoints.Num(); j++)
+		{
+			FVector point = polygon.VertexPoints[j];
+			FTriangleIndex first = polygon.Vertices[j];
+			FVector next;
+			FTriangleIndex second;
+			if (j == polygon.VertexPoints.Num() - 1)
+			{
+				next = polygon.VertexPoints[0];
+				second = polygon.Vertices[0];
+			}
+			else
+			{
+				next = polygon.VertexPoints[j + 1];
+				second = polygon.Vertices[j + 1];
+			}
+			DrawDebugLine(world, point, next, polygon.Biome.DebugColor, false, 999.0f);
+		}
+	}
 }
 
 void UIslandMapUtils::GenerateMapMesh(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation)
