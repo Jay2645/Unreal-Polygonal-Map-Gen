@@ -48,6 +48,8 @@ protected:
 	*/
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Procedural Generation|Island Generation|Rivers")
 	virtual bool IsTriangleWater(FTriangleIndex t, UTriangleDualMesh* Mesh, const TArray<bool>& WaterRegions) const;
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Rivers")
+	virtual TArray<FTriangleIndex> CreateRiver(FTriangleIndex RiverTriangle, TArray<int32> &s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s) const;
 
 	virtual TArray<FTriangleIndex> FindSpringTriangles_Implementation(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const;
 	virtual void AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const;

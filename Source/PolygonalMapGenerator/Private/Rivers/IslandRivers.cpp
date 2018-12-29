@@ -60,6 +60,42 @@ TArray<FTriangleIndex> UIslandRivers::FindSpringTriangles_Implementation(UTriang
 	return spring_t.Array();
 }
 
+TArray<FTriangleIndex> UIslandRivers::CreateRiver(FTriangleIndex RiverTriangle, TArray<int32> &s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s) const
+{
+	// We keep both a set and an array
+	// The set is for fast lookup when checking if we have already processed a point (we'll be doing this every iteration)
+	// The array is to keep track of the order in which we have navigated the river
+	TSet<FTriangleIndex> processedSlopes;
+	TArray<FTriangleIndex> river;
+	while(true)
+	{
+		FSideIndex s = t_downslope_s[RiverTriangle];
+
+		if (!s.IsValid())
+		{
+			break;
+		}
+
+		s_flow[s]++;
+
+		FTriangleIndex next_t = Mesh->s_outer_t(s);
+		if (next_t == RiverTriangle)
+		{
+			break;
+		}
+		if (processedSlopes.Contains(RiverTriangle))
+		{
+			UE_LOG(LogMapGen, Warning, TEXT("Tried to process a slope we've already processed once this loop! We have an infinite loop."));
+			break;
+		}
+		processedSlopes.Add(RiverTriangle);
+		river.Add(RiverTriangle);
+
+		RiverTriangle = next_t;
+	}
+	return river;
+}
+
 void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t) const
 {
 	if (Mesh)
@@ -69,33 +105,7 @@ void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, UTriang
 		s_flow.SetNumZeroed(Mesh->NumSides);
 		for (int i = 0; i < river_t.Num(); i++)
 		{
-			FTriangleIndex t = river_t[i];
-			TSet<FTriangleIndex> processedSlopes;
-			for (;;)
-			{
-				FSideIndex s = t_downslope_s[t];
-
-				if (!s.IsValid())
-				{
-					break;
-				}
-
-				s_flow[s]++;
-
-				FTriangleIndex next_t = Mesh->s_outer_t(s);
-				if (next_t == t)
-				{
-					break;
-				}
-				if (processedSlopes.Contains(t))
-				{
-					UE_LOG(LogMapGen, Warning, TEXT("Tried to process a slope we've already processed once this loop! We have an infinite loop."));
-					break;
-				}
-				processedSlopes.Add(t);
-
-				t = next_t;
-			}
+			CreateRiver(river_t[i], s_flow, Mesh, t_downslope_s);
 		}
 	}
 	else
