@@ -1,10 +1,26 @@
 # Polygonal Map Generator
 
+![highresscreenshot00004](https://user-images.githubusercontent.com/2058763/50556437-f1503b80-0c8d-11e9-9686-be8d41c191dd.png)
+
 This is a port of [the JavaScript code](https://github.com/amitp/mapgen2) of [Red Blob Games' *Polygonal Map Generation for Games*](http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/). This port is written in C++ and designed to work in Unreal Engine 4 using the Unreal Engine 4 "Plugin" system. This port works fully with games written in C++ as well as games that use Unreal Engine 4's "Blueprint" system.
+
+![highresscreenshot00000](https://user-images.githubusercontent.com/2058763/50556433-f0b7a500-0c8d-11e9-8636-21dc94e46699.png)
+
+![highresscreenshot00001](https://user-images.githubusercontent.com/2058763/50556434-f0b7a500-0c8d-11e9-94c9-2e4dbf61520b.png)
+
+![highresscreenshot00002](https://user-images.githubusercontent.com/2058763/50556435-f0b7a500-0c8d-11e9-83a8-8247ab41f167.png)
+
+![highresscreenshot00003](https://user-images.githubusercontent.com/2058763/50556436-f0b7a500-0c8d-11e9-92fe-0da8a22dbee8.png)
 
 This version is designed to be a fairly barebones port; if you need extra features, [I've created a downstream fork](https://github.com/Jay2645/IslandGenerator) which supports things like procedural river names.
 
 # Installation
+
+## Access through Blueprint only:
+
+If you only want to access everything through Blueprint, you can just clone this project into your <Project Root>/Plugins folder, where <Project Root> is where the .uplugin file is kept. You may have to create the Plugins folder if you haven't made it already. From there, you should be able to drag the pre-made Blueprints into your scene, create new custom Blueprints, or do whatever else you need.
+
+## Access through C++ and Blueprints:
 
 1. Make a `Plugins` folder at your project root (where the .uproject file is), if you haven't already. Then, clone this project into a subfolder in your Plugins directory. After that, open up your project's .uproject file in Notepad (or a similar text editor), and change the `"AdditionalDependencies"` and `"Plugins"` sections to look like this:
 
@@ -31,7 +47,9 @@ This version is designed to be a fairly barebones port; if you need extra featur
 
 If you don't have a `"Modules"` section, then that usually means that your project isn't set up for C++ yet. First, set your project up to handle C++ code, then you should see the `"Modules"` section. It's okay if you don't see a `"Plugins"` section, however -- just add one in there.
 
-2. Open up your project in Unreal. If you get a prompt asking for an Unreal Engine version, you probably missed a comma somewhere in your .uproject file -- make sure all the commas and syntax are correct and try again. If Unreal does start to load, you might be told that your project is out of date, and the editor will ask if you want to rebuild your project. Go ahead and say yes so the plugin can be installed properly, keeping in mind that it might take a while to rebuild). After that, open up the Plugins menu, scroll down to the bottom, and ensure that the "PolygonalMapGenerator" plugin is enabled.
+2. Go into your source code folder, and you'll see a `<Project Name>.build.cs file. Open it up. Under either "PrivateDependencyModuleNames" or "PublicDependencyModuleNames" add a new entry called "PolygonalMapGenerator". This lets Unreal's Blueprint reflection system "see" your plugin and know to compile it before it compiles the rest of your code, so that you don't get weird linker errors when using things from the plugin.
+
+3. Open up your project in Unreal. If you get a prompt asking for an Unreal Engine version, you probably missed a comma somewhere in your .uproject file -- make sure all the commas and syntax are correct and try again. If Unreal does start to load, you might be told that your project is out of date, and the editor will ask if you want to rebuild your project. Go ahead and say yes so the plugin can be installed properly, keeping in mind that it might take a while to rebuild). After that, open up the Plugins menu, scroll down to the bottom, and ensure that the "PolygonalMapGenerator" plugin is enabled.
 
 # Use
 
@@ -43,7 +61,17 @@ There's a couple "main" classes which make everything tick:
 
 - The `IslandMapMesh` class, which (again, like the name implies), generates islands and then creates a procedural mesh. This mesh is more of a proof-of-concept and quick example than anything robust and ready for gameplay; the class is basically there to show off how to use the data structures "in action," as it were.
 
-The `IslandMapMesh` class is essentially a wrapper for the `IslandMap` class that just generates a mesh. The `IslandMap` class points to a collection of various data assets, which actually generate the island. If you wanted to implement custom water generation, a good way to do so would be to create a new C++ class that inherits from the `IslandWaters` class and then override whichever method you want to change. Inside Unreal, right-click inside a content folder, then navigate to Miscellaneous -> Data Asset and create a new instance of your custom `IslandWaters` data asset. Go back to the `IslandMap` and update the water data asset to point to the one you just made, and it should "just work."
+- Various data assets, which actually generate the island.
+
+## Advanced
+
+You can mess around with the data assets, creating new subclasses and overriding base methods. Unlike "normal" data assets, these assets *should* work with Blueprint, if needed. 
+
+If you wanted to implement custom water generation, a good way to do so would be to create a new C++ class that inherits from the `IslandWaters` class and then override whichever method you want to change. Inside Unreal, right-click inside a content folder, then navigate to Miscellaneous -> Data Asset and create a new instance of your custom `IslandWaters` data asset. Go back to the `IslandMap` and update the water data asset to point to the one you just made, and it should "just work."
+
+There's also a number of places to "hook" into the island generation code if you wanted to modify the existing logic of a certain step or add your own implementations.
+
+As I mentioned, I tried to keep this port pretty close to the original. I've added a couple things for convenience, such as actual mesh generation as well as a data structure to keep track of rivers (`URiver`). However, while the rivers are placed, they do not get rendered and the underlying mesh is still the same -- you'll have to either roll your own option or look at [that downstream fork I mentioned earlier](https://github.com/Jay2645/IslandGenerator).
 
 # Credits
 
