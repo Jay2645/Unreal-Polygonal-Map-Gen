@@ -18,10 +18,5 @@ void AIslandMapMesh::OnIslandGenComplete_Implementation()
 
 void AIslandMapMesh::CreateIslandMesh()
 {
-	UIslandMapUtils::GenerateMapMesh(Mesh, MapMesh, ZScale, r_elevation);
-
-	if (GroundMaterial)
-	{
-		MapMesh->SetMaterial(0, GroundMaterial);
-	}
+	UIslandMapUtils::GenerateMesh(this, MapMesh, ZScale);
 }

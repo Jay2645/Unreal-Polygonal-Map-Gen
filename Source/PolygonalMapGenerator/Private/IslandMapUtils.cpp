@@ -336,18 +336,8 @@ void UIslandMapUtils::DrawVoronoiMesh(AActor* Context, UTriangleDualMesh* Mesh, 
 		{
 			FVector point = polygon.VertexPoints[j];
 			FTriangleIndex first = polygon.Vertices[j];
-			FVector next;
-			FTriangleIndex second;
-			if (j == polygon.VertexPoints.Num() - 1)
-			{
-				next = polygon.VertexPoints[0];
-				second = polygon.Vertices[0];
-			}
-			else
-			{
-				next = polygon.VertexPoints[j + 1];
-				second = polygon.Vertices[j + 1];
-			}
+			FVector next = polygon.VertexPoints[(j + 1) % Polygons.Num()];
+			FTriangleIndex second = polygon.Vertices[(j + 1) % Polygons.Num()];
 			DrawDebugLine(world, point, next, polygon.Biome.DebugColor, false, 999.0f);
 		}
 	}
@@ -412,10 +402,10 @@ void UIslandMapUtils::GenerateMesh(class AIslandMap* Map, UProceduralMeshCompone
 	{
 		return;
 	}
-	GenerateMapMesh(Map->Mesh, MapMesh, ZScale, Map->r_elevation);
+	GenerateMapMeshMultiMaterial(Map->Mesh, MapMesh, ZScale, Map->r_elevation, Map->r_biome);
 }
 
-void UIslandMapUtils::GenerateMapMesh(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation)
+void UIslandMapUtils::GenerateMapMeshSingleMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation)
 {
 	if (Mesh == NULL || MapMesh == NULL)
 	{
@@ -423,39 +413,148 @@ void UIslandMapUtils::GenerateMapMesh(UTriangleDualMesh* Mesh, UProceduralMeshCo
 	}
 	const TArray<FVector2D>& points = Mesh->GetPoints();
 	const FDualMesh& rawMesh = Mesh->GetRawMesh();
-	TArray<FVector> vertices;
-	TArray<FLinearColor> vertexColors;
-	TArray<int32> triangles;
-	TArray<FVector> normals;
-	TArray<FVector2D> uv0;
-	TArray<FProcMeshTangent> tangents;
 
-	vertices.SetNumZeroed(points.Num());
-	vertexColors.SetNum(vertices.Num());
-	triangles.SetNumZeroed(rawMesh.DelaunayTriangles.Num());
-	normals.SetNumZeroed(triangles.Num());
-	uv0.SetNumZeroed(triangles.Num());
-	tangents.SetNumZeroed(triangles.Num());
+	FMapMeshData meshData;
 
-	for (FPointIndex r = 0; r < vertices.Num(); r++)
+	meshData.Vertices.SetNumZeroed(points.Num());
+	meshData.VertexColors.SetNum(meshData.Vertices.Num());
+	meshData.Triangles.SetNumZeroed(rawMesh.DelaunayTriangles.Num());
+	meshData.Normals.SetNumZeroed(meshData.Triangles.Num());
+	meshData.UV0.SetNumZeroed(meshData.Triangles.Num());
+	meshData.Tangents.SetNumZeroed(meshData.Triangles.Num());
+
+	for (FPointIndex r = 0; r < meshData.Vertices.Num(); r++)
 	{
 		float z = Mesh->r_ghost(r) ? -10 * ZScale : RegionElevation[r] * ZScale;
-		vertices[r] = FVector(points[r].X, points[r].Y, z);
-		vertexColors[r] = FLinearColor(0.75, 0.75, 0.75, 1.0);
+		meshData.Vertices[r] = FVector(points[r].X, points[r].Y, z);
+		meshData.VertexColors[r] = FLinearColor(0.75, 0.75, 0.75, 1.0);
 	}
-	for (FTriangleIndex t = 0; t < triangles.Num(); t++)
+	for (FTriangleIndex t = 0; t < meshData.Triangles.Num(); t++)
 	{
-		triangles[t] = (int32)rawMesh.DelaunayTriangles[t];
+		meshData.Triangles[t] = (int32)rawMesh.DelaunayTriangles[t];
 		FDelaunayTriangle triangle = UDelaunayHelper::ConvertTriangleIDToTriangle(rawMesh, t);
 		FVector a = FVector(triangle.A.X, triangle.A.Y, RegionElevation[triangle.AIndex]);
 		FVector b = FVector(triangle.B.X, triangle.B.Y, RegionElevation[triangle.BIndex]);
 		FVector c = FVector(triangle.C.X, triangle.C.Y, RegionElevation[triangle.CIndex]);
-		normals[t] = FVector::CrossProduct(c - a, b - a).GetSafeNormal();
-		uv0[t] = FVector2D::ZeroVector;
-		tangents[t] = FProcMeshTangent((a - b).GetSafeNormal(), true);
+		meshData.Normals[t] = FVector::CrossProduct(c - a, b - a).GetSafeNormal();
+		meshData.UV0[t] = FVector2D::ZeroVector;
+		meshData.Tangents[t] = FProcMeshTangent((a - b).GetSafeNormal(), true);
 	}
 
-	MapMesh->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uv0, vertexColors, tangents, true);
+	MapMesh->CreateMeshSection_LinearColor(0, meshData.Vertices, meshData.Triangles, meshData.Normals, meshData.UV0, meshData.VertexColors, meshData.Tangents, true);
+
+	// Enable collision data
+	MapMesh->ContainsPhysicsTriMeshData(true);
+}
+
+void UIslandMapUtils::GenerateMapMeshMultiMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation, const TArray<FBiomeData> RegionBiomes)
+{
+	if (Mesh == NULL || MapMesh == NULL)
+	{
+		return;
+	}
+	const TArray<FVector2D>& points = Mesh->GetPoints();
+	const FDualMesh& rawMesh = Mesh->GetRawMesh();
+
+	TMap<FName, FMapMeshData> meshLookup;
+	TMap<FName, UMaterialInterface*> materialLookup;
+
+	for (FTriangleIndex t = 0; t < rawMesh.DelaunayTriangles.Num(); t += 3)
+	{
+		// Get triangle
+		FDelaunayTriangle triangle = UDelaunayHelper::ConvertTriangleIDToTriangle(rawMesh, t);		
+		// Determine which biome to use
+		// If we're on the boundary, use the boundary biome
+		// If 2+ points use the same biome, make the whole triangle that biome
+		// Otherwise, just use point A's biome
+		FBiomeData biome;
+		if (Mesh->r_boundary(triangle.AIndex))
+		{
+			biome = RegionBiomes[triangle.AIndex];
+		}
+		else if (Mesh->r_boundary(triangle.BIndex))
+		{
+			biome = RegionBiomes[triangle.BIndex];
+		}
+		else if (Mesh->r_boundary(triangle.CIndex))
+		{
+			biome = RegionBiomes[triangle.CIndex];
+		}
+		else if (RegionBiomes[triangle.AIndex].Tag == RegionBiomes[triangle.BIndex].Tag)
+		{
+			biome = RegionBiomes[triangle.AIndex];
+		}
+		else if (RegionBiomes[triangle.BIndex].Tag == RegionBiomes[triangle.CIndex].Tag)
+		{
+			biome = RegionBiomes[triangle.BIndex];
+		}
+		else if (RegionBiomes[triangle.CIndex].Tag == RegionBiomes[triangle.AIndex].Tag)
+		{
+			biome = RegionBiomes[triangle.CIndex];
+		}
+		else
+		{
+			biome = RegionBiomes[triangle.AIndex];
+		}
+
+		// Grab mesh info from the biome
+		FMapMeshData meshData;
+		if (meshLookup.Contains(biome.Tag))
+		{
+			meshData = meshLookup[biome.Tag];
+		}
+		else
+		{
+			materialLookup.Add(biome.Tag, biome.BiomeMaterial);
+			meshLookup.Add(biome.Tag, meshData);
+		}
+
+		// Create points
+		float aZ = Mesh->r_ghost(triangle.AIndex) ? -10 * ZScale : RegionElevation[triangle.AIndex] * ZScale;
+		float bZ = Mesh->r_ghost(triangle.BIndex) ? -10 * ZScale : RegionElevation[triangle.BIndex] * ZScale;
+		float cZ = Mesh->r_ghost(triangle.CIndex) ? -10 * ZScale : RegionElevation[triangle.CIndex] * ZScale;
+		FVector a = FVector(triangle.A.X, triangle.A.Y, aZ);
+		FVector b = FVector(triangle.B.X, triangle.B.Y, bZ);
+		FVector c = FVector(triangle.C.X, triangle.C.Y, cZ);
+
+		// Add to triangle
+		meshData.Triangles.Add(meshData.Vertices.Add(a));
+		meshData.Triangles.Add(meshData.Vertices.Add(b));
+		meshData.Triangles.Add(meshData.Vertices.Add(c));
+
+		// Calculate the tangents of our triangle
+		const FVector edge1 = b - c;
+		const FVector edge2 = a - c;
+		const FVector tangentX = edge1.GetSafeNormal();
+		FVector tangentZ = (edge1 ^ edge2).GetSafeNormal();
+		for (uint8 i = 0; i < 3; i++)
+		{
+			meshData.Tangents.Add(FProcMeshTangent(tangentX, false));
+			meshData.Normals.Add(tangentZ);
+			meshData.UV0.Add(FVector2D::ZeroVector);
+		}
+
+		// Vertex colors from the original biome data
+		meshData.VertexColors.Add(RegionBiomes[triangle.AIndex].DebugColor.ReinterpretAsLinear());
+		meshData.VertexColors.Add(RegionBiomes[triangle.BIndex].DebugColor.ReinterpretAsLinear());
+		meshData.VertexColors.Add(RegionBiomes[triangle.CIndex].DebugColor.ReinterpretAsLinear());
+
+		// Update the map with the latest version of the mesh
+		meshLookup[biome.Tag] = meshData;
+	}
+
+	// Create the actual meshes
+	uint8 index = 0;
+	for (auto kvp : meshLookup)
+	{
+		FMapMeshData meshData = kvp.Value;
+		MapMesh->CreateMeshSection_LinearColor(index, meshData.Vertices, meshData.Triangles, meshData.Normals, meshData.UV0, meshData.VertexColors, meshData.Tangents, true);
+		if (materialLookup.Contains(kvp.Key) && materialLookup[kvp.Key] != NULL)
+		{
+			MapMesh->SetMaterial(index, materialLookup[kvp.Key]);
+		}
+		index++;
+	}
 
 	// Enable collision data
 	MapMesh->ContainsPhysicsTriMeshData(true);

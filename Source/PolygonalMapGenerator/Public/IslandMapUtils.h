@@ -107,24 +107,26 @@ struct FBiomeData : public FGameplayTagTableRow
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool bIsOcean;
+	bool bIsOcean;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool bIsWater;
+	bool bIsWater;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool bIsCoast;
+	bool bIsCoast;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
-		float MinMoisture;
+	float MinMoisture;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
-		float MaxMoisture;
+	float MaxMoisture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
-		float MinTemperature;
+	float MinTemperature;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
-		float MaxTemperature;
+	float MaxTemperature;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FColor DebugColor;
+	FColor DebugColor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UMaterialInterface* BiomeMaterial;
 
 public:
 	FBiomeData()
@@ -140,6 +142,7 @@ public:
 		MaxTemperature = 1.0f;
 
 		DebugColor = FColor::Magenta;
+		BiomeMaterial = NULL;
 	}
 };
 
@@ -154,6 +157,25 @@ public:
 		TArray<FVector> VertexPoints;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		TArray<FTriangleIndex> Vertices;
+};
+
+USTRUCT(BlueprintType)
+struct POLYGONALMAPGENERATOR_API FMapMeshData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<FVector> Vertices;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<FLinearColor> VertexColors;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<int32> Triangles;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<FVector> Normals;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<FVector2D> UV0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<FProcMeshTangent> Tangents;
 };
 
 /**
@@ -192,5 +214,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
 	static void GenerateMesh(class AIslandMap* Map, UProceduralMeshComponent* MapMesh, float ZScale);
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
-	static void GenerateMapMesh(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation);
+	static void GenerateMapMeshSingleMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation);
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
+	static void GenerateMapMeshMultiMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation, const TArray<FBiomeData> RegionBiomes);
 };
