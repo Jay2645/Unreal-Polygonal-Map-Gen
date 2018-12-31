@@ -18,7 +18,7 @@ This version is designed to be a fairly barebones port; if you need extra featur
 
 ## Access through Blueprint only:
 
-If you only want to access everything through Blueprint, you can just clone this project into your <Project Root>/Plugins folder, where <Project Root> is where the .uplugin file is kept. You may have to create the Plugins folder if you haven't made it already. From there, you should be able to drag the pre-made Blueprints into your scene, create new custom Blueprints, or do whatever else you need.
+If you only want to access everything through Blueprint, you can just clone this project into your \<Project Root\>/Plugins folder, where \<Project Root\> is where the .uplugin file is kept. You may have to create the Plugins folder if you haven't made it already. From there, you should be able to drag the pre-made Blueprints into your scene, create new custom Blueprints, or do whatever else you need.
 
 ## Access through C++ and Blueprints:
 
