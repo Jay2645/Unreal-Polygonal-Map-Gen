@@ -1,10 +1,10 @@
 # Polygonal Map Generator
 
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+
 ## Created for Unreal Engine 4.21
 
 ![highresscreenshot00004](https://user-images.githubusercontent.com/2058763/50556437-f1503b80-0c8d-11e9-9686-be8d41c191dd.png)
-
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 This is a port of [the JavaScript code](https://github.com/amitp/mapgen2) of [Red Blob Games' *Polygonal Map Generation for Games*](http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/).
 
@@ -104,3 +104,17 @@ As I mentioned, I tried to keep this port pretty close to the original. I've add
 * Poisson Disc Sampling is created using code from the [Random Distribution Plugin](https://github.com/Xaymar/RandomDistributionPlugin) and used under the Apache 2.0 license.
 
 * Delaunay Triangulation is created [using the MIT-licensed Delaunator](https://github.com/delfrrr/delaunator-cpp) and made accessible through a number of Unreal helper functions. Something that's fairly annoying: Delaunay Triangulation is [built into the engine](https://github.com/EpicGames/UnrealEngine/blob/08ee319f80ef47dbf0988e14b546b65214838ec4/Engine/Source/Editor/Persona/Private/AnimationBlendSpaceHelpers.h), but is only accessible from the Unreal Editor. The data structures aren't exposed to other modules or Blueprint, so you can't use it without linker errors when shipping your game. The Unreal Engine code has a different license, so a third-party library has to be used.
+
+# Miscellaneous
+
+## Why mapgen2? Why not [mapgen4](https://github.com/redblobgames/mapgen4)?
+
+**Short answer:**
+
+Because mapgen4 wasn't open-source yet when I started refactoring all the code from mapgen1 to mapgen2 (as far as I can tell, there is no mapgen3).
+
+**Longer answer:**
+
+I'm not the biggest fan of mapgen4. In the future, [I may borrow some concepts regarding river representation](http://simblob.blogspot.com/2018/10/mapgen4-river-representation.html), and I do [enjoy how the rivers get laid out.](https://www.redblobgames.com/x/1723-procedural-river-growing/) I'm also unhappy with the current way of determining elevation (it's just distance from the nearest coastline), and I [like the idea of having moisture determined by rainfall](http://simblob.blogspot.com/2018/09/mapgen4-rainfall.html).
+
+However, I don't like how mapgen4 looks. It's a different approach to things -- it goes for a "handcrafted map" look, but that means there's a very distinct change division between hills and mountains, that's not very realistic. It's also designed in a way to let the user paint it; again, this is a cool idea, and one I might try to implement someday, but it's not the goal I was going for with this project. Ultimately, while there are some cool aspects to it (linked above), I prefer the way that mapgen2 feels (for the most part).
