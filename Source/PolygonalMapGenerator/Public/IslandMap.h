@@ -43,6 +43,11 @@ class POLYGONALMAPGENERATOR_API AIslandMap : public AActor
 	GENERATED_BODY()
 	friend class UIslandMapUtils;
 
+#if !UE_BUILD_SHIPPING
+private:
+	FDateTime LastRegenerationTime;
+#endif
+
 protected:
 	UPROPERTY()
 	TArray<bool> r_water;
@@ -81,14 +86,16 @@ protected:
 
 public:
 	// The random seed to use for the island.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RNG", meta = (NoSpinbox))
 	int32 Seed;
 	// Modifies how we calculate drainage.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RNG", meta = (NoSpinbox))
 	int32 DrainageSeed;
 	// Modifies how we calculate drainage.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "RNG")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RNG", meta = (NoSpinbox))
 	int32 RiverSeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RNG")
+	bool bDetermineRandomSeedAtRuntime;
 	// Modifies the types of biomes we produce.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	FBiomeBias BiomeBias;
@@ -146,11 +153,10 @@ public:
 	FOnIslandGenerationComplete OnIslandGenerationComplete;
 
 public:	
-	// Sets default values for this actor's properties
 	AIslandMap();
 
 protected:
-	// Called when the game starts or when spawned
+	//virtual void OnConstruction(const FTransform& NewTransform) override;
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Procedural Generation|Island Generation")

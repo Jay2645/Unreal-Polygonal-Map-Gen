@@ -19,13 +19,21 @@
 #include "IslandMap.h"
 #include "DualMeshBuilder.h"
 #include "IslandMapUtils.h"
+#include "TimerManager.h"
 
 // Sets default values
 AIslandMap::AIslandMap()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bDetermineRandomSeedAtRuntime = false;
 	Seed = 0;
+	DrainageSeed = 1;
+	RiverSeed = 2;
 	NumRivers = 30;
+
+#if !UE_BUILD_SHIPPING
+	LastRegenerationTime = FDateTime::MinValue();
+#endif
 
 	OnIslandPointGenerationComplete.AddDynamic(this, &AIslandMap::OnPointGenerationComplete);
 	OnIslandWaterGenerationComplete.AddDynamic(this, &AIslandMap::OnWaterGenerationComplete);
@@ -36,11 +44,25 @@ AIslandMap::AIslandMap()
 	OnIslandGenerationComplete.AddDynamic(this, &AIslandMap::OnIslandGenComplete);
 }
 
-// Called when the game starts or when spawned
+/*void AIslandMap::OnConstruction(const FTransform& NewTransform)
+{
+	Super::OnConstruction(NewTransform);
+
+#if !UE_BUILD_SHIPPING
+	FDateTime now = FDateTime::UtcNow();
+	FTimespan lengthBetweenRegeneration = now - LastRegenerationTime;
+	if (lengthBetweenRegeneration.GetTotalSeconds() < 1 || Rng.GetInitialSeed() == Seed && RiverRng.GetInitialSeed() == RiverSeed && DrainageRng.GetInitialSeed() == DrainageSeed)
+	{
+		OnIslandGenComplete();
+		return;
+	}
+#endif
+
+	GenerateIsland();
+}*/
+
 void AIslandMap::BeginPlay()
 {
-	Super::BeginPlay();
-
 	GenerateIsland();
 }
 
@@ -89,11 +111,23 @@ void AIslandMap::GenerateIsland_Implementation()
 
 #if !UE_BUILD_SHIPPING
 	FDateTime startTime = FDateTime::UtcNow();
-	FDateTime generationStartTime = startTime;
+	LastRegenerationTime = startTime;
 #endif
+	
+	if (bDetermineRandomSeedAtRuntime)
+	{
+		FDateTime startTime = FDateTime::UtcNow();
+		int multiplier = startTime.GetSecond() % 2 == 0 ? 1 : -1;
+		Seed = ((startTime.GetMillisecond() * startTime.GetMinute()) + (startTime.GetHour() * startTime.GetDayOfYear())) * multiplier;
+	}
 
 	Rng = FRandomStream();
 	Rng.Initialize(Seed);
+	if (bDetermineRandomSeedAtRuntime)
+	{
+		RiverSeed = Rng.RandRange(INT32_MIN, INT32_MAX);
+		DrainageSeed = Rng.RandRange(INT32_MIN, INT32_MAX);
+	}
 	RiverRng = FRandomStream();
 	RiverRng.Initialize(RiverSeed);
 	DrainageRng = FRandomStream();
@@ -228,7 +262,7 @@ void AIslandMap::GenerateIsland_Implementation()
 	difference = finishedTime - startTime;
 	startTime = finishedTime;
 	UE_LOG(LogMapGen, Log, TEXT("Generated map biomes in %f seconds."), difference.GetTotalSeconds());
-	FTimespan completedTime = finishedTime - generationStartTime;
+	FTimespan completedTime = finishedTime - LastRegenerationTime;
 	UE_LOG(LogMapGen, Log, TEXT("Total map generation time: %f seconds."), completedTime.GetTotalSeconds());
 #endif
 
