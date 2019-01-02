@@ -4,7 +4,7 @@
 
 ## Created for Unreal Engine 4.21
 
-![highresscreenshot00004](https://user-images.githubusercontent.com/2058763/50556437-f1503b80-0c8d-11e9-9686-be8d41c191dd.png)
+![highresscreenshot00005](https://user-images.githubusercontent.com/2058763/50578306-17d8b880-0ded-11e9-8b8d-b7641fcd7479.png)
 
 This is a port of [the JavaScript code](https://github.com/amitp/mapgen2) of [Red Blob Games' *Polygonal Map Generation for Games*](http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/).
 
@@ -94,6 +94,8 @@ If you wanted to implement custom water generation, a good way to do so would be
 There's also a number of places to "hook" into the island generation code if you wanted to modify the existing logic of a certain step or add your own implementations.
 
 As I mentioned, I tried to keep this port pretty close to the original. I've added a couple things for convenience, such as actual mesh generation as well as a data structure to keep track of rivers (`URiver`). However, while the rivers are placed, they do not get rendered and the underlying mesh is still the same -- you'll have to either roll your own option or look at [that downstream fork I mentioned earlier](https://github.com/Jay2645/IslandGenerator).
+
+Speaking of mesh generation; it's not perfect -- it does its best to match each triangle to an individual biome for the purposes of assigning materials, but it comes out a bit jagged. 
 
 # Credits
 

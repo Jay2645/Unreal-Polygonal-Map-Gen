@@ -216,5 +216,5 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
 	static void GenerateMapMeshSingleMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation);
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation")
-	static void GenerateMapMeshMultiMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation, const TArray<FBiomeData> RegionBiomes);
+	static void GenerateMapMeshMultiMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation, const TArray<bool>& CostalRegions, const TArray<FBiomeData> RegionBiomes);
 };

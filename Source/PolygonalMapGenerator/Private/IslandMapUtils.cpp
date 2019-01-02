@@ -402,7 +402,7 @@ void UIslandMapUtils::GenerateMesh(class AIslandMap* Map, UProceduralMeshCompone
 	{
 		return;
 	}
-	GenerateMapMeshMultiMaterial(Map->Mesh, MapMesh, ZScale, Map->r_elevation, Map->r_biome);
+	GenerateMapMeshMultiMaterial(Map->Mesh, MapMesh, ZScale, Map->r_elevation, Map->r_coast, Map->r_biome);
 }
 
 void UIslandMapUtils::GenerateMapMeshSingleMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation)
@@ -447,7 +447,7 @@ void UIslandMapUtils::GenerateMapMeshSingleMaterial(UTriangleDualMesh* Mesh, UPr
 	MapMesh->ContainsPhysicsTriMeshData(true);
 }
 
-void UIslandMapUtils::GenerateMapMeshMultiMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation, const TArray<FBiomeData> RegionBiomes)
+void UIslandMapUtils::GenerateMapMeshMultiMaterial(UTriangleDualMesh* Mesh, UProceduralMeshComponent* MapMesh, float ZScale, const TArray<float>& RegionElevation, const TArray<bool>& CostalRegions, const TArray<FBiomeData> RegionBiomes)
 {
 	if (Mesh == NULL || MapMesh == NULL)
 	{
@@ -465,6 +465,7 @@ void UIslandMapUtils::GenerateMapMeshMultiMaterial(UTriangleDualMesh* Mesh, UPro
 		FDelaunayTriangle triangle = UDelaunayHelper::ConvertTriangleIDToTriangle(rawMesh, t);		
 		// Determine which biome to use
 		// If we're on the boundary, use the boundary biome
+		// If we're part coast, use the coast biome (this prevents jagged triangles along the water)
 		// If 2+ points use the same biome, make the whole triangle that biome
 		// Otherwise, just use point A's biome
 		FBiomeData biome;
@@ -480,8 +481,23 @@ void UIslandMapUtils::GenerateMapMeshMultiMaterial(UTriangleDualMesh* Mesh, UPro
 		{
 			biome = RegionBiomes[triangle.CIndex];
 		}
+		else if (CostalRegions[triangle.AIndex])
+		{
+			// Coastal regions get handled after boundary regions
+			// This way, the boundary remains the same no matter what
+			biome = RegionBiomes[triangle.AIndex];
+		}
+		else if (CostalRegions[triangle.BIndex])
+		{
+			biome = RegionBiomes[triangle.BIndex];
+		}
+		else if (CostalRegions[triangle.CIndex])
+		{
+			biome = RegionBiomes[triangle.CIndex];
+		}
 		else if (RegionBiomes[triangle.AIndex].Tag == RegionBiomes[triangle.BIndex].Tag)
 		{
+			// Finally, handle it based on biomes
 			biome = RegionBiomes[triangle.AIndex];
 		}
 		else if (RegionBiomes[triangle.BIndex].Tag == RegionBiomes[triangle.CIndex].Tag)
