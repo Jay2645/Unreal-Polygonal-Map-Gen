@@ -59,7 +59,7 @@ If you only want to access everything through Blueprint, you can just clone this
 
 > This lets Unreal's Blueprint reflection system "see" your plugin and know to compile it before it compiles the rest of your code, so that you don't get weird linker errors when using things from the plugin.
 
-3. Open up your project in Unreal. If you get a prompt asking for an Unreal Engine version, you probably missed a comma somewhere in your .uproject file -- make sure all the commas and syntax are correct and try again. If Unreal does start to load, you might be told that your project is out of date, and the editor will ask if you want to rebuild your project. Go ahead and say yes so the plugin can be installed properly, keeping in mind that it might take a while to rebuild).
+3. Open up your project in Unreal. If you get a prompt asking for an Unreal Engine version, you probably missed a comma somewhere in your .uproject file -- make sure all the commas and syntax are correct and try again. If Unreal does start to load, you might be told that your project is out of date, and the editor will ask if you want to rebuild your project. Go ahead and say yes so the plugin can be installed properly (keeping in mind that it might take a while to rebuild).
 
 4. Open up the Plugins menu, scroll down to the bottom, and ensure that the "PolygonalMapGenerator" plugin is enabled.
 
