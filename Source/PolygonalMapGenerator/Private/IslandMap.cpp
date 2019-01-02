@@ -159,6 +159,9 @@ void AIslandMap::GenerateIsland_Implementation()
 #endif
 
 	// Reset all arrays
+	CreatedRivers.Empty(NumRivers);
+	spring_t.Empty();
+	river_t.Empty(NumRivers);
 
 	r_water.Empty(Mesh->NumRegions);
 	r_water.SetNumZeroed(Mesh->NumRegions);

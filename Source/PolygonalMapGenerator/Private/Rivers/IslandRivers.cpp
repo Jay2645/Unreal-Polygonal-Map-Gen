@@ -165,6 +165,7 @@ void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, TArray<
 {
 	if (Mesh)
 	{
+		Rivers.Empty(river_t.Num());
 		s_flow.Empty(Mesh->NumSides);
 		s_flow.SetNumZeroed(Mesh->NumSides);
 		TMap<FTriangleIndex, URiver*> riverTriangles;
