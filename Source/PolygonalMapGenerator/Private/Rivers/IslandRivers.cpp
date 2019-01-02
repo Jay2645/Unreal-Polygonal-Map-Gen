@@ -43,7 +43,8 @@ TArray<FTriangleIndex> UIslandRivers::FindSpringTriangles_Implementation(UTriang
 	if (Mesh != NULL)
 	{
 		// Add everything above some elevation, but not lakes
-		for (FTriangleIndex t = 0; t < Mesh->NumSolidTriangles; t++)
+		// We skip every other triangle to ensure that we don't select neighboring triangles later
+		for (FTriangleIndex t = 0; t < Mesh->NumSolidTriangles; t += 2)
 		{
 			if (t_elevation[t] >= MinSpringElevation &&
 				t_elevation[t] <= MaxSpringElevation &&
@@ -110,6 +111,11 @@ TArray<URiver*> UIslandRivers::CreateRiver(FTriangleIndex RiverTriangle, TArray<
 			{
 				// Make a new river
 				currentRiver = NewObject<URiver>();
+				if (currentRiver == NULL)
+				{
+					UE_LOG(LogMapGen, Error, TEXT("Could not create a new river!"));
+					break;
+				}
 				createdRivers.Add(currentRiver);
 			}
 
@@ -138,7 +144,21 @@ TArray<URiver*> UIslandRivers::CreateRiver(FTriangleIndex RiverTriangle, TArray<
 		RiverTriangle = next_t;
 		lastS = s;
 	}
-	return createdRivers;
+
+	// One final pass; make sure none of the rivers are null
+	TArray<URiver*> riverArray;
+	for (int i = 0; i < createdRivers.Num(); i++)
+	{
+		if (createdRivers[i] == NULL)
+		{
+			UE_LOG(LogMapGen, Error, TEXT("River at index %d was null!"), i);
+		}
+		else
+		{
+			riverArray.Add(createdRivers[i]);
+		}
+	}
+	return riverArray;
 }
 
 void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, TArray<URiver*>& Rivers, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t, FRandomStream& RiverRng) const
