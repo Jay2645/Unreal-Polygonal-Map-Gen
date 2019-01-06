@@ -19,7 +19,7 @@
 */
 
 #include "DualMeshBuilder.h"
-#include "DelaunayHelper.h"
+#include "Delaunator/Public/DelaunayHelper.h"
 #include "RandomSampling/PoissonDiscUtilities.h"
 
 

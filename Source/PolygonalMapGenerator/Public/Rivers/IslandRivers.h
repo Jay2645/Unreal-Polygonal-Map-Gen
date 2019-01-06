@@ -22,7 +22,7 @@
 #include "Engine/DataAsset.h"
 
 #include "PolygonalMapGenerator.h"
-#include "TriangleDualMesh.h"
+#include "DualMesh/Public/TriangleDualMesh.h"
 
 #include "IslandMapUtils.h"
 

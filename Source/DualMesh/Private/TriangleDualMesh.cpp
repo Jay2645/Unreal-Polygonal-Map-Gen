@@ -19,7 +19,6 @@
 */
 
 #include "TriangleDualMesh.h"
-#include "DelaunayHelper.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Actor.h"
 

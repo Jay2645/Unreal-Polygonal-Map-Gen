@@ -24,8 +24,8 @@
 #include "GameplayTagsManager.h"
 
 #include "PolygonalMapGenerator.h"
-#include "DelaunayHelper.h"
-#include "TriangleDualMesh.h"
+#include "Delaunator/Public/DelaunayHelper.h"
+#include "DualMesh/Public/TriangleDualMesh.h"
 #include "ProceduralMeshComponent.h"
 
 #include "IslandMapUtils.generated.h"

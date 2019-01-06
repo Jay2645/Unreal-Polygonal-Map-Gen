@@ -22,7 +22,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "DelaunayHelper.h"
+#include "Delaunator/Public/DelaunayHelper.h"
 #include "TriangleDualMesh.generated.h"
 
 USTRUCT(BlueprintType)

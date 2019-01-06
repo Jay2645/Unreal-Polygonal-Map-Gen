@@ -21,7 +21,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 
-#include "TriangleDualMesh.h"
+#include "DualMesh/Public/TriangleDualMesh.h"
 
 #include "IslandMeshBuilder.generated.h"
 

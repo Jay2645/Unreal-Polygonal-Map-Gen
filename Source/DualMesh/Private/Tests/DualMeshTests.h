@@ -23,7 +23,9 @@
 #include <vector>
 
 #include "CoreMinimal.h"
-#include "DelaunayHelper.h"
+
+#include "Delaunator/Public/DelaunayHelper.h"
+
 #include "RandomSampling/PoissonDiscUtilities.h"
 #include "TriangleDualMesh.h"
 

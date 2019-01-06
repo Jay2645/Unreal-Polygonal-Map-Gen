@@ -22,8 +22,8 @@
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
 
-#include "RandomSampling/SimplexNoise.h"
-#include "TriangleDualMesh.h"
+#include "DualMesh/Public/RandomSampling/SimplexNoise.h"
+#include "DualMesh/Public/TriangleDualMesh.h"
 
 #include "IslandMapUtils.h"
 #include "IslandMeshBuilder.h"

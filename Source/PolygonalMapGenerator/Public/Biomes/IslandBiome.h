@@ -23,7 +23,8 @@
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
 
-#include "TriangleDualMesh.h"
+#include "DualMesh/Public/TriangleDualMesh.h"
+
 #include "IslandMapUtils.h"
 
 #include "IslandBiome.generated.h"
