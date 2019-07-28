@@ -1,6 +1,8 @@
 # Polygonal Map Generator
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Jay2645/Unreal-Polygonal-Map-Gen/graphs/commit-activity)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) [![Maintenance](https://img.shields.io/badge/Maintained%3F-no-red.svg)](https://github.com/Jay2645/Unreal-Polygonal-Map-Gen/graphs/commit-activity)
+
+For legal reasons I'm not allowed to work on this currently. However, I'm still able to review and OK pull requests if need be in the future. This should also work for Unreal 4.21 and (probably) 4.22.
 
 ## Created for Unreal Engine 4.21
 
