@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-#include "IslandBiome.h"
+#include "Biomes/IslandBiome.h"
 
 void UIslandBiome::AssignCoast_Implementation(TArray<bool>& r_coast, UTriangleDualMesh* Mesh, const TArray<bool>& r_ocean) const
 {

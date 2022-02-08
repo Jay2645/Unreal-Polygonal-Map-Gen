@@ -108,15 +108,15 @@ void AIslandMap::GenerateIsland_Implementation()
 		UE_LOG(LogMapGen, Error, TEXT("IslandMap not properly set up!"));
 		return;
 	}
-
+	FDateTime startTime;
 #if !UE_BUILD_SHIPPING
-	FDateTime startTime = FDateTime::UtcNow();
+	startTime = FDateTime::UtcNow();
 	LastRegenerationTime = startTime;
 #endif
 	
 	if (bDetermineRandomSeedAtRuntime)
 	{
-		FDateTime startTime = FDateTime::UtcNow();
+		startTime = FDateTime::UtcNow();
 		int multiplier = startTime.GetSecond() % 2 == 0 ? 1 : -1;
 		Seed = ((startTime.GetMillisecond() * startTime.GetMinute()) + (startTime.GetHour() * startTime.GetDayOfYear())) * multiplier;
 	}

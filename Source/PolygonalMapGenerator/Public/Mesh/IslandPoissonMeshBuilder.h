@@ -19,7 +19,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IslandMeshBuilder.h"
+#include "Mesh/IslandMeshBuilder.h"
 #include "IslandPoissonMeshBuilder.generated.h"
 
 /**

@@ -26,12 +26,12 @@
 #include "DualMesh/Public/TriangleDualMesh.h"
 
 #include "IslandMapUtils.h"
-#include "IslandMeshBuilder.h"
-#include "IslandBiome.h"
-#include "IslandElevation.h"
-#include "IslandMoisture.h"
-#include "IslandRivers.h"
-#include "IslandWater.h"
+#include "Mesh/IslandMeshBuilder.h"
+#include "Biomes/IslandBiome.h"
+#include "Elevation/IslandElevation.h"
+#include "Moisture/IslandMoisture.h"
+#include "Rivers/IslandRivers.h"
+#include "Water/IslandWater.h"
 
 #include "IslandMap.generated.h"
 
